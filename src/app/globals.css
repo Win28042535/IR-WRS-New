@@ -44,6 +44,8 @@
   --color-ir-accent-hi: #C2EA1F;   /* hover (Primary 400) */
   --color-ir-accent-lo: #A5CD03;   /* active/pressed (Primary 600) */
   --color-ir-accent-soft: #EFF8CB; /* selected / highlighted surface (Primary 100) */
+  --color-ir-select: #A7BE42;      /* border of a selected option card */
+  --color-ir-select-soft: #C8D58E; /* border of a hovered option card */
   --color-ir-accent-text: #4D5E00; /* readable green text on light (Primary 900) */
   --color-ir-ring: #8FAB00;        /* focus ring (Primary 700) */
   --color-ir-on-accent: #171A15;   /* text/icon on a Primary fill */

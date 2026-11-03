@@ -17,10 +17,10 @@ import { DirectionMiniPreview } from "@/components/DirectionMiniPreview";
 import { WebsiteTypeMock } from "@/components/WebsiteTypeMock";
 import { QuizMock, QUIZ_MOCK_DARK } from "@/components/QuizMock";
 import { rankDirections, buildProfile, profileToDirection } from "@/lib/recommend";
-import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, WorkspaceDividerToggle } from "@/components/ui";
+import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { DevicePreview } from "@/components/DevicePreview";
 import { SitemapView } from "@/components/SitemapView";
-import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit } from "@/components/icons";
+import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import ConfidenceScore from "@/components/ConfidenceScore";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -435,6 +435,12 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
       updateDraft({ secondaryAudiences: [...cur, id] });
     }
   };
+  // Promote an already-picked audience to primary; the old primary becomes the first
+  // secondary so nothing else in the order shifts.
+  const makePrimary = (id: string) => {
+    const rest = (draft.secondaryAudiences ?? []).filter((a: string) => a !== id);
+    updateDraft({ primaryAudience: id, secondaryAudiences: draft.primaryAudience ? [draft.primaryAudience, ...rest] : rest });
+  };
   const ok = !!(draft.company.trim() && draft.projectType && draft.primaryAudience);
 
   // Auto-select IR as the only website type
@@ -638,24 +644,30 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           card behaves the same way so nothing has to be picked "first" */}
       <div>
         <SectionLabel>กลุ่มเป้าหมาย <span className="text-red-500 font-normal">*</span></SectionLabel>
-        <p className="text-[14px] text-ir-t3 mb-3 mt-1">เว็บไซต์ IR สื่อสารกับใครบ้าง? เลือกได้หลายกลุ่ม AI จะใช้กำหนดโครงสร้าง เนื้อหา และการออกแบบให้ตรงกับทุกกลุ่มที่เลือก</p>
+        <p className="text-[14px] text-ir-t3 mb-3 mt-1">เว็บไซต์ IR สื่อสารกับใครบ้าง? เลือกได้หลายกลุ่ม กลุ่มแรกที่เลือกคือกลุ่มเป้าหมายหลัก ซึ่ง AI จะใช้กำหนดโครงสร้าง เนื้อหา และการออกแบบเป็นอันดับแรก</p>
         <div className="grid sm:grid-cols-2 gap-2.5">
           {IR_AUDIENCES.map((aud) => {
-            const isSelected = selectedAudiences.includes(aud.id);
+            const rank = selectedAudiences.indexOf(aud.id) + 1;
             return (
-              <button key={aud.id} onClick={() => toggleAudience(aud.id)}
-                className={`rounded-xl border-2 p-3.5 text-left transition-all active:scale-[0.98] ${isSelected ? "border-ir-accent bg-ir-accent/[0.06] ir-shadow-accent" : "border-ir-border hover:border-ir-border-hi active:border-ir-border-hi"}`}>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-xl shrink-0">{aud.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14px] font-semibold text-ir-t1">{aud.label}</span>
-                      {isSelected && <span className="w-6 h-6 rounded-full bg-white ring-2 ring-ir-accent shadow-sm flex items-center justify-center shrink-0"><IconCheck width={8} height={8} className="text-ir-dark" /></span>}
-                    </div>
-                    <p className="text-[14px] text-ir-t3 mt-0.5 leading-snug">{aud.desc}</p>
-                  </div>
-                </div>
-              </button>
+              <OptionCard
+                key={aud.id}
+                icon={OPTION_ICONS[aud.id]}
+                title={aud.label}
+                desc={aud.desc}
+                selected={rank > 0}
+                rank={rank || undefined}
+                onSelect={() => toggleAudience(aud.id)}
+                tag={rank === 1 ? <OptionTag>กลุ่มเป้าหมายหลัก</OptionTag> : undefined}
+                aside={rank > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => makePrimary(aud.id)}
+                    className="text-[12px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
+                  >
+                    ตั้งเป็นกลุ่มหลัก
+                  </button>
+                ) : undefined}
+              />
             );
           })}
         </div>
@@ -672,26 +684,18 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         <p className="text-[14px] text-ir-t3 mb-3 mt-1">บริษัทมี CI เดิม (เว็บไซต์ โลโก้ หรือแนวทางแบรนด์) ที่ต้องการให้ AI ใช้อ้างอิงตอนออกแบบหรือไม่?</p>
         <div className="grid sm:grid-cols-2 gap-2.5">
           {([
-            { id: "yes", emoji: "🎨", label: "มี ต้องการใช้อ้างอิง", desc: "AI จะยึดสี โลโก้ และแนวทางแบรนด์เดิมเป็นฐานในการออกแบบ" },
-            { id: "no", emoji: "✨", label: "ไม่มี", desc: "AI จะแนะนำ Direction และโทนสีให้ใหม่ทั้งหมดตามข้อมูลที่กรอก" },
-          ] as const).map((opt) => {
-            const isSelected = draft.hasCorporateIdentity === opt.id;
-            return (
-              <button key={opt.id} onClick={() => updateDraft({ hasCorporateIdentity: draft.hasCorporateIdentity === opt.id ? "" : opt.id })}
-                className={`rounded-xl border-2 p-3.5 text-left transition-all active:scale-[0.98] ${isSelected ? "border-ir-accent bg-ir-accent/[0.06] ir-shadow-accent" : "border-ir-border hover:border-ir-border-hi active:border-ir-border-hi"}`}>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-xl shrink-0">{opt.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14px] font-semibold text-ir-t1">{opt.label}</span>
-                      {isSelected && <span className="w-6 h-6 rounded-full bg-white ring-2 ring-ir-accent shadow-sm flex items-center justify-center shrink-0"><IconCheck width={8} height={8} className="text-ir-dark" /></span>}
-                    </div>
-                    <p className="text-[14px] text-ir-t3 mt-0.5 leading-snug">{opt.desc}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+            { id: "yes", label: "มี ต้องการใช้อ้างอิง", desc: "AI จะยึดสี โลโก้ และแนวทางแบรนด์เดิมเป็นฐานในการออกแบบ" },
+            { id: "no", label: "ไม่มี", desc: "AI จะแนะนำ Direction และโทนสีให้ใหม่ทั้งหมดตามข้อมูลที่กรอก" },
+          ] as const).map((opt) => (
+            <OptionCard
+              key={opt.id}
+              icon={OPTION_ICONS[`ci-${opt.id}`]}
+              title={opt.label}
+              desc={opt.desc}
+              selected={draft.hasCorporateIdentity === opt.id}
+              onSelect={() => updateDraft({ hasCorporateIdentity: draft.hasCorporateIdentity === opt.id ? "" : opt.id })}
+            />
+          ))}
         </div>
       </div>
 
@@ -780,22 +784,16 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
             const memFreq = memory.frequentGoals.find((f) => f.value === goal.id);
             const hiddenOnMobile = i >= GOALS_COLLAPSE_AT && !goalsExpanded;
             return (
-              <button key={goal.id} onClick={() => toggleGoal(goal.id)}
-                className={`${hiddenOnMobile ? "hidden md:block" : ""} rounded-xl border-2 p-3.5 text-left transition-all active:scale-[0.98] ${sel ? "border-ir-accent bg-ir-accent/[0.06] ir-shadow-accent" : "border-ir-border hover:border-ir-border-hi active:border-ir-border-hi"}`}>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-xl shrink-0">{goal.emoji}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14px] font-medium">{goal.label}</span>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {memFreq && !sel && <span className="text-[9px] text-ir-accent-text/60 leading-none">↺</span>}
-                        {sel && <span className="w-6 h-6 rounded-full bg-white ring-2 ring-ir-accent shadow-sm flex items-center justify-center"><IconCheck width={8} height={8} className="text-ir-dark" /></span>}
-                      </div>
-                    </div>
-                    <p className="text-[14px] text-ir-t3 mt-0.5 leading-snug">{goal.desc}</p>
-                  </div>
-                </div>
-              </button>
+              <OptionCard
+                key={goal.id}
+                className={hiddenOnMobile ? "hidden md:flex" : ""}
+                icon={OPTION_ICONS[goal.id]}
+                title={goal.label}
+                desc={goal.desc}
+                selected={sel}
+                onSelect={() => toggleGoal(goal.id)}
+                tag={memFreq && !sel ? <OptionTag>เคยเลือกบ่อย</OptionTag> : undefined}
+              />
             );
           })}
         </div>
@@ -1702,41 +1700,40 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                       onClick={() => toggle(s.id)}
                       disabled={disabled}
                       className={[
-                        // White in every state — default, hover, and selected — so the card
-                        // reads as a distinct surface sitting on the category tray rather than
-                        // blending into its gray wash. State is carried entirely by border
-                        // weight/color, the shadow, and the checkmark instead of a tint.
-                        "text-left rounded-[14px] border-2 bg-ir-card p-3.5 transition-all duration-200 active:scale-[0.97] select-none",
+                        // Same selected/hover language as OptionCard (production WRS): lime-tinted
+                        // fill + olive border + soft ring when picked. Kept as its own button
+                        // (not OptionCard) because the ghost-flight animation needs its ref.
+                        "text-left rounded-[18px] border p-3.5 transition-[background-color,border-color,box-shadow,transform] duration-200 active:scale-[0.98] select-none",
                         sel
-                          ? "border-ir-accent ir-shadow-accent"
+                          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
                           : disabled
-                            ? "border-ir-border opacity-40 cursor-not-allowed"
+                            ? "border-ir-border bg-ir-card opacity-40 cursor-not-allowed"
                             // AI-recommended cards use the same neutral border as any other
                             // unselected card — the "AI แนะนำ" badge is the only signal that
                             // it's recommended; a different border color read as an unexplained
                             // state/interaction rather than a hint.
-                            : "border-ir-border hover:border-ir-accent/40",
+                            : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60",
                         selectPulseId === s.id ? "wrs-card-select-pulse" : "",
                         cardLandedIds.has(s.id) ? "wrs-card-glow" : "",
                       ].join(" ")}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="text-[20px] shrink-0 mt-0.5">{s.icon}</span>
+                        <span className={`grid place-items-center w-10 h-10 shrink-0 rounded-full text-[18px] transition-colors ${sel ? "bg-ir-accent-soft" : "bg-ir-muted"}`}>{s.icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                            <span className="text-[14px] font-semibold text-ir-t1 leading-snug">{s.name}</span>
+                            <span className="text-[15px] font-semibold text-ir-t1 leading-snug">{s.name}</span>
                             {isRec && !sel && !disabled && (
-                              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-ir-accent/12 text-ir-accent-text border border-ir-accent/25">
+                              <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full bg-ir-accent-soft text-ir-accent-text">
                                 AI แนะนำ
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-ir-t3 leading-relaxed line-clamp-2">{s.businessPurpose}</p>
+                          <p className="text-[13px] text-ir-t3 leading-snug line-clamp-2">{s.businessPurpose}</p>
                         </div>
-                        <span className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-0.5 ${
-                          sel ? "bg-ir-accent border-ir-accent" : "border-ir-border"
+                        <span className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
+                          sel ? "bg-ir-accent border-ir-accent text-ir-on-accent" : "border-ir-border-hi"
                         }`}>
-                          {sel && <IconCheck width={9} height={9} className="text-white" />}
+                          {sel && <IconCheck width={24} height={24} />}
                         </span>
                       </div>
                     </button>
@@ -2664,39 +2661,25 @@ function SummaryActionCard({ icon, title }: { icon: string; title: string }) {
 // and only that section renders below — the other path's data (if any) is kept, not
 // cleared, so switching back and forth never loses work already done in it.
 function ReferenceModePicker({ mode, setMode, hasCustom, hasCurated }: { mode: "custom" | "curated" | null; setMode: (m: "custom" | "curated") => void; hasCustom: boolean; hasCurated: boolean }) {
-  const OPTIONS: { id: "custom" | "curated"; icon: string; title: string; desc: string; hasData: boolean }[] = [
-    { id: "custom", icon: "🔗", title: "วางลิงก์หรือรูปเว็บที่ชอบ", desc: "มีเว็บหรือรูปในใจอยู่แล้ว อยากให้ AI ดูของจริง", hasData: hasCustom },
-    { id: "curated", icon: "✨", title: "ให้ AI ช่วยหาเว็บไซต์ตัวอย่าง", desc: "ยังไม่มีตัวอย่างในใจ ให้ทีม IR Plus คัดมาให้เลือก", hasData: hasCurated },
+  const OPTIONS: { id: "custom" | "curated"; title: string; desc: string; hasData: boolean }[] = [
+    { id: "custom", title: "วางลิงก์หรือรูปเว็บที่ชอบ", desc: "มีเว็บหรือรูปในใจอยู่แล้ว อยากให้ AI ดูของจริง", hasData: hasCustom },
+    { id: "curated", title: "ให้ AI ช่วยหาเว็บไซต์ตัวอย่าง", desc: "ยังไม่มีตัวอย่างในใจ ให้ทีม IR Plus คัดมาให้เลือก", hasData: hasCurated },
   ];
   return (
     <div className="mb-6">
-      {mode === null && <p className="text-[12.5px] text-ir-t3 mb-3">เลือกวิธีที่สะดวกสำหรับคุณ — สลับไปอีกแบบได้ทุกเมื่อ ไม่หายกัน</p>}
+      {mode === null && <p className="text-[14px] text-ir-t3 mb-3">เลือกวิธีที่สะดวกสำหรับคุณ — สลับไปอีกแบบได้ทุกเมื่อ ไม่หายกัน</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-        {OPTIONS.map((o) => {
-          const active = mode === o.id;
-          return (
-            <button
-              key={o.id}
-              onClick={() => setMode(o.id)}
-              aria-pressed={active}
-              className={`text-left rounded-2xl border px-4 py-3.5 flex items-start gap-3 transition-all active:scale-[0.98] ${
-                active ? "border-ir-accent bg-ir-accent/[0.06]" : "border-ir-border bg-ir-card hover:border-ir-border-hi active:border-ir-border-hi"
-              }`}
-            >
-              <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-[16px] shrink-0 ${active ? "bg-ir-accent/15" : "bg-ir-bg"}`}>
-                {o.icon}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[13px] font-semibold text-ir-t1">{o.title}</span>
-                  {o.hasData && <span className="w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0" title="มีข้อมูลอยู่แล้ว" />}
-                </div>
-                <p className="text-[11.5px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</p>
-              </div>
-              {active && <IconCheck width={12} height={12} className="text-ir-accent-text shrink-0 mt-0.5" />}
-            </button>
-          );
-        })}
+        {OPTIONS.map((o) => (
+          <OptionCard
+            key={o.id}
+            icon={OPTION_ICONS[o.id]}
+            title={o.title}
+            desc={o.desc}
+            selected={mode === o.id}
+            onSelect={() => setMode(o.id)}
+            tag={o.hasData && mode !== o.id ? <OptionTag>มีข้อมูลอยู่แล้ว</OptionTag> : undefined}
+          />
+        ))}
       </div>
     </div>
   );

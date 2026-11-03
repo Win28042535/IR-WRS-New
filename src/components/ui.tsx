@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent } from "react";
-import { IconArrowRight, IconArrowLeft } from "./icons";
+import { useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent, type SVGProps } from "react";
+import { IconArrowRight, IconArrowLeft, IconCheck } from "./icons";
 import { RULES } from "@/lib/data";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -44,6 +44,81 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Option card (production WRS pattern) ──
+// One selectable card for every pick-from-a-list question: 40px round icon (or the pick's
+// rank number once ranked), title + description, and a lime selected state. Cards never
+// move when picked — order is shown by the rank number instead. The whole card is the hit
+// area (stretched ::after on the main button); `aside` controls sit above it so they stay
+// separately clickable without nesting buttons.
+export function OptionCard({
+  icon: Icon,
+  title,
+  desc,
+  selected,
+  onSelect,
+  rank,
+  tag,
+  aside,
+  className = "",
+}: {
+  icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element;
+  title: ReactNode;
+  desc?: ReactNode;
+  selected: boolean;
+  onSelect: () => void;
+  rank?: number;
+  tag?: ReactNode;
+  aside?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`relative flex items-center gap-3 rounded-[18px] border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
+        selected
+          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
+          : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60"
+      } ${className}`}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none after:absolute after:inset-0 after:rounded-[18px] after:content-['']"
+      >
+        {rank ? (
+          <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-[14px] font-bold">
+            {rank}
+          </span>
+        ) : Icon ? (
+          <span className={`grid place-items-center w-10 h-10 shrink-0 rounded-full transition-colors ${selected ? "bg-ir-accent-soft text-ir-accent-text" : "bg-ir-muted text-ir-t2"}`}>
+            <Icon width={24} height={24} />
+          </span>
+        ) : null}
+        <span className="flex-1 min-w-0">
+          <span className="block text-[15px] font-semibold text-ir-t1 leading-snug">{title}</span>
+          {desc && <span className="block text-[13px] text-ir-t3 leading-snug mt-0.5">{desc}</span>}
+          {tag}
+        </span>
+        {selected && !rank && (
+          <span className="grid place-items-center w-7 h-7 shrink-0 rounded-full bg-ir-accent text-ir-on-accent" aria-hidden="true">
+            <IconCheck width={24} height={24} />
+          </span>
+        )}
+      </button>
+      {aside && <div className="relative z-10 flex items-center shrink-0">{aside}</div>}
+    </div>
+  );
+}
+
+/** Small lime pill under an option card title — e.g. "กลุ่มเป้าหมายหลัก". */
+export function OptionTag({ children }: { children: ReactNode }) {
+  return (
+    <span className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[12px] font-semibold bg-ir-accent-soft text-ir-accent-text">
+      {children}
+    </span>
   );
 }
 
