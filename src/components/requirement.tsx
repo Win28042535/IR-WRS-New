@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { directionById, sectionById, BUSINESS_GOALS, APPROVER_PROFILES, MOODS, SECTION_CATEGORIES, SECTIONS } from "@/lib/data";
+import { directionById, BUSINESS_GOALS, APPROVER_PROFILES, MOODS, SECTION_CATEGORIES, SECTIONS } from "@/lib/data";
 import { summarizeStakeholders } from "@/lib/recommend";
 import { STATUS_LABEL, requirementSummary, designInsight, recommendedGroups, approvalSummary } from "@/lib/insight";
 import { SitemapView } from "@/components/SitemapView";

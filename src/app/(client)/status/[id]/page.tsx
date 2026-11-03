@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useStore } from "@/lib/store";
-import { STATUS_LABEL } from "@/lib/insight";
 import { nextStepText, fmtDate } from "@/components/requirement";
 import { IconCheck, IconPalette } from "@/components/icons";
 import { LumaLoader, LumaChip } from "@/components/AIMascot";

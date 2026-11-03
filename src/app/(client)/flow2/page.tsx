@@ -3,37 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import {
-  INDUSTRIES, COMPANY_TYPES, WEBSITE_TYPES, BUSINESS_GOALS, QUIZ, RULES,
-  SECTIONS, SECTION_CATEGORIES, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS,
-  REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS,
-  IR_AUDIENCES, audienceById,
-  directionById, sectionById,
-} from "@/lib/data";
-import { buildBlueprint, blueprintCompleteness } from "@/lib/blueprint";
-import { aggregateDesignKnowledge } from "@/lib/referenceExtraction";
+import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, audienceById, directionById, sectionById } from "@/lib/data";
 import { photo, bgImage, type ImageRole } from "@/lib/images";
-import { DirectionMiniPreview } from "@/components/DirectionMiniPreview";
-import { WebsiteTypeMock } from "@/components/WebsiteTypeMock";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
-import { DevicePreview } from "@/components/DevicePreview";
-import { SitemapView } from "@/components/SitemapView";
+import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import type { DesignProfile, QuizOption } from "@/lib/types";
-import ConfidenceScore from "@/components/ConfidenceScore";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
 import { useHesitation } from "@/hooks/useHesitation";
-import AIReflection from "@/components/AIReflection";
-import AITimeline from "@/components/AITimeline";
-import AINotebook from "@/components/AINotebook";
 import { ProjectContextProvider } from "@/components/ProjectContextProvider";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useProjectContext } from "@/hooks/useProjectContext";
-import { LivingPreview } from "@/components/LivingPreview";
 import { PreviewPanel, usePreviewPanel } from "@/components/PreviewPanel";
-import { AIMascot, LumaChip } from "@/components/AIMascot";
+import { AIMascot } from "@/components/AIMascot";
 import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
@@ -396,48 +379,6 @@ function inferCompanyType(company: string): string {
   if (/government|กระทรวง|หน่วยงาน/.test(t)) return "Government / State Enterprise";
   if (/จำกัด|limited|ltd/.test(t) && !/มหาชน/.test(t)) return "Private Company";
   return "Public Company (Listed / SET)";
-}
-
-// ── Compact inline-dropdown chip for AI-inferred context fields ──
-function ContextChip({ label, value, options, onSelect, pending = false }: {
-  label: string; value: string; options: string[]; onSelect: (v: string) => void; pending?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
-  return (
-    <div ref={ref} className="flex-1 min-w-0 relative">
-      <div className="text-[10px] font-medium text-ir-t3 mb-1.5">{label}</div>
-      <button type="button" onClick={() => !pending && setOpen(!open)}
-        className={`w-full flex items-center justify-between gap-1.5 rounded-lg border px-3 py-2.5 text-[12px] transition-colors ${
-          pending ? "border-ir-border/40 text-ir-t3 cursor-default" :
-          open    ? "border-ir-accent text-ir-t1 bg-ir-accent/[0.03]" :
-                    "border-ir-border text-ir-t1 hover:border-ir-border-hi active:border-ir-border-hi active:bg-ir-bg bg-ir-card"
-        }`}
-      >
-        <span className="truncate">{pending ? "กำลังวิเคราะห์..." : (value || "—")}</span>
-        {!pending && <span className="text-ir-t3 text-[9px] shrink-0">{open ? "▴" : "▾"}</span>}
-      </button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-20 rounded-xl border border-ir-border bg-ir-card overflow-auto max-h-56 shadow-lg">
-          {options.map((opt) => (
-            <button key={opt} type="button" onClick={() => { onSelect(opt); setOpen(false); }}
-              className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-[12px] text-left transition-colors ${
-                value === opt ? "text-ir-accent-text font-semibold bg-ir-accent/[0.05]" : "text-ir-t2 hover:bg-ir-bg active:bg-ir-bg"
-              }`}
-            >
-              {opt}
-              {value === opt && <IconCheck width={10} height={10} />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -864,27 +805,6 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
     </>
   );
 }
-
-const WEBSITE_TYPE_DESC: Record<string, string> = {
-  "Corporate Website":       "เว็บไซต์หลักขององค์กร บริษัท หรือแบรนด์",
-  "Investor Relations Site": "ข้อมูลนักลงทุน รายงานการเงิน และหุ้น",
-  "Product / Service Site":  "แนะนำสินค้า บริการ และโซลูชัน",
-  "Campaign / Microsite":    "แคมเปญ โปรโมชั่น หรือเนื้อหาเฉพาะกิจ",
-  "ESG / Sustainability Site": "รายงานความยั่งยืน ESG และ CSR",
-};
-
-const COMPANY_TYPE_ICON: Record<string, string> = {
-  "Public Company (Listed / SET)": "📊",
-  "Public Company (Non-listed)":   "🏢",
-  "Private Company":               "🔒",
-  "Holding Company":               "🏗️",
-  "Joint Venture":                 "🤝",
-  "Family Business":               "🏠",
-  "SME":                           "🌱",
-  "Startup":                       "⚡",
-  "Government / State Enterprise": "🏛️",
-  "Non-profit / Foundation":       "❤️",
-};
 
 // Website mockup photo at the top of each quiz card — the same Explore imagery as the
 // production WRS, so the choice reads as a real website decision.
@@ -1621,8 +1541,6 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const irSectionIds = SECTIONS.filter((s) => s.category === "Investor").map((s) => s.id);
-
   // At max capacity there's no room left to add anything anyway, so neither AI-suggest
   // surface below should keep nudging — a suggestion the user can't act on reads as the step
   // not being done yet, even once all 9 sections are actually picked.
@@ -1897,100 +1815,6 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
         }
       />
     </>
-  );
-}
-
-function Spec({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="text-[10px] uppercase tracking-wide text-ir-t3 w-20 shrink-0 mt-0.5">{label}</span>
-      <span className="text-[11px] text-ir-t2 flex-1">{value}</span>
-    </div>
-  );
-}
-
-// ── S5 Preview ──
-function S5({ go, draft }: any) {
-  const dir = directionById(draft.selectedDirection);
-
-  const g = useGuide("analyst");
-
-  // Long hesitation if user lingers on preview without proceeding
-  const shownHesitation = useRef(false);
-  useHesitation(20000, () => {
-    if (shownHesitation.current) return;
-    shownHesitation.current = true;
-    g.show("ดูดีมั้ยครับ? ถ้ายังไม่แน่ใจ กลับไปลอง Direction อื่นได้ตลอดนะครับ", {
-      mode: "tip",
-      expert: "analyst",
-      actions: { explain: "Preview แสดง Layout จริงของ Direction ที่เลือก ตรวจสอบ Tone และ Visual ให้ครบก่อน Submit" },
-      autohide: 9000,
-    });
-  });
-
-  return (
-    <>
-      {/* Direction context strip orients user before the full preview */}
-      {dir && (
-        <div className="wrs-strip-in flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-ir-border bg-ir-bg/60">
-          <div className="relative shrink-0 rounded-lg overflow-hidden" style={{ width: 44, height: 30 }}>
-            <DirectionMiniPreview directionId={dir.id} industry={draft.industry} company={draft.company} className="absolute inset-0" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[11px] text-ir-t3 leading-none mb-0.5">Direction ที่คุณเลือก</div>
-            <div className="text-[13px] font-semibold text-ir-t1 leading-tight truncate">{dir.label}</div>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {(dir.colors ?? []).slice(0, 4).map((c: string, i: number) => (
-              <span key={i} className="w-3.5 h-3.5 rounded-full ring-1 ring-black/10" style={{ background: c }} />
-            ))}
-          </div>
-        </div>
-      )}
-      {g.visible && <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />}
-      <DevicePreview directionId={draft.selectedDirection} industry={draft.industry} sections={draft.selectedSections} company={draft.company} moods={draft.selectedMoods} layout={draft.selectedLayout} />
-      <div className="sticky bottom-0 -mx-6 md:-mx-8 px-6 md:px-8 py-4 mt-6 bg-white border-t border-ir-border flex items-center justify-between">
-        <button onClick={() => go(3)} className="flex items-center gap-1.5 px-4 py-2.5 border border-ir-border text-ir-t2 text-[14px] font-medium rounded-lg hover:border-ir-border-hi hover:text-ir-t1 active:border-ir-border-hi active:text-ir-t1 active:bg-ir-bg transition-colors">← แก้ไข Direction</button>
-        <NextButton onClick={() => go(5)}>ยืนยัน Requirement</NextButton>
-      </div>
-    </>
-  );
-}
-
-// ── Extracted design knowledge references synthesized into reusable principles ──
-function DesignKnowledgePanel({ draft }: { draft: any }) {
-  const knowledge = aggregateDesignKnowledge(draft);
-  const sources = knowledge[0]?.sources ?? 0;
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="rounded-2xl border border-ir-accent/25 bg-ir-accent/[0.03] overflow-hidden">
-      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-ir-accent/[0.04] transition-colors">
-        <div className="flex items-center gap-2.5">
-          <span className="w-7 h-7 rounded-lg bg-ir-accent/15 flex items-center justify-center text-[14px] shrink-0">✦</span>
-          <div>
-            <p className="text-[13px] font-semibold text-ir-t1">แนวทางดีไซน์ที่ AI สกัดได้</p>
-            <p className="text-[11px] text-ir-t3">
-              {sources > 0 ? `จาก ${sources} ตัวอย่างที่คุณเลือก` : "สังเคราะห์จากบริบทของคุณ"} · {knowledge.length} มิติ
-            </p>
-          </div>
-        </div>
-        <span className={`text-ir-t3 transition-transform ${open ? "rotate-90" : ""}`}>›</span>
-      </button>
-      {open && (
-        <div className="px-4 pb-4 grid sm:grid-cols-2 gap-x-4 gap-y-3 border-t border-ir-accent/15 pt-3">
-          {knowledge.map((k) => (
-            <div key={k.id} className="min-w-0">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[11.5px] font-semibold text-ir-t1">{k.label}</span>
-                <span className="text-[9.5px] text-ir-t3">{k.th}</span>
-              </div>
-              <p className="text-[11.5px] text-ir-t2 leading-snug mt-0.5">{k.principle}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -2695,110 +2519,6 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   );
 }
 
-// ── Blueprint block status dot ──
-function BlockStatusDot({ status }: { status: "empty" | "partial" | "complete" }) {
-  if (status === "complete")
-    return <span className="w-6 h-6 rounded-full bg-ir-accent flex items-center justify-center shrink-0"><IconCheck width={9} height={9} className="text-ir-on-accent" /></span>;
-  if (status === "partial")
-    return <span className="w-6 h-6 rounded-full border-2 border-amber-400 flex items-center justify-center shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /></span>;
-  return <span className="w-6 h-6 rounded-full border-2 border-ir-border flex items-center justify-center shrink-0"><span className="w-1 h-1 rounded-full bg-ir-t3/40" /></span>;
-}
-
-// ── Assembled Blueprint document ──
-function BlueprintDocument({ draft, onJump }: { draft: any; onJump: (step: number) => void }) {
-  const blocks = buildBlueprint(draft);
-  const completeness = blueprintCompleteness(draft);
-
-  return (
-    <div className="rounded-[20px] border border-ir-border overflow-hidden bg-ir-card ir-shadow">
-      {/* Header dark spec cover */}
-      <div className="relative px-5 py-5" style={{ background: "linear-gradient(135deg,#151823,#232833)" }}>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-ir-accent ir-live-dot" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-ir-accent-text">AI Design Blueprint</span>
-            </div>
-            <h3 className="text-white text-[18px] font-semibold leading-tight">{draft.company || "องค์กรของคุณ"}</h3>
-            <p className="text-white/45 text-[11px] mt-0.5">สเปกที่ AI ปลายทางนำไปสร้างเว็บไซต์ได้ทันที</p>
-          </div>
-          {/* Completeness ring */}
-          <div className="relative shrink-0 w-14 h-14" title="ความสมบูรณ์ของ Blueprint">
-            <svg viewBox="0 0 40 40" className="w-14 h-14 -rotate-90">
-              <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3.5" />
-              <circle cx="20" cy="20" r="16" fill="none" stroke="#AACC00" strokeWidth="3.5" strokeLinecap="round"
-                strokeDasharray={`${(completeness / 100) * 100.5} 100.5`} />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white text-[13px] font-bold tabular-nums">{completeness}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Blocks */}
-      <div className="divide-y divide-ir-border/60">
-        {blocks.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => onJump(b.phase)}
-            className="w-full text-left px-5 py-4 flex items-start gap-3.5 hover:bg-ir-bg/50 transition-colors group"
-          >
-            <BlockStatusDot status={b.status} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-ir-t1">{b.label}</span>
-                <span className="text-[10px] text-ir-t3 uppercase tracking-wide">{b.en}</span>
-              </div>
-              <p className={`text-[14px] mt-0.5 ${b.status === "empty" ? "text-ir-t3 italic" : "text-ir-t2"}`}>{b.summary}</p>
-              {b.fields.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {b.fields.slice(0, 8).map((f, i) => (
-                    <span key={i} className="text-[10.5px] px-2 py-0.5 rounded-full bg-ir-bg border border-ir-border/60 text-ir-t2">
-                      {f.value}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <span className="text-ir-t3/50 group-hover:text-ir-accent-text transition-colors shrink-0 mt-0.5 text-[11px]">แก้ไข</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── S5 · Blueprint step — layout scaffold for a future customer summary. ──
-// This step will become a concise, visual project summary: clear and reassuring,
-// not a design-reasoning document. No AI reasoning or technical terms belong here —
-// each card below is a placeholder reserved for a specific future summary, not a
-// preview of its content. Internal collaboration artifacts (Design Strategy, Website
-// Identity, Brand Personality, Purpose, Strategy, Design Operating Context, AI
-// Recommendations, AI Reasoning, Next Steps for IR Plus) must never surface here.
-function SummaryCard({ icon, title, caption, wide }: { icon: string; title: string; caption: string; wide?: boolean }) {
-  return (
-    <div className={`rounded-2xl border border-ir-border bg-ir-card flex flex-col items-center justify-center text-center gap-2 px-5 ${wide ? "py-10" : "py-8"}`}>
-      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-ir-accent/10 text-[16px]">{icon}</div>
-      <p className="text-[13px] font-semibold text-ir-t1">{title}</p>
-      <p className="text-[11px] text-ir-t3">{caption}</p>
-      <span className="text-[9px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-black/[0.04] text-ir-t3">
-        เร็วๆ นี้
-      </span>
-    </div>
-  );
-}
-
-function SummaryActionCard({ icon, title }: { icon: string; title: string }) {
-  return (
-    <div className="flex-1 rounded-[14px] border border-dashed border-ir-border flex items-center justify-center gap-2.5 px-4 py-3.5 text-ir-t3">
-      <span className="text-[15px]">{icon}</span>
-      <span className="text-[12.5px] font-medium">{title}</span>
-      <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-black/[0.04]">เร็วๆ นี้</span>
-    </div>
-  );
-}
-
 // ── Mode picker — replaces the old "both sections shown, loser dims" layout. The
 // customer commits to one path up front (their own references, or AI-curated examples)
 // and only that section renders below — the other path's data (if any) is kept, not
@@ -3185,7 +2905,6 @@ function ConceptBoard({ draft }: { draft: any }) {
 
 // ── S6 · Deliver references + finalize + submit ──
 function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebookEntry, router }: any) {
-  const dir = directionById(draft.selectedDirection);
   const [submitting, setSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [attempted, setAttempted] = useState(false);

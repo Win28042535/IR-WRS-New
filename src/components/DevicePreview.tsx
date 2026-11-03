@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import type { DeviceMode } from "@/lib/types";
 
 type PinComment = { id: string; x: number; y: number; text: string; status: "open" | "resolved"; replies: string[] };
-import { directionById, sectionById } from "@/lib/data";
+import { directionById } from "@/lib/data";
 import { contentFor } from "@/lib/content";
 import { photo, bgImage } from "@/lib/images";
 import { previewBrand, moodsToBrand } from "@/lib/brand";

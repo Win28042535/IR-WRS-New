@@ -2,18 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  Requirement,
-  FlowType,
-  Stakeholder,
-  AuditEntry,
-  StakeholderRole,
-  Project,
-  TimelineEntry,
-  TimelineEventType,
-  NotebookEntry,
-  NotebookCategory,
-} from "./types";
+import { Requirement, FlowType, Stakeholder, AuditEntry, StakeholderRole, Project, TimelineEntry, NotebookEntry } from "./types";
 import { APPROVAL_LEVELS } from "./data";
 import { buildUserMemory } from "./aiMemory";
 import { upsertRequirement } from "./supabaseRepo";
