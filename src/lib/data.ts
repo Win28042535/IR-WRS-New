@@ -326,28 +326,28 @@ export const DIRECTIONS: Direction[] = [
 export const QUIZ: QuizQuestion[] = [
   {
     id: "q1", question: "ภาพลักษณ์ที่อยากให้นักลงทุนรู้สึกเมื่อเข้าเว็บไซต์ IR?", axis: "toneCorporate",
-    optionA: { label: "Corporate & Formal", desc: "เป็นทางการ น่าเชื่อถือ มั่นคงระดับสถาบัน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)" },
-    optionB: { label: "Modern & Approachable", desc: "ทันสมัย เข้าถึงข้อมูลได้ง่าย", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)" },
+    optionA: { label: "Corporate & Formal", desc: "เป็นทางการ น่าเชื่อถือ มั่นคงระดับสถาบัน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", image: "/design-direction/q1-a-corporate-formal.webp" },
+    optionB: { label: "Modern & Approachable", desc: "ทันสมัย เข้าถึงข้อมูลได้ง่าย", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", image: "/design-direction/q1-b-modern-approachable.webp" },
   },
   {
     id: "q2", question: "โทนสีเว็บไซต์แบบไหนที่เหมาะกับองค์กรคุณ?", axis: "contrastDark",
-    optionA: { label: "Dark & Premium", desc: "สีเข้ม หนักแน่น ดูมีระดับ", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)" },
-    optionB: { label: "Light & Clear", desc: "สว่าง โปร่ง สื่อสารได้ชัดเจน", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)" },
+    optionA: { label: "Dark & Premium", desc: "สีเข้ม หนักแน่น ดูมีระดับ", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", image: "/design-direction/q2-a-dark-premium.webp" },
+    optionB: { label: "Light & Clear", desc: "สว่าง โปร่ง สื่อสารได้ชัดเจน", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", image: "/design-direction/q2-b-light-clear.webp" },
   },
   {
     id: "q3", question: "รูปแบบตัวอักษรแบบไหนเหมาะกับเว็บไซต์ของคุณ?", axis: "densityData",
-    optionA: { label: "Precise & Data-forward", desc: "ชัดเจน คมชัด เน้นความแม่นยำของตัวเลขและข้อมูล", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)" },
-    optionB: { label: "Editorial & Narrative", desc: "มีลีลา อบอุ่น เหมาะกับการเล่าเรื่อง", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)" },
+    optionA: { label: "Precise & Data-forward", desc: "ชัดเจน คมชัด เน้นความแม่นยำของตัวเลขและข้อมูล", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", image: "/design-direction/q3-a-precise-data.webp" },
+    optionB: { label: "Editorial & Narrative", desc: "มีลีลา อบอุ่น เหมาะกับการเล่าเรื่อง", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", image: "/design-direction/q3-b-editorial-narrative.webp" },
   },
   {
     id: "q4", question: "สไตล์การนำเสนอข้อมูล IR ที่ต้องการ?", axis: "energyBold",
-    optionA: { label: "Bold & Confident", desc: "โดดเด่น มั่นใจ สื่อถึงการเติบโต", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)" },
-    optionB: { label: "Minimal & Professional", desc: "เรียบง่าย สุภาพ น่าเชื่อถือ", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)" },
+    optionA: { label: "Bold & Confident", desc: "โดดเด่น มั่นใจ สื่อถึงการเติบโต", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", image: "/design-direction/q4-a-bold-confident.webp" },
+    optionB: { label: "Minimal & Professional", desc: "เรียบง่าย สุภาพ น่าเชื่อถือ", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", image: "/design-direction/q4-b-minimal-professional.webp" },
   },
   {
     id: "q5", question: "ระหว่างสองแนวทางนี้ เหมาะกับองค์กรคุณมากกว่า?", axis: "toneCorporate",
-    optionA: { label: "Premium / Institutional", desc: "หรูหรา ระดับสถาบันการเงิน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)" },
-    optionB: { label: "Tech / Transparent", desc: "ทันสมัย โปร่งใส ตรวจสอบได้ง่าย", value: -1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)" },
+    optionA: { label: "Premium / Institutional", desc: "หรูหรา ระดับสถาบันการเงิน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", image: "/design-direction/q5-a-premium-institutional.webp" },
+    optionB: { label: "Tech / Transparent", desc: "ทันสมัย โปร่งใส ตรวจสอบได้ง่าย", value: -1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", image: "/design-direction/q5-b-tech-transparent.webp" },
   },
 ];
 

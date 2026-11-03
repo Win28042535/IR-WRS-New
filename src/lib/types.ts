@@ -94,6 +94,7 @@ export interface QuizOption {
   desc: string;
   value: number;        // contribution to axis (-1 .. +1 scale via weight)
   preview: string;      // visual hint (gradient)
+  image: string;        // Explore photo, 1200×677 (public/design-direction)
 }
 
 // Accumulated design profile (-100..100 per axis)

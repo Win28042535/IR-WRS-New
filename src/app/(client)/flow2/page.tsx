@@ -15,9 +15,8 @@ import { aggregateDesignKnowledge } from "@/lib/referenceExtraction";
 import { photo, bgImage, type ImageRole } from "@/lib/images";
 import { DirectionMiniPreview } from "@/components/DirectionMiniPreview";
 import { WebsiteTypeMock } from "@/components/WebsiteTypeMock";
-import { QuizMock, QUIZ_MOCK_DARK } from "@/components/QuizMock";
 import { rankDirections, buildProfile, profileToDirection } from "@/lib/recommend";
-import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
+import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { DevicePreview } from "@/components/DevicePreview";
 import { SitemapView } from "@/components/SitemapView";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
@@ -852,41 +851,20 @@ const COMPANY_TYPE_ICON: Record<string, string> = {
   "Non-profit / Foundation":       "❤️",
 };
 
-// Mini website/UI mockup rendered inside each quiz card header — communicates the option's
-// visual identity through a schematic UI example (hero, palette, typeface, stat card),
-// the same idiom as MoodMock/WebsiteTypeMock, so the choice reads as a real website
-// decision rather than a mood photograph unrelated to what's actually being designed.
-function QuizCardMock({ preview, letter, questionId }: { preview: string; letter: string; questionId: string }) {
-  const id = `${questionId}_${letter}`;
-  const dark = QUIZ_MOCK_DARK[id] ?? true;
-  const ink = dark ? "rgba(255,255,255," : "rgba(30,30,30,";
-
+// Website mockup photo at the top of each quiz card — the same Explore imagery as the
+// production WRS, so the choice reads as a real website decision.
+function QuizPhoto({ src, alt, letter }: { src: string; alt: string; letter: string }) {
   return (
-    // Padding-box ratio technique (padding-top: 75% of width = 4:3) instead of the CSS
-    // `aspect-ratio` property — `aspect-ratio` support/behavior is inconsistent on some
-    // mobile WebViews, and when the box's height doesn't lock in correctly, this whole
-    // mockup can render short/collapsed, which reads as "incomplete/cut off". The
-    // padding-percentage trick derives height purely from width and has no such gap.
-    <div className="relative overflow-hidden" style={{ paddingTop: "75%" }}>
-      <div className="absolute inset-0">
-        <QuizMock id={id} />
-        {/* Thin brand-color identity strip — ties the mockup back to this option's palette */}
-        <div className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ background: preview }} />
-
-        {/* Letter badge top-right */}
-        <span
-          className="absolute top-3 right-3 flex items-center justify-center rounded-full text-[11px] font-semibold"
-          style={{
-            width: 26, height: 26,
-            background: `${ink}0.18)`,
-            color: `${ink}0.9)`,
-            backdropFilter: "blur(6px)",
-            border: `1px solid ${ink}0.25)`,
-          }}
-        >
-          {letter}
-        </span>
-      </div>
+    // Production WRS Explore photo: 1200×677 website mockup in an inset 14px frame. Height
+    // comes from the padding-box ratio (56.42% = 677/1200) rather than `aspect-ratio`,
+    // which some mobile WebViews don't lock in — the frame can't collapse while loading,
+    // and the shimmer underneath shows until the photo arrives.
+    <div className="relative overflow-hidden rounded-[10px] sm:rounded-[14px] border border-ir-border wrs-skeleton" style={{ paddingTop: "56.42%" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} width={1200} height={677} draggable={false} className="absolute inset-0 w-full h-full object-cover select-none" />
+      <span className="absolute top-2 right-2 sm:top-3 sm:right-3 grid place-items-center w-7 h-7 rounded-full bg-ir-dark/75 text-white text-[12px] font-bold backdrop-blur-sm" aria-hidden="true">
+        {letter}
+      </span>
     </div>
   );
 }
@@ -921,6 +899,13 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
 
   useEffect(() => () => clearTimeout(pendingTimer.current), []);
 
+  // Warm the cache with the next question's photos so they're ready when it appears.
+  useEffect(() => {
+    const next = QUIZ[idx + 1];
+    if (!next) return;
+    [next.optionA.image, next.optionB.image].forEach((src) => { new window.Image().src = src; });
+  }, [idx]);
+
   const g = useGuide("design");
 
   // Long hesitation fires once if user stalls on a question
@@ -946,35 +931,40 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         expert={g.expert}
         className="mb-5"
       />
-      {/* Quiz header question counter + progress */}
+      {/* Question counter — segmented like the step bar above, one segment per question */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 h-1 bg-ir-border rounded-full overflow-hidden">
-          <div className="h-full bg-ir-accent transition-all duration-500" style={{ width: `${((idx + 1) / total) * 100}%` }} />
+        <div className="flex-1 flex gap-1" aria-hidden="true">
+          {Array.from({ length: total }, (_, i) => (
+            <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i < idx ? "bg-ir-accent" : i === idx ? "bg-ir-dark" : "bg-ir-border"}`} />
+          ))}
         </div>
-        <span className="text-[12px] text-ir-t3 shrink-0 tabular-nums">{idx + 1} / {total}</span>
+        <span className="font-mono text-[12px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-[20px] font-semibold text-ir-t1 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
+      <p className="text-center text-[20px] sm:text-[22px] font-semibold tracking-[-0.02em] text-ir-t1 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
+      {/* Always two-up, even on phones, so A and B are compared side by side — stacking
+          them pushed B below the fold and biased answers toward A. */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
         {opts.map(([o, letter]) => (
           <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
+            aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
-              "rounded-[14px] sm:rounded-[20px] border-2 overflow-hidden transition-all text-left group select-none",
+              "rounded-[16px] sm:rounded-[20px] border bg-ir-card p-1.5 sm:p-2.5 text-left select-none transition-[border-color,box-shadow,opacity,transform] duration-200",
               pending === letter
-                ? "wrs-quiz-selected scale-[1.01] -translate-y-0.5"
+                ? "wrs-quiz-selected border-ir-select"
                 : pending
                 ? "border-ir-border opacity-50 cursor-default"
-                : "border-ir-border hover:border-ir-dark hover:ir-shadow-accent hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.99] active:border-ir-dark",
+                : "border-ir-border hover:border-ir-select-soft hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.99]",
             ].join(" ")}>
-            <QuizCardMock preview={o.preview} letter={letter} questionId={q.id} />
-            <div className="p-2.5 sm:p-4 border-t border-ir-border/60">
-              <div className="text-[13px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</div>
-              <div className="text-[11px] sm:text-[16px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
+            <QuizPhoto src={o.image} alt={o.label} letter={letter} />
+            <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
+              <div className="text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</div>
+              <div className="text-[13px] sm:text-[14px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
           </button>
         ))}
       </div>
       <div className="flex justify-center mt-6">
-        <button onClick={onBack} className="text-[13px] text-ir-t2 hover:text-ir-t1 active:text-ir-t1 px-4 py-2 rounded-lg hover:bg-black/[0.04] active:bg-black/[0.04] transition-colors">← ย้อนกลับ</button>
+        <BackButton onClick={onBack}>ย้อนกลับ</BackButton>
       </div>
     </>
   );
