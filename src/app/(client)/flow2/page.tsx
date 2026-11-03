@@ -15,7 +15,7 @@ import { aggregateDesignKnowledge } from "@/lib/referenceExtraction";
 import { photo, bgImage, type ImageRole } from "@/lib/images";
 import { DirectionMiniPreview } from "@/components/DirectionMiniPreview";
 import { WebsiteTypeMock } from "@/components/WebsiteTypeMock";
-import { rankDirections, buildProfile, profileToDirection } from "@/lib/recommend";
+import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, ProgressBar, RuleBadge, SectionLabel, SectionDivider, PaletteSwatches, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { DevicePreview } from "@/components/DevicePreview";
 import { SitemapView } from "@/components/SitemapView";
@@ -51,6 +51,7 @@ export default function Flow2() {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [quizIdx, setQuizIdx] = useState(0);
+  const [quizDone, setQuizDone] = useState(false); // last answer given → show the result screen
   const [answers, setAnswers] = useState<{ axis: keyof DesignProfile; option: QuizOption }[]>([]);
   const [dir, setDir] = useState<"forward" | "backward">("forward");
   const prevStep = useRef(1);
@@ -101,6 +102,8 @@ export default function Flow2() {
       prevStep.current = resume;
       setStep(resume);
     }
+    // A finished quiz is kept in the draft, so returning to Explore shows its result.
+    if (st.draft.quizPicks?.length === QUIZ.length && st.draft.selectedDirection) setQuizDone(true);
   }, [startFlow, updateDraft]);
 
   // Persist panel width whenever it changes (but not while collapsed)
@@ -134,7 +137,7 @@ export default function Flow2() {
     }
     leftPanelRef.current?.scrollTo({ top: 0 });
     stepCardRef.current?.focus({ preventScroll: true });
-  }, [step, quizIdx]);
+  }, [step, quizIdx, quizDone]);
 
   const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
     if (wsCollapsed) return;
@@ -190,8 +193,10 @@ export default function Flow2() {
       const ai = profileToDirection(profile);
       const ranked = rankDirections(draft.industry, draft.companyType, draft.businessGoals);
       const chosen = ai?.direction ?? (ranked[0] ? directionById(ranked[0].id) : undefined);
+      const picks = updated.map((a, i) => ({ questionId: QUIZ[i].id, letter: (a.option === QUIZ[i].optionA ? "A" : "B") as "A" | "B" }));
       updateDraft({
         designProfile: profile,
+        quizPicks: picks,
         ...(chosen ? {
           selectedDirection: chosen.id,
           directionLabel: chosen.label,
@@ -205,8 +210,22 @@ export default function Flow2() {
           reasoning: `AI สังเคราะห์แนวทางจาก Design Profile ของคุณ ${chosen.tagline} (${ai?.confidence ?? ""}% match)`,
         });
       }
-      go(4);
+      setQuizDone(true);
     }
+  };
+
+  const retakeQuiz = () => {
+    setAnswers([]);
+    setQuizIdx(0);
+    setQuizDone(false);
+  };
+
+  // Switching to another ranked Direction on the result screen
+  const chooseDirection = (id: string) => {
+    const d = directionById(id);
+    if (!d) return;
+    updateDraft({ selectedDirection: d.id, directionLabel: d.label, selectedLayout: d.layout });
+    addTimelineEntry?.({ step: 3, type: "direction", decision: d.label, reasoning: "ลูกค้าเลือกแนวทางนี้เองจากผลการสำรวจ" });
   };
 
   return (
@@ -246,11 +265,12 @@ export default function Flow2() {
                   ref={stepCardRef}
                   tabIndex={-1}
                   className={`outline-none bg-ir-card border border-ir-border rounded-[20px] ir-shadow p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
-                  key={`${step}-${quizIdx}`}
+                  key={`${step}-${quizIdx}-${quizDone}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
                   {step === 2 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
-                  {step === 3 && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} />}
+                  {step === 3 && quizDone && <QuizResult draft={draft} onContinue={() => go(4)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
+                  {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} />}
                   {step === 4 && <S3 go={go} draft={draft} updateDraft={updateDraft} enterDir={dir} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 5 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
                 </div>
@@ -980,6 +1000,119 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       </div>
       <div className="flex justify-center mt-6">
         <BackButton onClick={onBack}>ย้อนกลับ</BackButton>
+      </div>
+    </>
+  );
+}
+
+// ── Explore result — what the quiz concluded and why ──
+// Shown after the last answer instead of jumping straight to Structure: the matched
+// Direction with its % and palette, the five picks that led there, and the other three
+// Directions ranked so the customer can switch if another one fits better. Everything is
+// read back from the draft (designProfile + quizPicks), so it survives a reload.
+function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onContinue: () => void; onRetake: () => void; onChoose: (id: string) => void }) {
+  const ranked = draft.designProfile ? rankProfileDirections(draft.designProfile) : [];
+  const current = ranked.find((r) => r.direction.id === draft.selectedDirection) ?? ranked[0];
+  if (!current) return null;
+  const d = current.direction;
+  const isTop = current === ranked[0];
+  const picks: { questionId: string; letter: "A" | "B" }[] = draft.quizPicks ?? [];
+
+  return (
+    <>
+      <div className="text-center">
+        <span className="text-[14px] font-semibold text-ir-accent-text">ผลการสำรวจ</span>
+        <h2 className="mt-2 text-[24px] sm:text-[28px] font-semibold tracking-[-0.02em] text-ir-t1" style={{ textWrap: "balance" } as CSSProperties}>
+          {isTop ? "แนวทางที่ใกล้กับองค์กรคุณที่สุด" : "แนวทางที่คุณเลือก"}
+        </h2>
+      </div>
+
+      {/* Matched Direction — drenched in its own gradient */}
+      <div className="mt-6 rounded-[24px] p-6 sm:p-8 text-white" style={{ background: d.bg }}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[13px] font-semibold text-white/75">Design Direction</p>
+            <p className="mt-1 text-[30px] sm:text-[36px] font-semibold leading-tight tracking-[-0.03em] text-white">{d.label}</p>
+            <p className="mt-1 text-[16px] text-white/85">{d.tagline}</p>
+          </div>
+          <span className="rounded-full bg-white/15 px-3.5 py-1.5 font-mono text-[14px] font-bold text-white backdrop-blur-sm">
+            {current.confidence}% match
+          </span>
+        </div>
+        <p className="mt-4 max-w-[60ch] text-[15px] leading-relaxed text-white/85">{d.desc}</p>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1.5" aria-hidden="true">
+              {d.colors.map((c: string) => <span key={c} className="w-7 h-7 rounded-full ring-1 ring-white/30" style={{ background: c }} />)}
+            </div>
+            <span className="text-[14px] text-white/85">{d.palette}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {d.mood.map((m: string) => (
+              <span key={m} className="rounded-full border border-white/25 px-3 py-1 text-[13px] text-white/90">{m}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Why — the five picks, each with the photo that was chosen */}
+      {picks.length > 0 && (
+        <div className="mt-8">
+          <p className="text-[16px] font-semibold text-ir-t1">มาจากคำตอบของคุณ</p>
+          <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {picks.map((p, i) => {
+              const q = QUIZ.find((x) => x.id === p.questionId);
+              if (!q) return null;
+              const o = p.letter === "A" ? q.optionA : q.optionB;
+              return (
+                <li key={p.questionId} className="flex lg:flex-col gap-3 rounded-[16px] border border-ir-border bg-ir-card p-2">
+                  {/* Outer box fixes the width; the inner padding ratio is a % of that width */}
+                  <div className="w-24 lg:w-full shrink-0">
+                    <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={o.image} alt="" width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                    </div>
+                  </div>
+                  <div className="min-w-0 py-1 lg:px-1">
+                    <p className="font-mono text-[12px] text-ir-t3">ข้อ {i + 1}</p>
+                    <p className="text-[14px] font-semibold leading-snug text-ir-t1">{o.label}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      {/* Other Directions — ranked, switchable */}
+      <div className="mt-8">
+        <p className="text-[16px] font-semibold text-ir-t1">แนวทางอื่นที่ใกล้เคียง</p>
+        <p className="mt-1 text-[14px] text-ir-t3">ถ้าแนวทางอื่นตรงกับองค์กรมากกว่า เลือกแทนได้เลย</p>
+        <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
+          {ranked.filter((r) => r.direction.id !== d.id).map((r) => (
+            <OptionCard
+              key={r.direction.id}
+              title={r.direction.label}
+              desc={r.direction.tagline}
+              selected={false}
+              onSelect={() => onChoose(r.direction.id)}
+              aside={<span className="font-mono text-[13px] font-semibold text-ir-t2">{r.confidence}%</span>}
+              tag={
+                <>
+                  <span className="mt-2 flex gap-1" aria-hidden="true">
+                    {r.direction.colors.map((c: string) => <span key={c} className="w-4 h-4 rounded-full ring-1 ring-black/10" style={{ background: c }} />)}
+                  </span>
+                  {r === ranked[0] && <OptionTag>ตรงกับคำตอบที่สุด</OptionTag>}
+                </>
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5">
+        <BackButton onClick={onRetake}>ทำ Quiz ใหม่</BackButton>
+        <NextButton onClick={onContinue}>ไปวางโครงสร้าง</NextButton>
       </div>
     </>
   );

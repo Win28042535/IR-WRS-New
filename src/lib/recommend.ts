@@ -98,36 +98,35 @@ export function buildProfile(
   return p;
 }
 
-// map profile to the closest direction
-export function profileToDirection(p: DesignProfile): {
-  direction: Direction;
-  confidence: number;
-} {
-  // ideal axis fingerprint per direction (-100..100)
-  const fingerprints: Record<string, DesignProfile> = {
-    "premium-corporate": { toneCorporate: 90, contrastDark: 40, densityData: 20, energyBold: -20 },
-    "esg-focused": { toneCorporate: 20, contrastDark: -30, densityData: -60, energyBold: -10 },
-    "modern-tech": { toneCorporate: -70, contrastDark: 20, densityData: 30, energyBold: 40 },
-    "growth-oriented": { toneCorporate: 30, contrastDark: 80, densityData: 90, energyBold: 80 },
-  };
-  let best: Direction = DIRECTIONS[0];
-  let bestDist = Infinity;
-  DIRECTIONS.forEach((d) => {
-    const f = fingerprints[d.id];
+// ideal axis fingerprint per direction (-100..100)
+const DIRECTION_FINGERPRINTS: Record<string, DesignProfile> = {
+  "premium-corporate": { toneCorporate: 90, contrastDark: 40, densityData: 20, energyBold: -20 },
+  "esg-focused": { toneCorporate: 20, contrastDark: -30, densityData: -60, energyBold: -10 },
+  "modern-tech": { toneCorporate: -70, contrastDark: 20, densityData: 30, energyBold: 40 },
+  "growth-oriented": { toneCorporate: 30, contrastDark: 80, densityData: 90, energyBold: 80 },
+};
+
+// every direction with its match %, closest first
+export function rankProfileDirections(p: DesignProfile): { direction: Direction; confidence: number }[] {
+  return DIRECTIONS.map((d) => {
+    const f = DIRECTION_FINGERPRINTS[d.id];
     const dist = Math.sqrt(
       (f.toneCorporate - p.toneCorporate) ** 2 +
         (f.contrastDark - p.contrastDark) ** 2 +
         (f.densityData - p.densityData) ** 2 +
         (f.energyBold - p.energyBold) ** 2
     );
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = d;
-    }
-  });
-  // max distance ~ sqrt(4*200^2)=400 → confidence
-  const confidence = Math.max(40, Math.round(100 - (bestDist / 400) * 100));
-  return { direction: best, confidence };
+    // max distance ~ sqrt(4*200^2)=400 → confidence
+    return { direction: d, confidence: Math.max(40, Math.round(100 - (dist / 400) * 100)) };
+  }).sort((a, b) => b.confidence - a.confidence);
+}
+
+// map profile to the closest direction
+export function profileToDirection(p: DesignProfile): {
+  direction: Direction;
+  confidence: number;
+} {
+  return rankProfileDirections(p)[0];
 }
 
 // ── Recommended sections by direction + industry (UX #9) ──

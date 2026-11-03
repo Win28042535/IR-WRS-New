@@ -185,6 +185,7 @@ export interface Requirement {
   id: string;            // IRP-xxxxxx
   flow: FlowType;
   flowStep?: number;     // last step reached in the client flow, restored after a reload
+  quizPicks?: { questionId: string; letter: "A" | "B" }[]; // Explore answers, in question order
   status: RequirementStatus;
   projectId?: string;    // links back to the Sales-created Project
   createdAt: number;
