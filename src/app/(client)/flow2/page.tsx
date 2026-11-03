@@ -70,6 +70,8 @@ export default function Flow2() {
   const [isResizing, setIsResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
+  const stepCardRef = useRef<HTMLDivElement>(null);
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -113,6 +115,19 @@ export default function Flow2() {
     usePreviewPanel.getState().setWsCollapsedAuto(step < 4 || isOverlayWorkspace);
   }, [step, isOverlayWorkspace]);
 
+  // Every new step or quiz question starts at its heading: jump (not smooth-scroll) the
+  // questionnaire back to the top so the old scroll offset never carries over, then move
+  // focus to the new card so keyboard and screen-reader users land on it too. Skipped on
+  // first load so opening the page doesn't steal focus.
+  useEffect(() => {
+    if (!hasNavigated.current) {
+      hasNavigated.current = true;
+      return;
+    }
+    leftPanelRef.current?.scrollTo({ top: 0 });
+    stepCardRef.current?.focus({ preventScroll: true });
+  }, [step, quizIdx]);
+
   const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
     if (wsCollapsed) return;
     e.preventDefault();
@@ -145,7 +160,6 @@ export default function Flow2() {
     setDir(n > prevStep.current ? "forward" : "backward");
     prevStep.current = n;
     setStep(n);
-    leftPanelRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const panelTransition = isResizing ? "none" : "width 260ms cubic-bezier(0.4, 0, 0.2, 1)";
@@ -211,14 +225,18 @@ export default function Flow2() {
             <div className={`mx-auto ${step === 6 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
               {step === 6 ? (
                 <div
-                  className={dir === "forward" ? "step-enter-forward" : "step-enter-backward"}
+                  ref={stepCardRef}
+                  tabIndex={-1}
+                  className={`outline-none ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
                   key={`${step}-${quizIdx}`}
                 >
                   <S6Deliver go={go} draft={draft} updateDraft={updateDraft} submit={submit} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />
                 </div>
               ) : (
                 <div
-                  className={`bg-ir-card border border-ir-border rounded-[20px] ir-shadow p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
+                  ref={stepCardRef}
+                  tabIndex={-1}
+                  className={`outline-none bg-ir-card border border-ir-border rounded-[20px] ir-shadow p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
                   key={`${step}-${quizIdx}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
@@ -1971,7 +1989,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                 onClick={() => pick(s.domain)}
                 aria-pressed={isSelected}
                 title={`เลือก ${s.domain}`}
-                className="relative block w-full text-left group"
+                className="relative block w-full text-left group wrs-skeleton"
                 style={{ paddingTop: "75%" }}
               >
               <div
