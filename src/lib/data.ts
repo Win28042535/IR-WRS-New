@@ -203,6 +203,12 @@ export const SECTIONS: SectionDef[] = [
   { id: "ir-info", name: "ข้อมูลสำหรับนักลงทุน / IR Information", category: "Investor", desc: "ข้อมูล IR ทั่วไป ราคาหุ้น SET", icon: "💹", businessPurpose: "ข้อมูล IR ทั่วไป รวมราคาหุ้น Real-time ข้อมูลหลักทรัพย์ และศูนย์กลางข้อมูลสำหรับนักลงทุน", example: "SET Ticker · Volume · Market Cap · IR Contacts" },
   { id: "shareholder-info", name: "ข้อมูลผู้ถือหุ้น / Shareholder Info", category: "Investor", desc: "โครงสร้างผู้ถือหุ้นและสิทธิประโยชน์", icon: "🤝", businessPurpose: "แสดงโครงสร้างผู้ถือหุ้น ปันผล สิทธิ AGM และข้อมูลสิทธิประโยชน์สำหรับผู้ถือหุ้น", example: "Major Shareholders · Dividend History · AGM Rights" },
 
+  { id: "analyst", name: "บทวิเคราะห์ / Analyst Coverage", category: "Investor", desc: "บทวิเคราะห์และประมาณการจากโบรกเกอร์", icon: "🔎", businessPurpose: "รวมรายชื่อโบรกเกอร์ที่ออกบทวิเคราะห์ ราคาเป้าหมาย และ Consensus ให้นักวิเคราะห์และนักลงทุนสถาบันหาได้ในที่เดียว", example: "Broker Coverage · Target Price · Consensus · Analyst Presentation" },
+
+  // ── Sustainability & Governance / ความยั่งยืนและธรรมาภิบาล ──
+  { id: "sustainability", name: "ความยั่งยืน / ESG", category: "Sustainability", desc: "การพัฒนาอย่างยั่งยืนด้านสิ่งแวดล้อม สังคม และธรรมาภิบาล", icon: "🌿", businessPurpose: "สื่อสารเป้าหมาย ESG ผลการดำเนินงานด้านความยั่งยืน และรายงานตามมาตรฐาน GRI / TCFD ที่นักลงทุน ESG ใช้ประกอบการตัดสินใจ", example: "ESG Highlights · Sustainability Report · SET ESG Ratings · Net Zero Target" },
+  { id: "governance", name: "การกำกับดูแลกิจการ / CG", category: "Sustainability", desc: "นโยบายธรรมาภิบาล จรรยาบรรณ และการต่อต้านคอร์รัปชัน", icon: "⚖️", businessPurpose: "แสดงความโปร่งใสตามหลักการกำกับดูแลกิจการที่ดีของ ก.ล.ต. และ SET ให้ผู้กำกับดูแลและนักลงทุนตรวจสอบได้", example: "CG Policy · Code of Conduct · Anti-Corruption (CAC) · Whistleblowing" },
+
   // ── Engagement / Section เสริม ──
   { id: "cta", name: "CTA หรือ Section อื่นๆ", category: "Engagement", desc: "Call to Action พิเศษหรือ Section เสริม", icon: "🎯", businessPurpose: "เพิ่ม Section พิเศษตามความต้องการ เช่น Download Kit, IR Subscription, Quick Contact หรือ Highlight Campaign", example: "Subscribe IR · Download IR Kit · Contact IR Team" },
 ];
@@ -222,15 +228,35 @@ export const RELATED_SECTIONS: Record<string, string[]> = {
   financial: ["reports", "ir-info", "shareholder-info"],
   "ir-info": ["financial", "contact", "reports"],
   "shareholder-info": ["financial", "reports", "ir-calendar"],
+  analyst: ["financial", "reports", "ir-calendar"],
+  sustainability: ["governance", "reports", "board"],
+  governance: ["board", "sustainability", "reports"],
   cta: ["contact", "ir-calendar"],
 };
 
-export const SECTION_CATEGORIES = ["Core", "People", "Investor", "Engagement"];
+export const SECTION_CATEGORIES = ["Core", "People", "Investor", "Sustainability", "Engagement"];
 export const SECTION_CATEGORY_LABEL: Record<string, string> = {
   "Core": "โครงสร้างหลัก",
   "People": "คณะกรรมการ / ผู้บริหาร",
   "Investor": "ข้อมูลนักลงทุน (IR)",
+  "Sustainability": "ความยั่งยืนและธรรมาภิบาล",
   "Engagement": "Section เสริม / CTA",
+};
+
+// Sections each business goal calls for, most important first. "ใช้คำแนะนำ" in Structure
+// adds these ahead of the audience/Direction picks, so a goal the customer named (e.g. ESG)
+// always shows up as an actual section rather than only shaping the copy.
+export const GOAL_SECTIONS: Record<string, string[]> = {
+  credibility: ["about", "board", "history"],
+  ir: ["financial", "ir-info", "reports", "ir-calendar"],
+  lead: ["contact", "cta"],
+  awareness: ["about", "ir-calendar"],
+  digital: ["ir-info", "cta"],
+  esg: ["sustainability", "governance"],
+  talent: ["about", "board"],
+  product: ["about", "cta"],
+  intl: ["about", "ir-info", "reports"],
+  compliance: ["governance", "reports", "board"],
 };
 
 // ── Business goals (Flow 2) ──
@@ -260,8 +286,8 @@ export interface AudienceDef {
 export const IR_AUDIENCES: AudienceDef[] = [
   { id: "retail", label: "นักลงทุนรายย่อย", emoji: "👤", desc: "นักลงทุนบุคคลทั่วไป ผู้ถือหุ้นรายย่อย", shapes: "เน้นเข้าใจง่าย เล่าเรื่องชัด สรุปตัวเลขสำคัญแบบไม่ซับซ้อน", prioritizes: ["financial", "ir-calendar", "ir-info", "shareholder-info"] },
   { id: "institutional", label: "นักลงทุนสถาบัน", emoji: "🏛️", desc: "กองทุน สถาบันการเงิน ผู้ถือหุ้นรายใหญ่", shapes: "เน้นข้อมูลเชิงลึก ตัวเลขครบ ดาวน์โหลดเอกสารได้ครบถ้วน", prioritizes: ["financial", "reports", "shareholder-info", "ir-info"] },
-  { id: "analyst", label: "นักวิเคราะห์", emoji: "📊", desc: "Sell-side / Buy-side analysts นักวิเคราะห์หลักทรัพย์", shapes: "เน้น Data density สูง ตาราง KPI Historical data และ Presentation", prioritizes: ["financial", "reports", "ir-calendar", "ir-info"] },
-  { id: "regulator", label: "ผู้กำกับดูแล", emoji: "⚖️", desc: "SET, ก.ล.ต. และหน่วยงานกำกับ", shapes: "เน้นความโปร่งใส ธรรมาภิบาล และการเปิดเผยตามข้อกำหนด", prioritizes: ["reports", "board", "financial", "ir-info"] },
+  { id: "analyst", label: "นักวิเคราะห์", emoji: "📊", desc: "Sell-side / Buy-side analysts นักวิเคราะห์หลักทรัพย์", shapes: "เน้น Data density สูง ตาราง KPI Historical data และ Presentation", prioritizes: ["financial", "analyst", "reports", "ir-calendar", "ir-info"] },
+  { id: "regulator", label: "ผู้กำกับดูแล", emoji: "⚖️", desc: "SET, ก.ล.ต. และหน่วยงานกำกับ", shapes: "เน้นความโปร่งใส ธรรมาภิบาล และการเปิดเผยตามข้อกำหนด", prioritizes: ["governance", "reports", "board", "financial"] },
   { id: "shareholder", label: "ผู้ถือหุ้นปัจจุบัน", emoji: "🤝", desc: "ผู้ถือหุ้นที่ลงทุนอยู่แล้ว", shapes: "เน้นข่าวสาร ปันผล การประชุมผู้ถือหุ้น และสิทธิประโยชน์", prioritizes: ["ir-calendar", "financial", "shareholder-info", "contact"] },
   { id: "potential", label: "นักลงทุนที่สนใจ", emoji: "🌱", desc: "ผู้ที่กำลังพิจารณาลงทุน", shapes: "เน้นสร้างความน่าเชื่อถือ วิสัยทัศน์ การเติบโต และโอกาส", prioritizes: ["about", "history", "financial", "chairman-message"] },
 ];

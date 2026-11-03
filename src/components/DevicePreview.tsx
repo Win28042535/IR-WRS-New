@@ -18,10 +18,11 @@ const DEVICE_W: Record<DeviceMode, number> = { desktop: 1180, tablet: 720, mobil
 // ── Section → content-group mapping (SET-inspired Information Architecture) ──
 type Group = "about" | "products" | "people" | "ir" | "governance" | "esg" | "news" | "contact";
 const SECTION_GROUP: Record<string, Group> = {
-  about: "about", mission: "about", history: "about",
+  about: "about", mission: "about", history: "about", "chairman-message": "about",
   services: "products", products: "products", features: "products",
   team: "people", board: "people", careers: "people",
   financial: "ir", stock: "ir", reports: "ir", "ir-calendar": "ir",
+  "ir-info": "ir", "shareholder-info": "ir", analyst: "ir",
   governance: "governance",
   esg: "esg", sustainability: "esg", csr: "esg", environment: "esg",
   news: "news", blog: "news", cases: "news", awards: "news", testimonials: "news",

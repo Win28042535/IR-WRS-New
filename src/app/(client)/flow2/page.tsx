@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import {
   INDUSTRIES, COMPANY_TYPES, WEBSITE_TYPES, BUSINESS_GOALS, QUIZ, RULES,
-  SECTIONS, SECTION_CATEGORIES, SECTION_CATEGORY_LABEL, RELATED_SECTIONS,
+  SECTIONS, SECTION_CATEGORIES, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS,
   REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS,
   IR_AUDIENCES, audienceById,
   directionById, sectionById,
@@ -41,7 +41,7 @@ import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "
 const STEPS    = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "วางโครงสร้าง", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
 const STEPS_EN = ["Understand",   "Define",         "Explore",      "Structure",    "Inspiration",   "Deliver"];
 
-const IR_CATEGORY_ORDER = ["Core", "People", "Investor", "Engagement"];
+const IR_CATEGORY_ORDER = ["Core", "People", "Investor", "Sustainability", "Engagement"];
 
 const WS_WIDTH_KEY = "wrs_workspace_left_pct";
 
@@ -1455,10 +1455,13 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
   const count = selected.length;
   const canNext = count >= RULES.sections.min;
 
-  // ── AI recommendations: audience priorities + direction sections ──
+  // ── AI recommendations: goal sections → audience priorities → direction sections ──
+  // Goals come first: they're what the customer explicitly asked the site to do, and
+  // "ใช้คำแนะนำ" only fills the room left under the section cap, in this order.
   const aud = audienceById(draft.primaryAudience);
   const dirSuggested = directionById(draft.selectedDirection)?.sections ?? [];
-  const recommended = new Set<string>([...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]);
+  const goalSuggested = (draft.businessGoals ?? []).flatMap((g: string) => GOAL_SECTIONS[g] ?? []);
+  const recommended = new Set<string>([...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]);
 
   // Source-card DOM refs, keyed by section id — read at click time to know where the
   // "flying card" ghost should start from (see GhostFlightLayer).
