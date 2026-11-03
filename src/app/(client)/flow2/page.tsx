@@ -2784,6 +2784,21 @@ const FONT_PAIRINGS: Record<string, { heading: string; body: string; note: strin
 };
 const DEFAULT_PAIRING = { heading: "Manrope", body: "Inter", note: "คู่ฟอนต์อเนกประสงค์ อ่านง่ายทุกขนาด" };
 
+// CSS variables set by next/font in the root layout for every font FONT_PAIRINGS names.
+const FONT_VARS: Record<string, string> = {
+  Fraunces: "--font-fraunces",
+  Manrope: "--font-manrope",
+  "Space Grotesk": "--font-space-grotesk",
+  Sora: "--font-sora",
+  Inter: "--font-inter",
+};
+
+/** font-family for a pairing font — the loaded next/font face, then a system fallback. */
+function fontStack(name: string) {
+  const v = FONT_VARS[name];
+  return `${v ? `var(${v})` : `"${name}"`}, system-ui, sans-serif`;
+}
+
 // Perceptual lightness of a hex — decides readable ink on a swatch.
 function isLightHex(hex: string) {
   const h = hex.replace("#", "");
@@ -2939,7 +2954,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-white/55">Mood</span>
             <div className="flex flex-col gap-0.5 my-1">
               {(dir?.mood ?? ["Professional & Clean"]).map((m) => (
-                <span key={m} className="text-[21px] leading-tight font-semibold drop-shadow-sm" style={{ fontFamily: `"${pairing.heading}", system-ui, sans-serif` }}>{m}</span>
+                <span key={m} className="text-[21px] leading-tight font-semibold drop-shadow-sm" style={{ fontFamily: fontStack(pairing.heading) }}>{m}</span>
               ))}
             </div>
             {dir?.tagline && <span className="text-[12px] text-white/75 leading-snug">{dir.tagline}</span>}
@@ -2963,11 +2978,11 @@ function ConceptBoard({ draft }: { draft: any }) {
         <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="rounded-2xl border border-ir-border p-4 md:p-5">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <p className="text-[26px] sm:text-[30px] text-ir-t1 leading-tight" style={{ fontFamily: `"${pairing.heading}", system-ui, sans-serif`, fontWeight: 700 }} title={pairing.heading}>
+            <p className="text-[26px] sm:text-[30px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
               {pairing.heading}
             </p>
             <span className="text-ir-t3 text-[13px]">+</span>
-            <p className="text-[18px] text-ir-t2" style={{ fontFamily: `"${pairing.body}", system-ui, sans-serif`, fontWeight: 500 }} title={pairing.body}>
+            <p className="text-[18px] text-ir-t2" style={{ fontFamily: fontStack(pairing.body), fontWeight: 500 }} title={pairing.body}>
               {pairing.body}
             </p>
           </div>
@@ -3000,7 +3015,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             <div className="grid grid-cols-2 gap-2.5">
               {TYPE_SPECIMEN_STATS.map((s) => (
                 <div key={s.label} className="rounded-xl bg-ir-bg border border-ir-border px-3 py-2.5">
-                  <p className="text-[19px] text-ir-t1 leading-none" style={{ fontFamily: `"${pairing.heading}", system-ui, sans-serif`, fontWeight: 700 }}>{s.value}</p>
+                  <p className="text-[19px] text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
                   <p className="text-[10.5px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
                 </div>
               ))}
