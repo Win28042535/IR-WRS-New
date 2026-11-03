@@ -55,7 +55,7 @@ export default function AINotebook({ entries, className = "", defaultExpanded = 
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <span className="text-[11px] font-semibold text-ir-accent/80 tracking-widest uppercase">AI Notebook</span>
+          <span className="text-[11px] font-semibold text-ir-accent-text/80 tracking-widest uppercase">AI Notebook</span>
           <span
             className="text-[10px] font-medium px-2 py-0.5 rounded-full"
             style={{ background: "rgba(170,204,0,0.12)", color: "#AACC00" }}

@@ -170,7 +170,7 @@ export default function Landing() {
       {/* ── Hero — condensed on mobile/tablet so the CTA below still lands in the
            first screen; full-size from lg up where there's room to spare ── */}
       <div className="text-center mb-4 md:mb-8 lg:mb-7 ir-fade-up" style={{ animationDelay: "0ms" }}>
-        <span className="hidden md:inline-flex items-center gap-2 bg-ir-accent/10 text-ir-accent text-xs px-3 py-1.5 rounded-full mb-4">
+        <span className="hidden md:inline-flex items-center gap-2 bg-ir-accent/10 text-ir-accent-text text-xs px-3 py-1.5 rounded-full mb-4">
           IR Plus · Website Requirement System
         </span>
         <h1 className="text-[20px] md:text-[28px] font-semibold text-ir-t1 mb-1.5 md:mb-3 leading-tight" style={{ textWrap: "balance" } as CSSProperties}>

@@ -278,7 +278,7 @@ export function WorkspaceDividerToggle({
           reach the 20px icon floor without an absurdly tall stretch (a plain aspect-preserving
           scale-up would have needed ~88px), so it's redrawn as the same dot grid instead. */}
       {!wsCollapsed && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none text-ir-accent">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none text-ir-accent-text">
           <svg width="20" height="32" viewBox="0 0 10 16" fill="none">
             <circle cx="3" cy="4" r="1.2" fill="currentColor" />
             <circle cx="7" cy="4" r="1.2" fill="currentColor" />
@@ -296,7 +296,7 @@ export function WorkspaceDividerToggle({
           onMouseDown={(e) => e.stopPropagation()}
           onClick={toggleWsCollapsed}
           title="ซ่อน Living Workspace"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-sm text-ir-t2 hover:text-ir-accent hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 transition-all duration-150 z-20"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-sm text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 transition-all duration-150 z-20"
           style={{ width: 24, height: 36 }}
         >
           <WorkspaceDockIcon direction="close" />
@@ -315,7 +315,7 @@ export function WorkspaceDividerToggle({
           className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-xl transition-all duration-500 active:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 z-30 animate-[wsdock-in_320ms_cubic-bezier(0.4,0,0.2,1)] ${
             empty
               ? "bg-ir-card border border-r-0 border-ir-border text-ir-t3 hover:text-ir-t2 hover:border-ir-border-hi hover:scale-[1.06] active:scale-[0.98]"
-              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(170,204,0,0.35)] active:scale-[0.98] active:shadow-none"
+              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(170,204,0,0.35)] active:scale-[0.98] active:shadow-none"
           }`}
           style={{ width: 36, height: 44, right: 0 }}
         >

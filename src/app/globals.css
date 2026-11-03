@@ -2,68 +2,76 @@
 
 /* ═══════════════════════════════════════════════════════════════════
    IR PLUS · WRS Design System — single source of truth (see design-system.md)
-   Primary = lime (Primary 600 #AACC00, brand). Neutral = grayscale foundation.
+   Design DNA follows the production WRS (ir-requirement.intern-studio.com):
+   lime primary #B9E604 on a warm, olive-tinted neutral scale, black pill CTAs,
+   IBM Plex Sans Thai throughout. Text tokens are tuned to clear WCAG AA (4.5:1)
+   on both white cards and the page background.
    Token NAMES (ir-*) are kept so existing markup re-skins; values follow the system.
    ═══════════════════════════════════════════════════════════════════ */
 @theme {
   /* ── Primary scale (brand / interactive) ── */
-  --color-primary-50:  #FAFFE7;
-  --color-primary-100: #F0FFC4;
-  --color-primary-200: #E6FF8F;
-  --color-primary-300: #D8FF4E;
-  --color-primary-400: #CCFB1A;
-  --color-primary-500: #B9E604;
-  --color-primary-600: #AACC00;   /* main brand */
-  --color-primary-700: #829504;
-  --color-primary-800: #6D780B;
-  --color-primary-900: #5F660F;
-  --color-primary-950: #363B03;
+  --color-primary-50:  #F8FCE6;
+  --color-primary-100: #EFF8CB;   /* accent surface (selected card, soft highlight) */
+  --color-primary-200: #DCEF8F;
+  --color-primary-300: #CBEB4A;
+  --color-primary-400: #C2EA1F;
+  --color-primary-500: #B9E604;   /* main brand */
+  --color-primary-600: #A5CD03;
+  --color-primary-700: #8FAB00;   /* focus ring */
+  --color-primary-800: #5F7000;
+  --color-primary-900: #4D5E00;   /* green text on light — 6.8:1 */
+  --color-primary-950: #2E3800;
 
-  /* ── Neutral scale (text / surface / border) ── */
-  --color-neutral-50:  #F9FAFB;
-  --color-neutral-100: #F4F4F5;
-  --color-neutral-200: #E6E7EA;
-  --color-neutral-300: #D3D5D9;
-  --color-neutral-400: #A0A3AB;
-  --color-neutral-500: #6F727C;
-  --color-neutral-600: #5A5F6B;
-  --color-neutral-700: #3C404C;
-  --color-neutral-800: #232833;
-  --color-neutral-900: #151823;
-  --color-neutral-950: #06070F;
+  /* ── Neutral scale (text / surface / border) — olive-tinted ── */
+  --color-neutral-50:  #F7F8F3;   /* page background */
+  --color-neutral-100: #ECEEE7;   /* muted surface */
+  --color-neutral-200: #DADDD3;   /* border */
+  --color-neutral-300: #C5C9BD;   /* strong border */
+  --color-neutral-400: #9A9F94;
+  --color-neutral-500: #686D64;   /* meta text — 4.9:1 on page bg */
+  --color-neutral-600: #565B52;   /* secondary text */
+  --color-neutral-700: #3B3F37;
+  --color-neutral-800: #272B23;
+  --color-neutral-900: #1C1F19;   /* body text */
+  --color-neutral-950: #141613;   /* CTA / deepest dark */
 
   /* ── Semantic tokens (map onto the scales) ── */
-  --color-ir-dark: #151823;        /* dark surface / high emphasis (Neutral 900) */
-  --color-ir-nav: #06070F;         /* deepest dark (Neutral 950) */
-  --color-ir-card-dark: #232833;   /* dark section (Neutral 800) */
-  --color-ir-forest: #AACC00;      /* (legacy name) → primary */
-  --color-ir-accent: #AACC00;      /* Primary 600 — brand / interactive fills */
-  --color-ir-accent-hi: #B9E604;   /* hover (Primary 500) */
-  --color-ir-accent-lo: #829504;   /* active/pressed (Primary 700) */
-  --color-ir-accent-text: #6D780B; /* readable green emphasis text on light (Primary 800) */
-  --color-ir-on-accent: #151823;   /* text/icon on a Primary fill (Neutral 900) — WCAG */
-  --color-ir-bg: #F9FAFB;          /* page background (Neutral 50) */
+  --color-ir-dark: #141613;        /* dark surface / primary CTA fill (Neutral 950) */
+  --color-ir-nav: #141613;         /* deepest dark (Neutral 950) */
+  --color-ir-card-dark: #272B23;   /* dark section (Neutral 800) */
+  --color-ir-forest: #B9E604;      /* (legacy name) → primary */
+  --color-ir-accent: #B9E604;      /* Primary 500 — brand / interactive fills */
+  --color-ir-accent-hi: #C2EA1F;   /* hover (Primary 400) */
+  --color-ir-accent-lo: #A5CD03;   /* active/pressed (Primary 600) */
+  --color-ir-accent-soft: #EFF8CB; /* selected / highlighted surface (Primary 100) */
+  --color-ir-accent-text: #4D5E00; /* readable green text on light (Primary 900) */
+  --color-ir-ring: #8FAB00;        /* focus ring (Primary 700) */
+  --color-ir-on-accent: #171A15;   /* text/icon on a Primary fill */
+  --color-ir-bg: #F7F8F3;          /* page background (Neutral 50) */
+  --color-ir-muted: #ECEEE7;       /* muted surface (Neutral 100) */
   --color-ir-card: #FFFFFF;        /* card / content surface */
-  --color-ir-border: #E6E7EA;      /* borders / dividers (Neutral 200) */
-  --color-ir-border-hi: #D3D5D9;   /* stronger border / hover (Neutral 300) */
-  --color-ir-t1: #232833;          /* body text (Neutral 800) */
-  --color-ir-t2: #5A5F6B;          /* secondary text (Neutral 600) */
-  --color-ir-t3: #6F727C;          /* meta / placeholder (Neutral 500) */
-  --color-ir-disabled: #A0A3AB;    /* disabled text (Neutral 400) */
+  --color-ir-border: #DADDD3;      /* borders / dividers (Neutral 200) */
+  --color-ir-border-hi: #C5C9BD;   /* stronger border / hover (Neutral 300) */
+  --color-ir-t1: #1C1F19;          /* body text (Neutral 900) */
+  --color-ir-t2: #565B52;          /* secondary text (Neutral 600) */
+  --color-ir-t3: #686D64;          /* meta / placeholder (Neutral 500) */
+  --color-ir-disabled: #9A9F94;    /* disabled text (Neutral 400) */
   --color-ir-blue: #0D6EFD;        /* informational only */
   --color-ir-teal: #34C759;        /* success */
   --color-ir-warn: #FF9500;        /* warning */
-  --color-ir-error: #FF3B30;       /* error / destructive */
+  --color-ir-error: #B42318;       /* error / destructive */
   --color-ir-live: #FF3B30;        /* LIVE / real-time / streaming — reserved exclusively */
 
-  --font-display: "SF Pro TH", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-sans: "SF Pro Text", "SF Pro TH", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* --font-prompt is injected by next/font as a CSS variable on <html> */
+  --radius-ir: 0.75rem;            /* default control / card radius */
+
+  /* --font-plex is injected by next/font as a CSS variable on <html> */
+  --font-display: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+  --font-sans: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
 }
 
 :root {
-  --background: #F9FAFB;     /* Neutral 50 */
-  --foreground: #232833;     /* Neutral 800 (body) */
+  --background: #F7F8F3;     /* Neutral 50 */
+  --foreground: #1C1F19;     /* Neutral 900 (body) */
 }
 
 /* ── Dark theme (toggle by adding class `dark` to <html>) — Dark Theme Ready ── */
@@ -85,7 +93,7 @@ html { scroll-behavior: smooth; }
 
 /* In @layer base so Tailwind text-* utilities (later layer) can override on dark surfaces */
 @layer base {
-  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; font-weight: 600; color: #151823; }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; font-weight: 600; color: var(--color-ir-t1); }
   .dark h1, .dark h2, .dark h3 { color: #F9FAFB; }
 }
 
@@ -97,25 +105,31 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-::selection { background: #E6FF8F; color: #151823; }
+::selection { background: var(--color-primary-200); color: var(--color-ir-t1); }
 
-/* Form focus: Primary border + soft green glow on all native controls */
+/* Form focus: ring-green border + soft lime glow on all native controls */
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #AACC00;
-  box-shadow: 0 0 0 3px rgba(170, 204, 0, 0.22);
+  border-color: var(--color-ir-ring);
+  box-shadow: 0 0 0 3px rgba(185, 230, 4, 0.28);
 }
 
-/* Placeholder contrast fix — browser default fails WCAG 4.5:1; ir-t3 (#6F727C) = 4.87:1 on white */
-::placeholder { color: #6F727C; opacity: 1; }
+/* Keyboard focus on anything interactive — visible on every surface */
+:where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-ir-ring);
+  outline-offset: 2px;
+}
+
+/* Placeholder contrast fix — browser default fails WCAG 4.5:1; ir-t3 (#686D64) = 5.3:1 on white */
+::placeholder { color: var(--color-ir-t3); opacity: 1; }
 
 @layer utilities {
   /* Apple-style soft elevation (kept) */
-  .ir-shadow { box-shadow: 0 4px 12px rgba(6,7,15,0.08); }
-  .ir-shadow-lg { box-shadow: 0 12px 32px rgba(6,7,15,0.15); }
+  .ir-shadow { box-shadow: 0 1px 2px rgba(20,22,19,0.04), 0 4px 16px rgba(20,22,19,0.06); }
+  .ir-shadow-lg { box-shadow: 0 12px 32px rgba(20,22,19,0.12); }
   /* v2 selection glow — outline avoids overflow:hidden clipping */
-  .ir-shadow-accent { outline: 2.5px solid rgba(170,204,0,0.45); outline-offset: -1px; }
-  .ir-frost { background: rgba(249,250,251,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .ir-shadow-accent { outline: 2.5px solid rgba(185,230,4,0.45); outline-offset: -1px; }
+  .ir-frost { background: rgba(247,248,243,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
@@ -357,9 +371,9 @@ input:focus, textarea:focus, select:focus {
 
 /* Workspace row — brief landing highlight right after the ghost arrives */
 @keyframes wrs-row-landed {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
-  35%  { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
-  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  35%  { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(185,230,4,0); }
 }
 .wrs-row-landed { animation: wrs-row-landed 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; border-color: var(--color-ir-accent) !important; }
 
@@ -383,15 +397,15 @@ input:focus, textarea:focus, select:focus {
    pulse or the native :active press) right when a ghost lands here — either a fresh
    selection settling in, or a removed section's ghost returning home. */
 @keyframes wrs-card-glow {
-  0%   { box-shadow: 0 0 0 0 rgba(170,204,0,0); }
-  35%  { box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
-  100% { box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  35%  { box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(185,230,4,0); }
 }
 .wrs-card-glow { animation: wrs-card-glow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* Workspace list — soft, transient accent wash while a ghost is inbound from the picker,
    so the destination reads as "about to receive something" ahead of the item landing. */
-.wrs-list-inbound { background-color: rgba(170,204,0,0.05); }
+.wrs-list-inbound { background-color: rgba(185,230,4,0.05); }
 
 /* Structure step — contextual "AI recommends" chip strip. Re-plays (via a changing React
    `key`) every time the suggestion set refreshes to a newly-picked section, so each new
@@ -416,9 +430,9 @@ input:focus, textarea:focus, select:focus {
    highlight, then back to normal. No scale overshoot/bounce — a plain settle-and-highlight,
    professional rather than playful. ~300ms, inside the 250-350ms target. */
 @keyframes reference-card-insert {
-  0%   { opacity: 0; transform: translateY(6px); border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
-  40%  { opacity: 1; transform: translateY(0); border-color: var(--color-ir-accent); box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
-  100% { border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  0%   { opacity: 0; transform: translateY(6px); border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  40%  { opacity: 1; transform: translateY(0); border-color: var(--color-ir-accent); box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
+  100% { border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
 }
 .reference-card-insert { animation: reference-card-insert 0.3s cubic-bezier(0.4, 0, 0.2, 1) both; }
 
@@ -630,7 +644,7 @@ input:focus, textarea:focus, select:focus {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #AACC00;
+  background: #B9E604;
   animation: luma-dot-bounce 0.8s ease-in-out infinite;
 }
 
@@ -649,7 +663,7 @@ input:focus, textarea:focus, select:focus {
   transition: background 0.5s ease;
   pointer-events: none;
 }
-.ai-guide-card[data-mode="insight"]   { --guide-stripe: #AACC00; }
+.ai-guide-card[data-mode="insight"]   { --guide-stripe: #B9E604; }
 .ai-guide-card[data-mode="recommend"] { --guide-stripe: rgba(13,110,253,0.55); }
 .ai-guide-card[data-mode="tip"]       { --guide-stripe: rgba(160,163,171,0.28); }
 .ai-guide-card[data-mode="celebrate"] {
@@ -717,13 +731,13 @@ input:focus, textarea:focus, select:focus {
 
 /* ── Quiz selection flash — card brightens briefly before advancing ── */
 @keyframes wrs-quiz-select {
-  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, #AACC00 0%,  transparent); }
-  40%  { box-shadow: 0 0 0 4px color-mix(in srgb, #AACC00 30%, transparent); }
-  100% { box-shadow: 0 0 0 4px color-mix(in srgb, #AACC00 0%,  transparent); }
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, #B9E604 0%,  transparent); }
+  40%  { box-shadow: 0 0 0 4px color-mix(in srgb, #B9E604 30%, transparent); }
+  100% { box-shadow: 0 0 0 4px color-mix(in srgb, #B9E604 0%,  transparent); }
 }
 .wrs-quiz-selected {
   animation: wrs-quiz-select 0.22s ease-out both;
-  border-color: #AACC00 !important;
+  border-color: #B9E604 !important;
 }
 
 /* ── Preview context strip entrance ── */
@@ -832,7 +846,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   CLIENT MODE TYPOGRAPHY — Prompt (Google Fonts, Cadson Demak)
+   CLIENT MODE TYPOGRAPHY — IBM Plex Sans Thai (Google Fonts)
    Scoped to .client-mode wrapper (src/app/(client)/layout.tsx)
    Thai + Latin · Phase 1 · See design-system.md §Typography
    ═══════════════════════════════════════════════════════════════════ */
@@ -853,24 +867,24 @@ input:focus, textarea:focus, select:focus {
   --type-overline-size:  0.6875rem;  /* 11px */
 }
 
-/* ── Apply Prompt to all client-facing surfaces ── */
+/* ── Apply IBM Plex Sans Thai to all client-facing surfaces ── */
 .client-mode,
 .client-mode input,
 .client-mode textarea,
 .client-mode select,
 .client-mode button {
-  font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", sans-serif;
+  font-family: var(--font-sans);
 }
 
-/* Override @layer base h1-h3 (display font) for client mode */
+/* Headings: same family, tighter tracking (production WRS H1 runs at -0.035em) */
 .client-mode h1,
 .client-mode h2,
 .client-mode h3,
 .client-mode h4,
 .client-mode h5,
 .client-mode h6 {
-  font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 /* ── Semantic type utilities — available inside .client-mode ── */

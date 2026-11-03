@@ -788,7 +788,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[14px] font-medium">{goal.label}</span>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {memFreq && !sel && <span className="text-[9px] text-ir-accent/60 leading-none">↺</span>}
+                        {memFreq && !sel && <span className="text-[9px] text-ir-accent-text/60 leading-none">↺</span>}
                         {sel && <span className="w-6 h-6 rounded-full bg-white ring-2 ring-ir-accent shadow-sm flex items-center justify-center"><IconCheck width={8} height={8} className="text-ir-dark" /></span>}
                       </div>
                     </div>
@@ -2545,7 +2545,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           >
             <span className="w-10 h-10 rounded-xl bg-ir-accent/10 flex items-center justify-center text-[18px] mb-1">🖼️</span>
             <p className="text-[13.5px] font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
-            <p className="text-[12px] text-ir-t3">หรือ <span className="text-ir-accent font-medium">เลือกจากเครื่อง</span></p>
+            <p className="text-[12px] text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
             <p className="text-[10.5px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
           </div>
@@ -2577,7 +2577,7 @@ function BlueprintDocument({ draft, onJump }: { draft: any; onJump: (step: numbe
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-ir-accent ir-live-dot" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-ir-accent">AI Design Blueprint</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-ir-accent-text">AI Design Blueprint</span>
             </div>
             <h3 className="text-white text-[18px] font-semibold leading-tight">{draft.company || "องค์กรของคุณ"}</h3>
             <p className="text-white/45 text-[11px] mt-0.5">สเปกที่ AI ปลายทางนำไปสร้างเว็บไซต์ได้ทันที</p>
@@ -2621,7 +2621,7 @@ function BlueprintDocument({ draft, onJump }: { draft: any; onJump: (step: numbe
                 </div>
               )}
             </div>
-            <span className="text-ir-t3/50 group-hover:text-ir-accent transition-colors shrink-0 mt-0.5 text-[11px]">แก้ไข</span>
+            <span className="text-ir-t3/50 group-hover:text-ir-accent-text transition-colors shrink-0 mt-0.5 text-[11px]">แก้ไข</span>
           </button>
         ))}
       </div>
@@ -2693,7 +2693,7 @@ function ReferenceModePicker({ mode, setMode, hasCustom, hasCurated }: { mode: "
                 </div>
                 <p className="text-[11.5px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</p>
               </div>
-              {active && <IconCheck width={12} height={12} className="text-ir-accent shrink-0 mt-0.5" />}
+              {active && <IconCheck width={12} height={12} className="text-ir-accent-text shrink-0 mt-0.5" />}
             </button>
           );
         })}
@@ -2994,7 +2994,7 @@ function ConceptBoard({ draft }: { draft: any }) {
           <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[1.1fr,1.3fr] gap-4">
             <div>
               <span className={eyebrow}>ตัวอย่าง</span>
-              {/* Thai copy stays on the system's own Prompt typeface, not the AI-recommended
+              {/* Thai copy stays on the system's own IBM Plex Sans Thai, not the AI-recommended
                   pairing — those Google fonts (Sora, Inter, Fraunces, ...) are Latin-only, so
                   Thai glyphs here would silently fall back to whatever the browser's default
                   Thai font is instead, reading inconsistently with the rest of the app. */}

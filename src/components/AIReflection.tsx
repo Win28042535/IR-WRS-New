@@ -87,7 +87,7 @@ export default function AIReflection({ fromStep = 0, nextStepsFrom, autocollapse
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-ir-accent text-[11px] select-none" aria-hidden>◎</span>
+            <span className="text-ir-accent-text text-[11px] select-none" aria-hidden>◎</span>
             <span className="text-[10px] font-semibold text-white/40 tracking-wider uppercase leading-none">
               AI สรุปความคืบหน้า
             </span>
@@ -135,7 +135,7 @@ type PillVariant = "neutral" | "accent" | "next";
 
 function PillRow({ label, items, variant }: { label: string; items: string[]; variant: PillVariant }) {
   const labelCls: Record<PillVariant, string> = {
-    accent:  "text-ir-accent",
+    accent:  "text-ir-accent-text",
     next:    "text-white/35",
     neutral: "text-white/50",
   };
