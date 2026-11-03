@@ -1,106 +1,46 @@
-import { Fragment, useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent } from "react";
 import { IconArrowRight, IconArrowLeft } from "./icons";
 import { RULES } from "@/lib/data";
 
-// The "done" checkmark inside the 24px step badge, at the same glyph/stroke as the shared
-// `IconCheck` — but rendered raw here since `icons.tsx` enforces a 24px floor on every icon
-// it exports, and this one is a deliberate 18px exception inside its unchanged 24px badge.
-const StepDoneCheck = () => (
-  <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-    <path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+const pad2 = (n: number) => String(n).padStart(2, "0");
 
-// ── Step indicator (Apple frosted light bar) ──
-// Desktop (md+) keeps the original full-row layout untouched. Below 768px it switches to a
-// compact pattern instead: previous steps collapse into a small check cluster (no per-step
-// numbers/labels/connector lines — noise reduction), the current step gets a dominant badge
-// + label, and only the next step's number shows (no label, no further lookahead). Overall
-// progress moves to its own thin bar + "Step N of M" readout underneath. Sticky so it stays
-// in view while the step content scrolls, regardless of the parent layout.
+// ── Step indicator (production WRS pattern) ──
+// One centered pill carries where you are — the step name plus "03/06" — and a segmented
+// bar underneath is the single progress readout (no % figure, no second dot row), so the
+// two can never disagree. Same layout at every width; the pill truncates the name on very
+// narrow screens. The draft persists to localStorage on every change, hence the static
+// "บันทึกอัตโนมัติ" note. Sticky so it stays in view while the step content scrolls.
 export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; stepsEn?: string[]; current: number }) {
   return (
-    <div className="sticky top-0 z-30 ir-frost border-b border-black/[0.08]">
-      {/* Desktop / tablet — unchanged */}
-      <div className="hidden md:flex max-w-3xl mx-auto px-5 sm:px-6 items-center h-14 gap-0">
-        {steps.map((s, i) => {
-          const n = i + 1;
-          const done = current > n;
-          const active = current === n;
-          const enLabel = stepsEn?.[i];
-          return (
-            <Fragment key={s}>
-              <div className="flex items-center shrink-0" title={enLabel}>
-                <div
-                  className={`w-6 h-6 rounded-[7px] flex items-center justify-center text-[10px] font-semibold transition-all ${
-                    active ? "bg-ir-accent text-ir-on-accent" :
-                    done   ? "bg-ir-accent/15 text-ir-accent-text" :
-                             "bg-black/[0.06] text-ir-t3"
-                  }`}
-                >
-                  {done ? <StepDoneCheck /> : n}
-                </div>
-                {active && (
-                  <span className="text-[14px] ml-1.5 font-medium text-ir-t1 whitespace-nowrap">
-                    {s}
-                  </span>
-                )}
-                {done && (
-                  <span className="hidden lg:inline text-[14px] ml-1.5 text-ir-t2 whitespace-nowrap">
-                    {s}
-                  </span>
-                )}
-              </div>
-              {n < steps.length && (
-                <div className={`flex-1 h-px mx-2 min-w-[8px] ${done ? "bg-ir-accent/30" : "bg-black/[0.08]"}`} />
-              )}
-            </Fragment>
-          );
-        })}
-      </div>
-
-      {/* Mobile (<768px) — previous/current/next only, progress shown separately below */}
-      <div className="flex md:hidden flex-col px-4">
-        <div className="flex items-center h-14 gap-2">
-          {/* Previous steps — collapsed to a plain check cluster, no numbers/labels/lines */}
-          {current > 1 && (
-            <div className="flex items-center gap-1 shrink-0" aria-hidden="true">
-              {steps.slice(0, current - 1).map((_, i) => (
-                <span key={i} className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text flex items-center justify-center">
-                  <StepDoneCheck />
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Current step — the dominant element */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="w-7 h-7 rounded-lg bg-ir-accent text-ir-on-accent flex items-center justify-center text-[13px] font-bold shrink-0">
-              {current}
+    <div className="sticky top-0 z-30 bg-ir-bg/85 backdrop-blur-md">
+      <div className="max-w-[1000px] mx-auto px-5 lg:px-7 pt-3 pb-3">
+        <div className="relative flex items-center justify-center min-h-9">
+          <div
+            className="flex items-center gap-2 max-w-[calc(100%-7rem)] rounded-full border border-ir-border bg-ir-card px-4 py-2 shadow-[0_5px_16px_rgba(20,22,19,0.04)]"
+            aria-label={`ขั้นตอนที่ ${current} จาก ${steps.length}: ${steps[current - 1]}`}
+            title={stepsEn?.[current - 1]}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0" aria-hidden="true" />
+            <span className="text-[14px] font-medium text-ir-t1 truncate">{steps[current - 1]}</span>
+            <span className="font-mono text-[12px] text-ir-t3 tabular-nums shrink-0" aria-hidden="true">
+              {pad2(current)}/{pad2(steps.length)}
             </span>
-            <span className="text-[15px] font-semibold text-ir-t1 truncate">{steps[current - 1]}</span>
           </div>
-
-          {/* Next step — number only, no label, deliberately no further lookahead */}
-          {current < steps.length && (
-            <span
-              className="w-5 h-5 rounded-full bg-black/[0.06] text-ir-t3 flex items-center justify-center text-[10.5px] font-semibold shrink-0"
-              title={steps[current]}
-            >
-              {current + 1}
-            </span>
-          )}
+          <span className="absolute right-0 hidden sm:flex items-center gap-1.5 text-[12px] font-medium text-ir-t3">
+            <span className="w-1.5 h-1.5 rounded-full bg-ir-accent" aria-hidden="true" />
+            บันทึกอัตโนมัติ
+          </span>
         </div>
 
-        {/* Overall progress — separate from the step cluster above */}
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex-1 h-1 rounded-full bg-black/[0.06] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-ir-accent transition-all duration-300"
-              style={{ width: `${(current / steps.length) * 100}%` }}
+        <div className="flex gap-1 mt-3" aria-hidden="true">
+          {steps.map((s, i) => (
+            <span
+              key={s}
+              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                i + 1 < current ? "bg-ir-accent" : i + 1 === current ? "bg-ir-dark" : "bg-ir-border"
+              }`}
             />
-          </div>
-          <span className="text-[10px] text-ir-t3 shrink-0 tabular-nums">Step {current} of {steps.length}</span>
+          ))}
         </div>
       </div>
     </div>
@@ -190,7 +130,10 @@ export function PaletteSwatches({ colors, size = 16 }: { colors: string[]; size?
   );
 }
 
-// ── Nav buttons ──
+// ── Nav buttons (production WRS pattern) ──
+// Primary: near-black pill, white label. Disabled keeps a readable label on the muted fill
+// (the step's own guide explains what's missing when it's clicked) instead of fading out.
+// Secondary: borderless muted pill. Hover is a quiet fill change — no scale jump.
 export function NextButton({
   children,
   onClick,
@@ -206,10 +149,12 @@ export function NextButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-2 px-6 py-3 rounded-full text-[15px] font-semibold text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(170,204,0,0.35)] active:bg-ir-accent-lo active:scale-[0.98] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-offset-2 transition-all duration-500 active:duration-200 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none"
+      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-[15px] font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
     >
       {children}
-      {!accent && <IconArrowRight width={24} height={24} />}
+      {!accent && (
+        <IconArrowRight width={24} height={24} className="transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0" />
+      )}
     </button>
   );
 }
@@ -218,7 +163,7 @@ export function BackButton({ children, onClick }: { children: ReactNode; onClick
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-6 py-3 rounded-full text-[15px] font-medium border border-ir-border text-ir-t2 bg-transparent hover:border-ir-border-hi hover:text-ir-t1 hover:bg-ir-bg hover:scale-[1.05] hover:shadow-[0_0_14px_rgba(14,16,24,0.08)] active:scale-[0.98] active:bg-ir-border/30 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-offset-2 transition-all duration-500 active:duration-200"
+      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-[15px] font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200"
     >
       <IconArrowLeft width={24} height={24} />
       {children}
