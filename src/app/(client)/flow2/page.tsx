@@ -3153,29 +3153,26 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
               <button
                 onClick={doSubmit}
                 disabled={!canSubmit || submitting}
-                className={`w-full flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[15px] font-semibold transition-all duration-500 active:duration-200 ${
+                // Same black pill + lime arrow disc as the landing CTA — this is the flow's
+                // final primary action. Disabled keeps a readable label on a gray fill.
+                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[15px] font-semibold transition-[background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
                   canSubmit && !submitting
-                    ? "text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(170,204,0,0.35)] active:bg-ir-accent-lo active:scale-[0.98] active:shadow-none cursor-pointer"
-                    : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                    ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer"
+                    : "bg-ir-border text-ir-t3 cursor-not-allowed"
                 }`}
               >
                 {submitting ? "กำลังส่ง..." : "ยืนยันและส่งให้ทีม IR Plus"}
-                {!submitting && <IconArrowRight width={24} height={24} />}
+                <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-200 ${canSubmit && !submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-muted text-ir-t3"}`}>
+                  <IconArrowRight width={24} height={24} />
+                </span>
               </button>
             </div>
-            <p className="text-[12px] text-ir-t3 text-center leading-relaxed mt-3">
+            <p className="text-[13px] text-ir-t3 text-center leading-relaxed mt-3">
               ฉันตรวจสอบภาพรวมโปรเจกต์แล้ว และยืนยันส่งให้ทีม IR Plus
             </p>
 
-            {/* Ghost back button — same padding, size, and hover interaction as the
-                quiz step's back link (Step สำรวจแนวทาง), just centered full-width here */}
-            <div className="flex justify-center mt-3">
-              <button
-                onClick={() => go(5)}
-                className="text-[13px] text-ir-t2 hover:text-ir-t1 active:text-ir-t1 px-4 py-2 rounded-lg hover:bg-black/[0.04] active:bg-black/[0.04] transition-colors"
-              >
-                ← ย้อนกลับ
-              </button>
+            <div className="flex justify-center mt-4">
+              <BackButton onClick={() => go(5)}>ย้อนกลับ</BackButton>
             </div>
           </div>
         </aside>

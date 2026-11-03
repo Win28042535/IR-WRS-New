@@ -1,283 +1,269 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
+import { DIRECTIONS, QUIZ } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
-import type { FlowType } from "@/lib/types";
 
-const FLOW2 = {
-  id: "flow2" as FlowType,
-  title: "สร้าง Requirement เว็บไซต์ IR ที่เหมาะกับคุณ",
-  desc: "ตอบคำถามเกี่ยวกับองค์กร เพื่อให้ AI วิเคราะห์และสร้าง Requirement",
-  benefits: [
-    "Smart Discovery Quiz ถามเฉพาะสิ่งที่จำเป็น",
-    "AI วิเคราะห์บริบทองค์กรและแนะนำ Direction",
-    "สร้าง Requirement Summary พร้อมส่งทีม",
-  ],
-};
+const balance = { textWrap: "balance" } as CSSProperties;
 
-// Compact reassurance strip — each point is a short label the user scans, not reads.
-// Green reserved for one point so the row reads as varied, not a brand-color wash.
-const BENEFITS = [
-  { title: "เข้าใจตรงกันตั้งแต่ต้น", color: "#5B7FDE" },
-  { title: "เห็นภาพก่อนออกแบบจริง", color: "#E0A23B" },
-  { title: "ลดการแก้ไขที่ไม่จำเป็น", color: "#D9765B" },
-  { title: "ส่งมอบได้เร็วและแม่นยำ", color: "#AACC00" },
+const HOW_IT_WORKS = [
+  { title: "เล่าเรื่ององค์กร", desc: "ชื่อบริษัท กลุ่มนักลงทุนที่สำคัญ และเป้าหมายของเว็บไซต์ ตอบทีละข้อ ไม่ต้องเตรียม Brief" },
+  { title: "เลือกจากภาพ", desc: "Quiz 5 ข้อแบบ A/B ระบบสรุปเป็น Design Direction พร้อมสี ฟอนต์ และโครงหน้าแรก" },
+  { title: "ส่งให้ทีม IR Plus", desc: "ตรวจภาพรวมแล้วกดส่ง ทีมจะติดต่อกลับภายใน 1–2 วันทำการเพื่อเริ่มออกแบบ" },
 ];
 
-// ── Benefit icons four distinct purposes, each takes its own color ──
-function IconBullseye({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 18 18" fill="none" width={24} height={24} aria-hidden="true">
-      <circle cx="9" cy="9" r="7.5" stroke={color} strokeWidth="1.25" />
-      <circle cx="9" cy="9" r="4"   stroke={color} strokeWidth="1.25" />
-      <circle cx="9" cy="9" r="1.5" fill={color} />
-    </svg>
-  );
-}
-function IconMonitor({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 18 18" fill="none" width={24} height={24} aria-hidden="true">
-      <rect x="1" y="2.5" width="16" height="10.5" rx="1.75" stroke={color} strokeWidth="1.25" />
-      <path d="M6.5 15.5h5M9 13v2.5" stroke={color} strokeWidth="1.25" strokeLinecap="round" />
-      <circle cx="9" cy="7.75" r="2.25" stroke={color} strokeWidth="1.1" />
-      <circle cx="9" cy="7.75" r="0.9" fill={color} />
-    </svg>
-  );
-}
-function IconApprove({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 18 18" fill="none" width={24} height={24} aria-hidden="true">
-      <circle cx="9" cy="9" r="7.5" stroke={color} strokeWidth="1.25" />
-      <path d="M5.5 9.25l2.25 2.25L12.5 6.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconLightning({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 18 18" fill="none" width={24} height={24} aria-hidden="true">
-      <path d="M10.25 2L3.5 9.75H8.5L6.5 16 14.5 8h-5L10.25 2Z"
-        stroke={color} strokeWidth="1.25" strokeLinejoin="round" />
-    </svg>
-  );
-}
+// Homepage order shown in the "what you get" preview — the default IR skeleton the
+// structure step starts from.
+const BLUEPRINT = ["Hero Section", "ข้อมูลสำคัญทางการเงิน", "ปฏิทินกิจกรรม และข่าวสาร", "ข้อมูลผู้ถือหุ้น"];
 
-const BENEFIT_ICONS = [IconBullseye, IconMonitor, IconApprove, IconLightning];
-
-// ── Homepage illustration: Moodboard summary (primary) + AI guide (secondary) ──
-// A clean bento-style summary board the actual artifact the flow produces is the
-// dominant visual. Colors are varied (navy, sky, amber, coral) rather than all-green, so
-// the palette reads like a real design summary, not a brand-color wash. A small AI guide
-// chip sits secondary, bottom-right, hinting at guidance without competing for attention.
-function GuidedPathIllustration() {
-  return (
-    <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
-      className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
-
-      {/* Page background neutral */}
-      <rect width={480} height={260} fill="#F4F5F7" />
-
-      {/* ── LEFT COLUMN (x=16, w=152) ── */}
-
-      {/* A1: Personality — dark tile, top half */}
-      <rect x={16} y={16} width={152} height={108} rx={14} fill="#1B1E27" />
-      <rect x={30} y={32} width={58} height={5} rx={2.5} fill="#FFF" fillOpacity={0.35} />
-      <rect x={30} y={47} width={116} height={9} rx={4} fill="#FFF" fillOpacity={0.9} />
-      <rect x={30} y={62} width={92} height={9} rx={4} fill="#FFF" fillOpacity={0.9} />
-      <rect x={30} y={77} width={68} height={9} rx={4} fill="#FFF" fillOpacity={0.9} />
-      <circle cx={36} cy={111} r={6} fill="#AACC00" />
-      <circle cx={52} cy={111} r={6} fill="#5B7FDE" />
-      <circle cx={68} cy={111} r={6} fill="#E0A23B" />
-      <circle cx={84} cy={111} r={6} fill="#D9765B" />
-
-      {/* A2: Palette — light tile, bottom half */}
-      <rect x={16} y={132} width={152} height={112} rx={14} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <rect x={30} y={148} width={48} height={5} rx={2.5} fill="#8A8F99" />
-      {/* 5 colour swatches — uniform circles, evenly spaced */}
-      <circle cx={40} cy={174} r={10} fill="#5B7FDE" />
-      <circle cx={63} cy={174} r={10} fill="#E0A23B" />
-      <circle cx={86} cy={174} r={10} fill="#D9765B" />
-      <circle cx={109} cy={174} r={10} fill="#7BAE7F" />
-      <circle cx={132} cy={174} r={10} fill="#AACC00" />
-      <rect x={30} y={198} width={80} height={7} rx={3} fill="#1B1E27" fillOpacity={0.72} />
-      <rect x={30} y={211} width={56} height={5} rx={2.5} fill="#1B1E27" fillOpacity={0.2} />
-
-      {/* ── MIDDLE COLUMN (x=176, w=152) ── */}
-
-      {/* B1: Direction tile */}
-      <rect x={176} y={16} width={152} height={72} rx={14} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <rect x={192} y={30} width={56} height={5} rx={2.5} fill="#8A8F99" />
-      <rect x={192} y={44} width={100} height={9} rx={4} fill="#1B1E27" fillOpacity={0.8} />
-      <rect x={192} y={58} width={72} height={6} rx={3} fill="#1B1E27" fillOpacity={0.22} />
-
-      {/* B2: Tone tile */}
-      <rect x={176} y={96} width={152} height={68} rx={14} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <rect x={192} y={110} width={48} height={5} rx={2.5} fill="#8A8F99" />
-      <rect x={192} y={122} width={58} height={20} rx={10} fill="#EDEFF3" />
-      <rect x={258} y={122} width={50} height={20} rx={10} fill="#EDEFF3" />
-
-      {/* B3: Sections row tile */}
-      <rect x={176} y={172} width={152} height={72} rx={14} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <rect x={192} y={186} width={64} height={5} rx={2.5} fill="#8A8F99" />
-      <rect x={192} y={200} width={46} height={18} rx={9} fill="#EDEFF3" />
-      <rect x={246} y={200} width={46} height={18} rx={9} fill="#EDEFF3" />
-      <rect x={300} y={200} width={16} height={18} rx={8} fill="#EDEFF3" />
-
-      {/* ── RIGHT COLUMN (x=336, w=128) ── */}
-
-      {/* C1: Font specimen tile */}
-      <rect x={336} y={16} width={128} height={100} rx={14} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <rect x={352} y={30} width={36} height={5} rx={2.5} fill="#8A8F99" />
-      <text x={352} y={88} fontSize="38" fontWeight="600" fill="#2B2F3A" fontFamily="system-ui, sans-serif">Aa</text>
-
-      {/* C2: Audience + Count tiles side-by-side */}
-      <rect x={336} y={124} width={58} height={48} rx={12} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <circle cx={365} cy={141} r={10} fill="#EDEFF3" />
-      <rect x={344} y={157} width={40} height={4} rx={2} fill="#8A8F99" />
-
-      <rect x={402} y={124} width={62} height={48} rx={12} fill="#FFFFFF" stroke="#E6E7EA" strokeWidth={1} />
-      <text x={413} y={149} fontSize="20" fontWeight="700" fill="#5B7FDE" fontFamily="system-ui, sans-serif">9</text>
-      <rect x={430} y={136} width={22} height={4} rx={2} fill="#8A8F99" />
-      <rect x={430} y={144} width={16} height={4} rx={2} fill="#8A8F99" />
-
-      {/* C3: AI Guide tile */}
-      <rect x={336} y={180} width={128} height={64} rx={14} fill="#AACC00" fillOpacity={0.08} stroke="#AACC00" strokeOpacity={0.25} strokeWidth={1} />
-      <rect x={352} y={193} width={26} height={26} rx={8} fill="#AACC00" />
-      <circle cx={360} cy={205} r={1.8} fill="#1B1E27" fillOpacity={0.7} />
-      <circle cx={369} cy={205} r={1.8} fill="#1B1E27" fillOpacity={0.7} />
-      <path d="M 358 212 Q 364.5 216 371 212" stroke="#1B1E27" strokeWidth={1.3} fill="none"
-        strokeLinecap="round" strokeOpacity={0.55} />
-      <rect x={388} y={196} width={58} height={6} rx={3} fill="#2B3A00" fillOpacity={0.45} />
-      <rect x={388} y={208} width={42} height={5} rx={2.5} fill="#2B3A00" fillOpacity={0.25} />
-
-    </svg>
-  );
-}
-
+// ── Landing (production WRS layout) ──
+// Hero → product preview → how it works → what you get → closing CTA, on a faint grid
+// with a lime glow behind the hero. Every preview below is built from the flow's own
+// data (real quiz photos, real Direction palettes), never invented figures.
 export default function Landing() {
   const router = useRouter();
   const startFlow = useStore((s) => s.startFlow);
-
-  const begin = (flow: FlowType) => {
-    startFlow(flow);
-    router.push(`/${flow}`);
+  const begin = () => {
+    startFlow("flow2");
+    router.push("/flow2");
   };
 
   return (
-    <div className="max-w-xl lg:max-w-5xl mx-auto px-5 sm:px-6 py-6 md:py-10 lg:py-8 xl:py-10">
-
-      {/* ── Hero — condensed on mobile/tablet so the CTA below still lands in the
-           first screen; full-size from lg up where there's room to spare ── */}
-      <div className="text-center mb-4 md:mb-8 lg:mb-7 ir-fade-up" style={{ animationDelay: "0ms" }}>
-        <span className="hidden md:inline-flex items-center gap-2 bg-ir-accent/10 text-ir-accent-text text-xs px-3 py-1.5 rounded-full mb-4">
-          IR Plus · Website Requirement System
-        </span>
-        <h1 className="text-[20px] md:text-[28px] font-semibold text-ir-t1 mb-1.5 md:mb-3 leading-tight" style={{ textWrap: "balance" } as CSSProperties}>
-          กำหนด Requirement เว็บไซต์ IR ที่ตรงกับองค์กรของคุณ
-        </h1>
-        <p className="hidden md:block text-[16px] text-ir-t2 leading-relaxed">
-          ตอบคำถามสั้นๆ AI จะวิเคราะห์และสรุป Requirement สำหรับส่งทีม IR Plus
-        </p>
-      </div>
-
-      {/* ── Main card: Flow 2 horizontal split on large screens so the full card
-           fits without scrolling on 1440–1920px displays. Below md the moodboard
-           preview stays (it is what makes the card feel like a design tool) but is
-           reduced to a compact band and the hero/content are tightened so the CTA
-           still lands within the first screen without scrolling. ── */}
+    <div className="relative overflow-hidden">
+      {/* Backdrop — 64px grid fading out from the top, lime glow behind the hero */}
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => begin(FLOW2.id)}
-        onKeyDown={(e) => e.key === "Enter" && begin(FLOW2.id)}
-        aria-label={FLOW2.title}
-        className={[
-          "group cursor-pointer rounded-2xl md:rounded-[22px] overflow-hidden",
-          "bg-ir-card border border-ir-border",
-          "ir-shadow hover:ir-shadow-lg",
-          "transition-[transform,box-shadow] duration-300",
-          "hover:-translate-y-1 hover:border-ir-accent/40",
-          "flex flex-col lg:flex-row lg:items-stretch",
-          "ir-fade-up",
-        ].join(" ")}
-        style={{ animationDelay: "80ms" }}
-      >
-        {/* Moodboard preview — compact band on mobile (the SVG's own #F4F5F7 canvas
-            matches this container so the letterboxing blends seamlessly), taller on
-            tablet, full-height side panel on desktop. */}
-        <div
-          className="relative h-[124px] md:h-[220px] lg:h-auto lg:w-[42%] overflow-hidden shrink-0 border-b lg:border-b-0 lg:border-r border-ir-border"
-          style={{ background: "#F4F5F7" }}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]"
+        style={{
+          backgroundImage: "linear-gradient(#E9EBE4 1px, transparent 1px), linear-gradient(90deg, #E9EBE4 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-[-280px] h-[680px] w-[1100px] -translate-x-1/2 rounded-full"
+        style={{ background: "radial-gradient(closest-side, rgba(185,230,4,0.38), rgba(185,230,4,0) 70%)" }}
+      />
+
+      {/* ── Hero ── */}
+      <section className="relative mx-auto max-w-[1240px] px-5 sm:px-8 pt-10 sm:pt-16 text-center ir-fade-up">
+        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-[13px] font-medium text-ir-t2 shadow-sm backdrop-blur">
+          <span className="rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
+          สำหรับบริษัทจดทะเบียนในตลาดหลักทรัพย์
+        </span>
+        <h1
+          className="mx-auto mt-7 max-w-[1000px] text-[clamp(2.4rem,6vw,4.6rem)] font-semibold leading-[1.14] tracking-[-0.035em]"
+          style={balance}
         >
-          <GuidedPathIllustration />
+          <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
+          <span className="sm:whitespace-nowrap">
+            <span className="whitespace-nowrap">เริ่มจาก</span>{" "}
+            <span className="relative isolate inline-block whitespace-nowrap">
+              <span aria-hidden="true" className="absolute inset-x-[-0.12em] bottom-[0.08em] top-[0.42em] -z-10 rounded-[0.18em] bg-ir-accent" />
+              คำตอบของคุณ
+            </span>
+          </span>
+        </h1>
+        <p className="mx-auto mt-6 max-w-[640px] text-[16px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
+          ตอบคำถามสั้นๆ เลือกสไตล์จากภาพ แล้วรับ Design Direction และ Requirement ที่พร้อมส่งให้ทีมออกแบบ
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <PrimaryCta onClick={begin}>เริ่มกำหนด Requirement</PrimaryCta>
+          <a
+            href="#how"
+            className="inline-flex h-[52px] items-center rounded-full border border-black/10 bg-white/70 px-6 text-[15px] font-medium text-ir-t1 backdrop-blur transition-colors hover:bg-white"
+          >
+            ดูวิธีการทำงาน
+          </a>
+        </div>
+        <div className="mt-5 flex items-center justify-center gap-5 text-[13px] text-ir-t3">
+          {["บันทึกอัตโนมัติ", "ไม่ต้องรู้ศัพท์ดีไซน์"].map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5">
+              <IconCheck width={24} height={24} className="text-ir-accent-text" />
+              {t}
+            </span>
+          ))}
         </div>
 
-        {/* Content */}
-        <div className="p-4 md:p-6 lg:p-8 flex flex-col flex-1 lg:justify-center">
-          <h2 className="text-[17px] md:text-[24px] font-semibold text-ir-t1 leading-snug mb-1.5 md:mb-2" style={{ textWrap: "balance" } as CSSProperties}>
-            {FLOW2.title}
-          </h2>
-          <p className="text-[13px] md:text-[15px] text-ir-t2 leading-relaxed mb-3 md:mb-5">
-            {FLOW2.desc}
-          </p>
+        <HeroPreview />
+      </section>
 
-          <ul className="hidden sm:block space-y-2 mb-6">
-            {FLOW2.benefits.map((b) => (
-              <li key={b} className="flex items-center gap-2.5 text-[14px] text-ir-t1">
-                <span className="w-[18px] h-[18px] rounded-full bg-ir-accent/15 text-ir-accent-text flex items-center justify-center shrink-0">
-                  <IconCheck width={9} height={9} />
-                </span>
-                {b}
-              </li>
-            ))}
-          </ul>
+      {/* ── How it works ── */}
+      <section id="how" className="relative mx-auto max-w-[1240px] scroll-mt-10 px-5 sm:px-8 pt-24 sm:pt-28">
+        <SectionHead eyebrow="วิธีการทำงาน" title="จากคำตอบ สู่ Requirement ที่ทีมออกแบบใช้ได้ทันที" />
+        <ol className="mt-10 grid gap-4 md:grid-cols-3">
+          {HOW_IT_WORKS.map((s, i) => (
+            <li key={s.title} className="rounded-[24px] border border-black/[0.06] bg-ir-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+              <span className="grid w-10 h-10 place-items-center rounded-full bg-ir-dark font-mono text-[14px] font-bold text-ir-accent">{i + 1}</span>
+              <h3 className="mt-6 text-[20px] font-semibold tracking-[-0.02em]">{s.title}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-ir-t2">{s.desc}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-          {/* Primary action — full-width pill on mobile (maximum discoverability,
-              no ambiguity about the next step), auto-width anchored bottom-left
-              from sm up where the card has room to spare. */}
-          <div className="mt-auto pt-3 sm:pt-4 border-t border-ir-border">
-            <span
-              className={[
-                "flex sm:inline-flex items-center justify-center gap-2",
-                "rounded-full pl-5 pr-4 py-2.5",
-                "bg-ir-accent text-ir-on-accent",
-                "text-[14px] font-semibold",
-                "shadow-[0_2px_10px_rgba(170,204,0,0.32)]",
-                "transition-all duration-300",
-                "group-hover:shadow-[0_4px_16px_rgba(170,204,0,0.42)] group-hover:-translate-y-0.5",
-              ].join(" ")}
-            >
-              เริ่มต้นกำหนด Requirement
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-black/10 transition-transform duration-300 group-hover:translate-x-0.5">
-                <IconArrowRight width={13} height={13} />
-              </span>
-            </span>
+      {/* ── What you get ── */}
+      <section className="relative mx-auto max-w-[1240px] px-5 sm:px-8 pt-24 sm:pt-28">
+        <SectionHead eyebrow="สิ่งที่คุณจะได้" title="เห็นภาพเว็บไซต์ก่อนเริ่มออกแบบจริง" />
+        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          {/* Design Direction — the four directions with their real palettes */}
+          <div className="lg:col-span-2 flex flex-col rounded-[28px] bg-ir-dark p-8 text-white">
+            <span className="text-[13px] font-semibold text-ir-accent">Design Direction</span>
+            <h3 className="mt-2 max-w-[22ch] text-[26px] font-semibold leading-snug tracking-[-0.02em] text-white" style={balance}>
+              4 แนวทางสำหรับเว็บไซต์ IR เลือกให้จากคำตอบของคุณ
+            </h3>
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {DIRECTIONS.map((d) => (
+                <div key={d.id} className="rounded-2xl bg-white/[0.06] p-4">
+                  <div className="flex gap-1.5" aria-hidden="true">
+                    {d.colors.map((c) => (
+                      <span key={c} className="w-5 h-5 rounded-full ring-1 ring-white/20" style={{ background: c }} />
+                    ))}
+                  </div>
+                  <p className="mt-4 text-[14px] font-semibold text-white">{d.label}</p>
+                  <p className="mt-1 text-[13px] leading-snug text-white/70">{d.tagline}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Design Quiz — a real A/B pair from the flow */}
+          <div className="rounded-[28px] border border-black/[0.06] bg-ir-card p-7">
+            <span className="text-[13px] font-semibold text-ir-accent-text">Design Quiz</span>
+            <h3 className="mt-2 text-[22px] font-semibold leading-snug tracking-[-0.02em]" style={balance}>เลือกจากภาพ 5 ข้อ ไม่ต้องรู้ศัพท์ดีไซน์</h3>
+            <div className="mt-6 grid grid-cols-2 gap-2">
+              {[QUIZ[1].optionA, QUIZ[1].optionB].map((o) => (
+                <div key={o.label} className="rounded-[14px] border border-ir-border p-1.5">
+                  <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={o.image} alt={o.label} width={1200} height={677} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                  <p className="px-1 pt-2 pb-1 text-[13px] font-semibold">{o.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Homepage Blueprint */}
+          <div className="lg:col-span-3 grid gap-6 rounded-[28px] border border-black/[0.06] bg-ir-card p-7 md:grid-cols-[1fr_1.4fr] md:items-center">
+            <div>
+              <span className="text-[13px] font-semibold text-ir-accent-text">Homepage Blueprint</span>
+              <h3 className="mt-2 text-[22px] font-semibold leading-snug tracking-[-0.02em]" style={balance}>เลือกและจัดลำดับ Section ของหน้าแรกเอง</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-ir-t2">ระบบแนะนำโครงตามกลุ่มเป้าหมาย ส่วน Header และ Footer จัดให้อัตโนมัติ</p>
+            </div>
+            <ol className="grid gap-2 sm:grid-cols-2">
+              {BLUEPRINT.map((s, i) => (
+                <li key={s} className="flex items-center gap-3 rounded-2xl border border-ir-border bg-ir-bg px-4 py-3">
+                  <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-accent font-mono text-[13px] font-bold text-ir-on-accent">{i + 1}</span>
+                  <span className="text-[14px] font-medium">{s}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Why section — light reassurance strip, secondary to the CTA ── */}
-      <div className="mt-6 md:mt-10 lg:mt-9 ir-fade-up" style={{ animationDelay: "160ms" }}>
-        <p className="text-center text-[13px] font-medium text-ir-t3 mb-4">
-          ทำไมต้องกำหนด Requirement ก่อนเริ่มออกแบบ
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-3">
-          {BENEFITS.map((b, i) => {
-            const Icon = BENEFIT_ICONS[i];
-            return (
-              <div
-                key={b.title}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border bg-ir-card"
-                style={{ borderColor: "var(--color-ir-border)" }}
-              >
-                <Icon color={b.color} />
-                <span className="text-[13px] font-medium text-ir-t2 whitespace-nowrap">
-                  {b.title}
-                </span>
+      {/* ── Closing CTA ── */}
+      <section className="relative mx-auto max-w-[1240px] px-5 sm:px-8 py-24 sm:py-28">
+        <div className="relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-16 text-center">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[-200px] h-[400px] w-[700px] -translate-x-1/2 rounded-full"
+            style={{ background: "radial-gradient(closest-side, rgba(185,230,4,0.22), rgba(185,230,4,0) 70%)" }}
+          />
+          <h2 className="relative mx-auto max-w-[18ch] text-[clamp(1.9rem,3.8vw,3rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
+            พร้อมเริ่มเว็บไซต์ IR ใหม่ขององค์กรคุณ
+          </h2>
+          <p className="relative mt-4 text-[16px] text-white/75">กรอกครั้งเดียว ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+          <div className="relative mt-8 flex justify-center">
+            <PrimaryCta onClick={begin} onDark>เริ่มกำหนด Requirement</PrimaryCta>
+          </div>
+        </div>
+        <p className="mt-10 text-center text-[13px] text-ir-t3">IR Plus by efin · Website Requirement System</p>
+      </section>
+    </div>
+  );
+}
+
+function SectionHead({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div className="text-center">
+      <span className="text-[14px] font-semibold text-ir-accent-text">{eyebrow}</span>
+      <h2 className="mx-auto mt-3 max-w-[20ch] text-[clamp(1.9rem,3.6vw,2.9rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+// Black pill with a lime arrow disc (production WRS hero CTA). On a dark band it flips to
+// a white pill so it still reads as the primary action.
+function PrimaryCta({ children, onClick, onDark }: { children: ReactNode; onClick: () => void; onDark?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group inline-flex h-[52px] items-center gap-3 rounded-full pl-7 pr-2 text-[15px] font-semibold transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+        onDark ? "bg-white text-ir-t1 hover:bg-ir-bg" : "bg-ir-dark text-white shadow-[0_10px_30px_rgba(20,22,19,0.18)] hover:bg-neutral-800"
+      }`}
+    >
+      {children}
+      <span className="grid w-9 h-9 place-items-center rounded-full bg-ir-accent text-ir-on-accent transition-transform duration-200 group-hover:translate-x-1">
+        <IconArrowRight width={24} height={24} />
+      </span>
+    </button>
+  );
+}
+
+// Product preview under the hero: a quiz pick, the Direction it leads to, and the
+// homepage order — all from the flow's real data, labelled as an example.
+function HeroPreview() {
+  const q = QUIZ[0];
+  const dir = DIRECTIONS[0];
+  return (
+    <div className="relative mx-auto mt-14 sm:mt-16 max-w-[1080px] rounded-[28px] sm:rounded-[34px] border border-black/[0.06] bg-white/60 p-3 sm:p-4 shadow-[0_30px_80px_rgba(20,22,19,0.10)] backdrop-blur text-left">
+      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-ir-dark px-3 py-1 text-[12px] font-semibold text-white">ตัวอย่างผลลัพธ์</span>
+      <div className="grid gap-3 md:grid-cols-[1.25fr_1fr]">
+        <div className="rounded-[20px] border border-ir-border bg-ir-card p-3 sm:p-4">
+          <div className="flex items-center justify-between text-[12px] text-ir-t3">
+            <span>สำรวจแนวทาง</span>
+            <span className="font-mono">ข้อ 1/5</span>
+          </div>
+          <p className="mt-2 text-[15px] font-semibold" style={balance}>{q.question}</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {[q.optionA, q.optionB].map((o, i) => (
+              <div key={o.label} className={`rounded-[14px] border p-1.5 ${i === 0 ? "border-ir-select bg-primary-50" : "border-ir-border"}`}>
+                <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={o.image} alt={o.label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                </div>
+                <p className="px-1 pt-2 pb-1 text-[13px] font-semibold">{o.label}</p>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-3">
+          <div className="rounded-[20px] p-5 text-white" style={{ background: dir.colors[0] }}>
+            <span className="text-[12px] font-semibold text-white/70">Design Direction</span>
+            <p className="mt-1 text-[22px] font-semibold tracking-[-0.02em] text-white">{dir.label}</p>
+            <p className="mt-1 text-[14px] text-white/80">{dir.tagline}</p>
+            <div className="mt-4 flex gap-1.5" aria-hidden="true">
+              {dir.colors.map((c) => <span key={c} className="w-6 h-6 rounded-full ring-1 ring-white/30" style={{ background: c }} />)}
+            </div>
+          </div>
+          <div className="rounded-[20px] border border-ir-border bg-ir-card p-4">
+            <span className="text-[12px] font-semibold text-ir-t3">โครงหน้าแรก</span>
+            <ol className="mt-2 grid gap-1.5">
+              {BLUEPRINT.slice(0, 3).map((s, i) => (
+                <li key={s} className="flex items-center gap-2.5 text-[13px] font-medium">
+                  <span className="grid w-6 h-6 place-items-center rounded-full bg-ir-accent-soft font-mono text-[12px] font-bold text-ir-accent-text">{i + 1}</span>
+                  {s}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
     </div>

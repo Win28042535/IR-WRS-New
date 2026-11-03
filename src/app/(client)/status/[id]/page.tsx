@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useStore } from "@/lib/store";
 import { STATUS_LABEL } from "@/lib/insight";
 import { nextStepText, fmtDate } from "@/components/requirement";
-import { IconCheck } from "@/components/icons";
+import { IconCheck, IconPalette } from "@/components/icons";
 import { LumaLoader, LumaChip } from "@/components/AIMascot";
 import { directionById } from "@/lib/data";
 
@@ -42,28 +42,28 @@ export default function SubmittedPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
       {/* success header */}
-      <div className="bg-ir-card border border-ir-border rounded-[20px] overflow-hidden ir-shadow mb-6">
-        <div className="relative text-center px-8 py-10" style={{ background: "linear-gradient(135deg,#151823,#232833)" }}>
+      <div className="bg-ir-card border border-ir-border rounded-[28px] overflow-hidden ir-shadow mb-6">
+        <div className="relative text-center px-8 py-10 bg-ir-dark">
           {/* LUMA squircle success badge — scales down on narrow screens instead of
               staying a fixed 80px, which read as oversized relative to the card on mobile */}
           <div className="relative w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5">
             <div className="absolute inset-0 rounded-[14px] sm:rounded-[19px] bg-ir-accent/20 animate-ping" style={{ animationDuration: "2s" }} />
-            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-[14px] sm:rounded-[19px] bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(170,204,0,0.15)" }}>
+            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-[14px] sm:rounded-[19px] bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(185,230,4,0.15)" }}>
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
           </div>
           <h1 className="text-white text-2xl font-semibold mb-2">
             {frozen ? "โครงการพร้อมเริ่มต้นแล้ว 🚀" : "ส่งข้อมูลสำเร็จแล้ว!"}
           </h1>
-          <p className="text-white/70 text-[14px] max-w-sm mx-auto mb-2 leading-relaxed">
+          <p className="text-white/80 text-[15px] max-w-sm mx-auto mb-1 leading-relaxed">
             IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว
           </p>
-          <p className="text-white/40 text-xs max-w-xs mx-auto mb-6">
+          <p className="text-white/70 text-[14px] max-w-xs mx-auto mb-6">
             ทีมงานจะติดต่อกลับภายใน 1–2 วันทำการ
           </p>
-          <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-full pl-3.5 pr-4 py-1.5">
-            <span className="text-[10px] text-white/40 tracking-wide uppercase">หมายเลขอ้างอิง</span>
-            <span className="text-white/80 font-medium tracking-wider text-[13px]">{req.id}</span>
+          <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/15 rounded-full pl-3.5 pr-4 py-1.5">
+            <span className="text-[12px] text-white/70">หมายเลขอ้างอิง</span>
+            <span className="font-mono text-white font-medium tracking-wider text-[13px]">{req.id}</span>
           </div>
         </div>
 
@@ -77,11 +77,11 @@ export default function SubmittedPage() {
           </div>
 
           {/* client-friendly confirmation no internal workflow language */}
-          <div className="flex items-start gap-3 bg-ir-accent/[0.06] border border-ir-accent/20 rounded-xl px-4 py-4 mb-6">
+          <div className="flex items-start gap-3 bg-primary-50 border border-ir-select-soft rounded-[18px] px-4 py-4 mb-6">
             <span className="mt-[3px]"><LumaChip type="celebrate" size={16} /></span>
             <div>
-              <div className="text-[13px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
-              <p className="text-[12px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+              <div className="text-[14px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
+              <p className="text-[13px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
             </div>
           </div>
 
@@ -90,7 +90,7 @@ export default function SubmittedPage() {
             const dir = directionById(req.selectedDirection);
             const colors = dir?.colors ?? [];
             return (
-              <div className="rounded-xl border border-ir-border bg-ir-bg overflow-hidden">
+              <div className="rounded-[18px] border border-ir-border bg-ir-bg overflow-hidden">
                 {/* Color palette strip actual colors from quiz-derived direction */}
                 {colors.length > 0 && (
                   <div className="flex h-2">
@@ -100,12 +100,12 @@ export default function SubmittedPage() {
                   </div>
                 )}
                 <div className="px-4 py-4 flex items-start gap-3">
-                  <div className="shrink-0 w-8 h-8 rounded-lg bg-ir-accent/10 flex items-center justify-center text-[16px]">🎨</div>
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-ir-muted text-ir-t2 grid place-items-center"><IconPalette width={24} height={24} /></div>
                   <div className="flex-1">
-                    <div className="text-[13px] font-semibold text-ir-t1 mb-1">
+                    <div className="text-[14px] font-semibold text-ir-t1 mb-1">
                       Moodboard จะถูกจัดทำและส่งให้ทางอีเมล
                     </div>
-                    <p className="text-[12px] text-ir-t2 leading-relaxed">
+                    <p className="text-[13px] text-ir-t2 leading-relaxed">
                       ทีม IR Plus จะนำ Direction{dir ? ` "${dir.label}"` : ""} · Palette
                       {colors.length > 0 && ` (${dir?.palette ?? ""})`} · และ Sections ที่คุณเลือก
                       มาจัดทำ Moodboard พร้อมส่งไปที่{" "}
@@ -121,12 +121,12 @@ export default function SubmittedPage() {
 
       {/* actions */}
       <div className="flex justify-center">
-        <Link href="/" className="px-10 py-3.5 rounded-xl border border-ir-border bg-ir-card text-ir-t1 text-[14px] font-medium hover:border-ir-border-hi transition-colors">
+        <Link href="/" className="inline-flex items-center h-11 px-8 rounded-full bg-ir-muted text-ir-t1 text-[15px] font-medium hover:bg-ir-border transition-colors">
           กลับหน้าหลัก
         </Link>
       </div>
       <div className="text-center mt-4">
-        <p className="text-ir-t3 text-xs">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
+        <p className="text-ir-t3 text-[13px]">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
       </div>
     </div>
   );
