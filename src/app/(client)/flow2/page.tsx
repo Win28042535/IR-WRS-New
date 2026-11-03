@@ -1902,33 +1902,30 @@ const URL_THUMB_THEMES = [
 
 // ── Curated website references per Design Direction — for customers who have a feel
 // in mind but no specific site to point to. AI proposes, customer just reacts.
-// `photo` reuses the same validated Unsplash IDs as the quiz mood photos, as a stand-in
-// cover image (a real site screenshot service isn't wired up) so cards never look flat.
-const CURATED_REFERENCES: Record<string, { name: string; domain: string; tags: string[]; theme: string; photo: string }[]> = {
-  "premium-corporate": [
-    { name: "Goldman Sachs", domain: "goldmansachs.com", tags: ["Premium", "Corporate", "Institutional"], theme: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", photo: "1559526324-4b87b5e36e44" },
-    { name: "BlackRock", domain: "blackrock.com", tags: ["Premium", "Editorial", "Trust"], theme: "linear-gradient(135deg,#111827,#1F2937)", photo: "1486325212027-8081e485255e" },
-    { name: "Apple Investor Relations", domain: "investor.apple.com", tags: ["Premium", "Minimal", "Editorial"], theme: "linear-gradient(135deg,#1f2937,#374151)", photo: "1460925895917-afdab827c52f" },
-    { name: "Temasek", domain: "temasek.com.sg", tags: ["Corporate", "Minimal", "Global"], theme: "linear-gradient(135deg,#151823,#232833)", photo: "1497366754035-f200968a6e72" },
-  ],
-  "esg-focused": [
-    { name: "Patagonia", domain: "patagonia.com", tags: ["Editorial", "Warm", "Storytelling"], theme: "linear-gradient(135deg,#1E3A1E,#2D5A2D)", photo: "1497436072909-60f360e1d4b1" },
-    { name: "Ørsted", domain: "orsted.com", tags: ["Editorial", "Motion", "Clean"], theme: "linear-gradient(135deg,#1e3a3a,#0f2323)", photo: "1497436072909-60f360e1d4b1" },
-    { name: "Unilever Sustainability", domain: "unilever.com", tags: ["Corporate", "Warm", "ESG"], theme: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", photo: "1604328698692-f76ea9498e76" },
-    { name: "IKEA Sustainability", domain: "ikea.com", tags: ["Minimal", "Warm", "Approachable"], theme: "linear-gradient(135deg,#3f3d56,#232042)", photo: "1518770660439-4636190af475" },
-  ],
-  "modern-tech": [
-    { name: "Figma", domain: "figma.com", tags: ["Modern", "Motion", "Playful"], theme: "linear-gradient(135deg,#0D3080,#1A5090)", photo: "1518770660439-4636190af475" },
-    { name: "Notion", domain: "notion.so", tags: ["Minimal", "Modern", "Clean"], theme: "linear-gradient(135deg,#151823,#232833)", photo: "1460925895917-afdab827c52f" },
-    { name: "OpenAI", domain: "openai.com", tags: ["Minimal", "Bold", "Technical"], theme: "linear-gradient(135deg,#1f2937,#374151)", photo: "1461749280684-dccba630e2f6" },
-    { name: "Cloudflare", domain: "cloudflare.com", tags: ["Corporate", "Modern", "Technical"], theme: "linear-gradient(135deg,#0D3080,#03041C)", photo: "1497366754035-f200968a6e72" },
-  ],
-  "growth-oriented": [
-    { name: "Stripe", domain: "stripe.com", tags: ["Data-Driven", "Modern", "Minimal"], theme: "linear-gradient(135deg,#03041C,#0D0D2A)", photo: "1461749280684-dccba630e2f6" },
-    { name: "Linear", domain: "linear.app", tags: ["Minimal", "Motion", "Premium"], theme: "linear-gradient(135deg,#151823,#232833)", photo: "1460925895917-afdab827c52f" },
-    { name: "Vercel", domain: "vercel.com", tags: ["Bold", "Technical", "Dark"], theme: "linear-gradient(135deg,#1f2937,#111827)", photo: "1497366754035-f200968a6e72" },
-    { name: "Ramp", domain: "ramp.com", tags: ["Data-Driven", "Corporate", "Clean"], theme: "linear-gradient(135deg,#0D3080,#1A5090)", photo: "1559526324-4b87b5e36e44" },
-  ],
+// Real investor-relations sites only: Thai listed companies plus a few international
+// benchmarks. Every URL was checked to load its IR home (Nov 2026). Cards show the
+// company as a brand-colored monogram tile — no screenshots of other companies' sites.
+// `domain` doubles as the selection id stored in draft.curatedSelected.
+type CuratedSite = { name: string; symbol: string; market: string; sector: string; url: string; domain: string };
+const IR_SITES: Record<string, CuratedSite> = {
+  ptt:        { name: "PTT", symbol: "PTT", market: "SET", sector: "พลังงาน", url: "https://investor.pttplc.com/en/ir-home", domain: "investor.pttplc.com" },
+  scg:        { name: "SCG", symbol: "SCC", market: "SET", sector: "วัสดุก่อสร้าง", url: "https://scc.listedcompany.com", domain: "scc.listedcompany.com" },
+  pttep:      { name: "PTTEP", symbol: "PTTEP", market: "SET", sector: "พลังงาน", url: "https://pttep.listedcompany.com", domain: "pttep.listedcompany.com" },
+  banpu:      { name: "Banpu", symbol: "BANPU", market: "SET", sector: "พลังงาน", url: "https://www.banpu.com/investor-relations/", domain: "banpu.com" },
+  ais:        { name: "AIS", symbol: "ADVANC", market: "SET", sector: "สื่อสาร", url: "https://investor.ais.co.th/en/home", domain: "investor.ais.co.th" },
+  aot:        { name: "Airports of Thailand", symbol: "AOT", market: "SET", sector: "ขนส่ง", url: "https://investor.airportthai.co.th", domain: "investor.airportthai.co.th" },
+  bdms:       { name: "BDMS", symbol: "BDMS", market: "SET", sector: "การแพทย์", url: "https://investor.bdms.co.th/en", domain: "investor.bdms.co.th" },
+  bumrungrad: { name: "Bumrungrad Hospital", symbol: "BH", market: "SET", sector: "การแพทย์", url: "https://investor.bumrungrad.com", domain: "investor.bumrungrad.com" },
+  dbs:        { name: "DBS", symbol: "DBS", market: "สิงคโปร์", sector: "ธนาคาร", url: "https://www.dbs.com/investors/default.page", domain: "dbs.com" },
+  siemens:    { name: "Siemens", symbol: "SIE", market: "เยอรมนี", sector: "อุตสาหกรรม", url: "https://www.siemens.com/global/en/company/investor-relations.html", domain: "siemens.com" },
+  unilever:   { name: "Unilever", symbol: "ULVR", market: "สหราชอาณาจักร", sector: "สินค้าอุปโภค", url: "https://www.unilever.com/investors/", domain: "unilever.com" },
+  novo:       { name: "Novo Nordisk", symbol: "NOVO", market: "เดนมาร์ก", sector: "ยา", url: "https://www.novonordisk.com/investors.html", domain: "novonordisk.com" },
+};
+const CURATED_REFERENCES: Record<string, CuratedSite[]> = {
+  "premium-corporate": [IR_SITES.ptt, IR_SITES.scg, IR_SITES.bdms, IR_SITES.dbs],
+  "esg-focused":       [IR_SITES.banpu, IR_SITES.pttep, IR_SITES.unilever, IR_SITES.novo],
+  "modern-tech":       [IR_SITES.ais, IR_SITES.aot, IR_SITES.siemens, IR_SITES.bumrungrad],
+  "growth-oriented":   [IR_SITES.aot, IR_SITES.bumrungrad, IR_SITES.ais, IR_SITES.dbs],
 };
 
 function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: any; updateDraft: any }) {
@@ -1944,108 +1941,62 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
   return (
     <div>
       <p className="text-[14px] text-ir-t3 mt-1 mb-4 leading-relaxed">
-        ทีม IR Plus คัดเลือกเว็บไซต์ที่ใกล้เคียงกับแนวทาง <span className="text-ir-t2 font-medium">{dir?.label}</span> มาให้ดู
-        เลือกเว็บที่ใช่ที่สุด 1 แบบได้เลย ไม่ต้องหาลิงก์เอง
+        ทีม IR Plus คัดเว็บไซต์นักลงทุนสัมพันธ์จริงที่ใกล้เคียงกับแนวทาง <span className="text-ir-t2 font-medium">{dir?.label}</span> มาให้ดู
+        เปิดดูเว็บจริงได้ แล้วเลือกเว็บที่ใช่ที่สุด 1 แบบ
       </p>
       {/* Always paired 2-up so all four options stay comparable at a glance (same as the
-          quiz step), even on mobile. Card internals scale down at narrow widths. */}
+          quiz step), even on mobile. */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         {sites.map((s) => {
           const isSelected = activeDomain === s.domain;
-          const isDimmed = activeDomain !== null && !isSelected;
-          // Source requested at the displayed 4:3 ratio to avoid a double-crop, plus
-          // content-aware `crop=entropy` so an off-center focal point isn't sliced by a
-          // blind center crop.
-          const photoUrl = `https://images.unsplash.com/photo-${s.photo}?w=600&h=450&q=75&auto=format&fit=crop&crop=entropy`;
           return (
             <div
               key={s.domain}
-              // Same "compact photo card, bigger on larger screens" role as the quiz step's
-              // option cards — matches its exact desktop target (20px, not 16px) so the two
-              // don't diverge for what is structurally the same kind of card.
-              className={`rounded-[14px] sm:rounded-[20px] border bg-ir-card overflow-hidden transition-all duration-300 ${
-                isSelected ? "border-ir-accent" : "border-ir-border"
-              } ${
-                // `hover:opacity-80` never fires on touch, so mobile starts at a lighter dim
-                // (still readable) instead of the stronger desktop-only 45% that relies on
-                // a mouse hovering to lift it back up.
-                isDimmed ? "opacity-70 md:opacity-45 saturate-50 scale-[0.98] md:hover:opacity-80 md:hover:scale-100" : "opacity-100"
+              className={`rounded-[16px] sm:rounded-[20px] border bg-ir-card p-1.5 sm:p-2 transition-[border-color,box-shadow] duration-200 ${
+                isSelected ? "border-ir-select shadow-[0_0_0_2px_rgba(185,230,4,0.12)]" : "border-ir-border hover:border-ir-select-soft"
               }`}
             >
-              {/* Padding-box ratio (padding-top: 75% of width = 4:3) instead of the CSS
-                  `aspect-ratio` property — more consistently supported across mobile
-                  WebViews, avoiding the box collapsing/shrinking short on some renderers. */}
-              {/* The photo itself is now a button — clicking it selects directly (same
-                  "เลือก" action as the button below), so choosing doesn't require aiming
-                  for a small label under the card. `group` here (not on the outer card)
-                  scopes the hover-darken to just the image. */}
+              {/* Monogram tile in the Direction's own gradient — identifies the company
+                  without reproducing its website. Clicking it selects, like the button. */}
               <button
                 type="button"
                 onClick={() => pick(s.domain)}
                 aria-pressed={isSelected}
-                title={`เลือก ${s.domain}`}
-                className="relative block w-full text-left group wrs-skeleton"
-                style={{ paddingTop: "75%" }}
+                aria-label={`เลือก ${s.name} เป็นเว็บอ้างอิง`}
+                className="relative block w-full overflow-hidden rounded-[12px] sm:rounded-[14px] text-left"
+                style={{ paddingTop: "56.42%", background: dir?.bg ?? "#141613" }}
               >
-              <div
-                className="absolute inset-0 flex items-end px-2.5 pb-2"
-                style={{ backgroundImage: `url("${photoUrl}")`, backgroundSize: "cover", backgroundPosition: "center" }}
-              >
-                {/* brand-color tint ties the real photo back to this direction's palette */}
-                <div className="absolute inset-0" style={{ background: s.theme, opacity: 0.3 }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%)" }} />
-                {/* Hover/press darken — the only cue the image itself is clickable, since
-                    the two explicit buttons below already carry their own affordance. */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 group-active:bg-black/15 transition-colors" />
-                <div className="relative flex items-center gap-1.5 max-w-full">
-                  <IconGlobe width={13} height={13} className="text-white/80 shrink-0" />
-                  <span className="text-white text-[11px] sm:text-[12px] font-medium truncate">{s.domain}</span>
-                </div>
-              </div>
-              {isSelected && (
-                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-ir-accent flex items-center justify-center shadow-sm">
-                  <IconCheck width={9} height={9} className="text-ir-on-accent" />
+                <span className="absolute inset-0 flex flex-col justify-between p-3 sm:p-4 text-white">
+                  <span className="text-[12px] font-medium text-white/75">{s.market} · {s.sector}</span>
+                  <span className="font-mono text-[22px] sm:text-[30px] font-bold leading-none tracking-tight">{s.symbol}</span>
                 </span>
-              )}
+                {isSelected && (
+                  <span className="absolute top-2 right-2 grid place-items-center w-7 h-7 rounded-full bg-ir-accent text-ir-on-accent" aria-hidden="true">
+                    <IconCheck width={24} height={24} />
+                  </span>
+                )}
               </button>
-              <div className="px-2.5 sm:px-3.5 pt-2.5 sm:pt-3 pb-2.5 sm:pb-3.5">
-                {/* min-h reserves space for up to 2 lines (in `em`, so it scales with the
-                    responsive font-size) — keeps the tags/action row below aligned across
-                    both cards in a row regardless of whether this title wraps to 1 or 2 lines. */}
-                <p className="text-[12.5px] sm:text-[13.5px] font-semibold text-ir-t1 leading-snug line-clamp-2 min-h-[2.75em]">{s.name}</p>
-                {/* Tags are secondary — hidden on the narrow 2-up mobile card to keep the
-                    hierarchy (image → name → action) clean; shown from sm up. */}
-                <div className="hidden sm:flex flex-wrap gap-1 mt-1.5 mb-3">
-                  {s.tags.map((t) => (
-                    <span key={t} className="text-[10px] font-medium text-ir-t2 bg-ir-bg border border-ir-border rounded-full px-2 py-0.5">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                {/* Preview opens the real reference site; Select follows the same system
-                    button language (border → filled on select) as everywhere else in the flow. */}
-                <div className="flex items-center gap-1.5 mt-2.5 sm:mt-0">
-                  <button
-                    onClick={() => window.open(`https://${s.domain}`, "_blank", "noopener,noreferrer")}
-                    title={`เปิด ${s.domain} ในแท็บใหม่`}
-                    className={`shrink-0 flex items-center justify-center gap-1.5 text-[12px] font-medium px-2.5 sm:px-3 py-2 rounded-lg border transition-all active:scale-[0.96] ${
-                      isSelected
-                        ? "border-ir-accent/30 text-ir-accent-text hover:border-ir-accent/60 hover:bg-ir-accent/[0.06] active:border-ir-accent/60 active:bg-ir-accent/[0.06]"
-                        : "border-ir-border text-ir-t2 hover:border-ir-border-hi hover:text-ir-t1 active:border-ir-border-hi active:text-ir-t1"
-                    }`}
+              <div className="px-1.5 sm:px-2 pt-2.5 pb-1">
+                <p className="text-[14px] sm:text-[15px] font-semibold text-ir-t1 leading-snug truncate">{s.name}</p>
+                <p className="text-[12px] text-ir-t3 truncate">{s.domain}</p>
+                <div className="flex items-center gap-1.5 mt-2.5">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
+                    className="shrink-0 inline-flex items-center justify-center gap-1 h-9 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-[13px] font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
                   >
-                    <IconExternalLink width={12} height={12} />
-                    <span className="hidden sm:inline">ดูตัวอย่าง</span>
-                  </button>
+                    <IconExternalLink width={24} height={24} className="-my-1" />
+                    <span className="hidden sm:inline">เปิดเว็บ IR</span>
+                  </a>
                   <button
+                    type="button"
                     onClick={() => pick(s.domain)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 text-[12px] font-semibold py-2 rounded-lg border transition-all active:scale-[0.96] ${
-                      isSelected
-                        ? "border-ir-accent bg-ir-accent text-ir-on-accent shadow-sm"
-                        : "border-ir-border text-ir-t2 hover:border-ir-accent/40 hover:text-ir-t1 active:border-ir-accent/40 active:text-ir-t1"
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-9 rounded-full text-[13px] font-semibold transition-colors ${
+                      isSelected ? "bg-ir-dark text-white" : "border border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >
-                    {isSelected && <IconCheck width={10} height={10} />}
                     {isSelected ? "เลือกแล้ว" : "เลือก"}
                   </button>
                 </div>
