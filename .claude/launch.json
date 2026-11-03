@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wrs-platform",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set PATH=%PATH%;C:\\Program Files\\nodejs && npm run dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

@@ -1,0 +1,971 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════
+   IR PLUS · WRS Design System — single source of truth (see design-system.md)
+   Primary = lime (Primary 600 #AACC00, brand). Neutral = grayscale foundation.
+   Token NAMES (ir-*) are kept so existing markup re-skins; values follow the system.
+   ═══════════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Primary scale (brand / interactive) ── */
+  --color-primary-50:  #FAFFE7;
+  --color-primary-100: #F0FFC4;
+  --color-primary-200: #E6FF8F;
+  --color-primary-300: #D8FF4E;
+  --color-primary-400: #CCFB1A;
+  --color-primary-500: #B9E604;
+  --color-primary-600: #AACC00;   /* main brand */
+  --color-primary-700: #829504;
+  --color-primary-800: #6D780B;
+  --color-primary-900: #5F660F;
+  --color-primary-950: #363B03;
+
+  /* ── Neutral scale (text / surface / border) ── */
+  --color-neutral-50:  #F9FAFB;
+  --color-neutral-100: #F4F4F5;
+  --color-neutral-200: #E6E7EA;
+  --color-neutral-300: #D3D5D9;
+  --color-neutral-400: #A0A3AB;
+  --color-neutral-500: #6F727C;
+  --color-neutral-600: #5A5F6B;
+  --color-neutral-700: #3C404C;
+  --color-neutral-800: #232833;
+  --color-neutral-900: #151823;
+  --color-neutral-950: #06070F;
+
+  /* ── Semantic tokens (map onto the scales) ── */
+  --color-ir-dark: #151823;        /* dark surface / high emphasis (Neutral 900) */
+  --color-ir-nav: #06070F;         /* deepest dark (Neutral 950) */
+  --color-ir-card-dark: #232833;   /* dark section (Neutral 800) */
+  --color-ir-forest: #AACC00;      /* (legacy name) → primary */
+  --color-ir-accent: #AACC00;      /* Primary 600 — brand / interactive fills */
+  --color-ir-accent-hi: #B9E604;   /* hover (Primary 500) */
+  --color-ir-accent-lo: #829504;   /* active/pressed (Primary 700) */
+  --color-ir-accent-text: #6D780B; /* readable green emphasis text on light (Primary 800) */
+  --color-ir-on-accent: #151823;   /* text/icon on a Primary fill (Neutral 900) — WCAG */
+  --color-ir-bg: #F9FAFB;          /* page background (Neutral 50) */
+  --color-ir-card: #FFFFFF;        /* card / content surface */
+  --color-ir-border: #E6E7EA;      /* borders / dividers (Neutral 200) */
+  --color-ir-border-hi: #D3D5D9;   /* stronger border / hover (Neutral 300) */
+  --color-ir-t1: #232833;          /* body text (Neutral 800) */
+  --color-ir-t2: #5A5F6B;          /* secondary text (Neutral 600) */
+  --color-ir-t3: #6F727C;          /* meta / placeholder (Neutral 500) */
+  --color-ir-disabled: #A0A3AB;    /* disabled text (Neutral 400) */
+  --color-ir-blue: #0D6EFD;        /* informational only */
+  --color-ir-teal: #34C759;        /* success */
+  --color-ir-warn: #FF9500;        /* warning */
+  --color-ir-error: #FF3B30;       /* error / destructive */
+  --color-ir-live: #FF3B30;        /* LIVE / real-time / streaming — reserved exclusively */
+
+  --font-display: "SF Pro TH", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "SF Pro Text", "SF Pro TH", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* --font-prompt is injected by next/font as a CSS variable on <html> */
+}
+
+:root {
+  --background: #F9FAFB;     /* Neutral 50 */
+  --foreground: #232833;     /* Neutral 800 (body) */
+}
+
+/* ── Dark theme (toggle by adding class `dark` to <html>) — Dark Theme Ready ── */
+.dark {
+  --background: #06070F;
+  --foreground: #F4F4F5;
+  --color-ir-bg: #06070F;
+  --color-ir-card: #151823;
+  --color-ir-card-dark: #232833;
+  --color-ir-border: #3C404C;
+  --color-ir-border-hi: #5A5F6B;
+  --color-ir-t1: #F4F4F5;
+  --color-ir-t2: #A0A3AB;
+  --color-ir-t3: #6F727C;
+  --color-ir-accent-text: #CCFB1A;   /* brighter green reads better on dark */
+}
+
+html { scroll-behavior: smooth; }
+
+/* In @layer base so Tailwind text-* utilities (later layer) can override on dark surfaces */
+@layer base {
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; font-weight: 600; color: #151823; }
+  .dark h1, .dark h2, .dark h3 { color: #F9FAFB; }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: #E6FF8F; color: #151823; }
+
+/* Form focus: Primary border + soft green glow on all native controls */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #AACC00;
+  box-shadow: 0 0 0 3px rgba(170, 204, 0, 0.22);
+}
+
+/* Placeholder contrast fix — browser default fails WCAG 4.5:1; ir-t3 (#6F727C) = 4.87:1 on white */
+::placeholder { color: #6F727C; opacity: 1; }
+
+@layer utilities {
+  /* Apple-style soft elevation (kept) */
+  .ir-shadow { box-shadow: 0 4px 12px rgba(6,7,15,0.08); }
+  .ir-shadow-lg { box-shadow: 0 12px 32px rgba(6,7,15,0.15); }
+  /* v2 selection glow — outline avoids overflow:hidden clipping */
+  .ir-shadow-accent { outline: 2.5px solid rgba(170,204,0,0.45); outline-offset: -1px; }
+  .ir-frost { background: rgba(249,250,251,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@keyframes ir-pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.25)} }
+.ir-pulse { animation: ir-pulse 2s ease-in-out infinite; }
+
+/* LIVE semantic indicator — soft breathe, never flash */
+@keyframes ir-live-breathe { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+.ir-live-dot { animation: ir-live-breathe 2.4s ease-in-out infinite; }
+
+@keyframes ir-fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.ir-fade { animation: ir-fade .35s ease both; }
+
+/* Mobile sticky action bar (StepNav) — quick, subtle slide-up as it takes over from the
+   inline nav once that scrolls out of view. */
+@keyframes wrs-mobile-bar-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wrs-mobile-bar-in { animation: wrs-mobile-bar-in 0.22s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* Mobile floating action preview — quick rise-and-fade in, gentle fade+drop out. */
+@keyframes wrs-floating-preview-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.wrs-floating-preview-in { animation: wrs-floating-preview-in 0.2s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+@keyframes wrs-floating-preview-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(6px); }
+}
+.wrs-floating-preview-out { animation: wrs-floating-preview-out 0.22s ease-in forwards; }
+
+/* Docked Workspace edge tab — slides in from the edge when the workspace collapses */
+@keyframes wsdock-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(10px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+/* Living Workspace overlay drawer (tablet/mobile) — slides in from the right edge */
+@keyframes wsdrawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.wsdrawer-in { animation: wsdrawer-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Staggered fade-up — for landing page entrance reveals */
+@keyframes ir-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ir-fade-up { animation: ir-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Step transitions — directional slides for multi-step flows */
+@keyframes step-enter-forward {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes step-enter-backward {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.step-enter-forward  { animation: step-enter-forward  0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.step-enter-backward { animation: step-enter-backward 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Constellation node breathe — for Guided Path SVG illustration */
+@keyframes node-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.18); }
+}
+.node-center { animation: node-breathe 3s ease-in-out infinite; transform-origin: center; }
+
+/* Card illustration — subtle hover-triggered line draw */
+@keyframes arrow-draw {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* AI Journey Guide — wrapper entrance / exit */
+@keyframes ai-guide-in {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.97); }
+  70%  { opacity: 1; transform: translateY(-1.5px) scale(1.005); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ai-guide-in { animation: ai-guide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes ai-guide-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(4px) scale(0.98); }
+}
+.ai-guide-out { animation: ai-guide-out 0.2s ease-in forwards; }
+
+/* AI Journey Guide micro-interactions
+   All animations designed to reinforce confidence, not attract attention.
+   Amplitude intentionally small; periods slow; easing always ease-in-out or ease-out. */
+
+/* Idle: gentle breathe (scale 1→1.05) combined with soft float (0→-1.5px).
+   Replaces the old pulse which was too aggressive (scale 1.18, opacity 0.55). */
+@keyframes ai-guide-pulse {
+  0%, 100% { opacity: 0.84; transform: translateY(0) scale(1); }
+  50%       { opacity: 1;    transform: translateY(-1.5px) scale(1.05); }
+}
+.ai-guide-pulse { animation: ai-guide-pulse 4s ease-in-out infinite; }
+
+/* Celebrate pop: brief dampened spring then hands off to idle.
+   Peak scale 1.12 — noticeable but not cartoonish. */
+@keyframes ai-guide-celebrate-pop {
+  0%   { transform: translateY(0) scale(1); }
+  28%  { transform: translateY(-2px) scale(1.12); }
+  56%  { transform: translateY(0.5px) scale(0.97); }
+  78%  { transform: translateY(-0.5px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+.ai-guide-celebrate-pop {
+  animation:
+    ai-guide-celebrate-pop 0.45s ease-out,
+    ai-guide-pulse 4s 0.45s ease-in-out infinite;
+}
+
+/* Panel entrance: fast-out settle (expo easing).
+   scaleY 0.96→1 from top-center gives an "unfolding" feel. */
+@keyframes ai-guide-panel-in {
+  from { opacity: 0; transform: translateY(-5px) scaleY(0.96); }
+  to   { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+.ai-guide-panel-in {
+  animation: ai-guide-panel-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+}
+
+/* Panel exit: quick ease-in collapse upward. */
+@keyframes ai-guide-panel-out {
+  from { opacity: 1; transform: translateY(0) scaleY(1); }
+  to   { opacity: 0; transform: translateY(-4px) scaleY(0.98); }
+}
+.ai-guide-panel-out {
+  animation: ai-guide-panel-out 0.15s ease-in forwards;
+  transform-origin: top center;
+}
+
+/* Action content: drifts up 3 px while fading in. */
+@keyframes ai-guide-content-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ai-guide-content-in {
+  animation: ai-guide-content-in 0.18s ease-out forwards;
+}
+
+/* Idle float — very slow 2.5 px oscillation on the float wrapper when panel is closed.
+   CSS animation on transform is suppressed by a sibling transition when panel opens,
+   so the wrapper settles smoothly to rest rather than jumping. */
+@keyframes ai-guide-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-2.5px); }
+}
+.ai-guide-float { animation: ai-guide-float 6s ease-in-out infinite; }
+
+/* Mascot entrance — scale from 78 % to 110 % (10 % overshoot) then settles to 1.
+   Opacity matches the idle-pulse start value (0.84) so the hand-off is seamless. */
+@keyframes ai-guide-mascot-enter {
+  0%   { transform: scale(0.78); opacity: 0.6; }
+  60%  { transform: scale(1.10); opacity: 1;   }
+  80%  { transform: scale(0.97);               }
+  100% { transform: scale(1);    opacity: 0.84; }
+}
+.ai-guide-mascot-enter {
+  animation:
+    ai-guide-mascot-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    ai-guide-pulse 4s 0.35s ease-in-out infinite;
+}
+
+/* Action chip cascade — drifts up 5 px from below, staggered via inline animationDelay */
+@keyframes ai-guide-chip-in {
+  from { opacity: 0; transform: translateY(5px) scale(0.93); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+.ai-guide-chip-in { animation: ai-guide-chip-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Confidence panel — bottom sheet entrance */
+@keyframes conf-sheet-in {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes conf-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.conf-sheet-in    { animation: conf-sheet-in    0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.conf-backdrop-in { animation: conf-backdrop-in 0.2s ease both; }
+
+@keyframes conf-gain-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.conf-gain-in { animation: conf-gain-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Living Preview — palette flash when direction changes */
+@keyframes preview-palette-flash {
+  0%   { opacity: 1; filter: brightness(1); }
+  18%  { opacity: 0.15; filter: brightness(1.6) saturate(0.2); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+.preview-palette-flash { animation: preview-palette-flash 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Living Preview — new section block entrance */
+@keyframes preview-section-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.preview-section-in { animation: preview-section-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Structure step — "flying card" ghost that travels from the picker to the workspace
+   panel when a section is selected. Positioned/animated imperatively (GhostFlightLayer
+   in flow2/page.tsx); this class only carries its static look. */
+.wrs-ghost-card {
+  position: fixed;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--color-ir-card);
+  border: 1.5px solid var(--color-ir-accent);
+  box-shadow: 0 8px 20px rgba(6,7,15,0.16);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ir-t1);
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.wrs-ghost-icon { font-size: 14px; line-height: 1; flex-shrink: 0; }
+.wrs-ghost-name { overflow: hidden; text-overflow: ellipsis; }
+
+/* Workspace row — brief landing highlight right after the ghost arrives */
+@keyframes wrs-row-landed {
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  35%  { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+}
+.wrs-row-landed { animation: wrs-row-landed 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; border-color: var(--color-ir-accent) !important; }
+
+/* Workspace row — fade-out before it's actually removed from the list */
+@keyframes wrs-row-removing {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.94) translateX(6px); }
+}
+.wrs-row-removing { animation: wrs-row-removing 0.22s ease-in both; }
+
+/* Structure step picker card — brief "gently scales" acknowledgement the instant a section
+   is selected, before the ghost departs for the workspace. */
+@keyframes wrs-card-select-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+.wrs-card-select-pulse { animation: wrs-card-select-pulse 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Structure step picker card — glow-only echo (no scale, so it never fights the select
+   pulse or the native :active press) right when a ghost lands here — either a fresh
+   selection settling in, or a removed section's ghost returning home. */
+@keyframes wrs-card-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  35%  { box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+}
+.wrs-card-glow { animation: wrs-card-glow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Workspace list — soft, transient accent wash while a ghost is inbound from the picker,
+   so the destination reads as "about to receive something" ahead of the item landing. */
+.wrs-list-inbound { background-color: rgba(170,204,0,0.05); }
+
+/* Structure step — contextual "AI recommends" chip strip. Re-plays (via a changing React
+   `key`) every time the suggestion set refreshes to a newly-picked section, so each new
+   round of chips reads as a fresh, relevant nudge rather than a static fixture. */
+@keyframes wrs-suggest-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wrs-suggest-in { animation: wrs-suggest-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Inspiration step — counter badge tick, the second beat of the add confirmation sequence
+   (Recently Added card -> counter -> toast -> gallery tile), a touch after the card appears.
+   A small, non-elastic scale — a tick, not a bounce. */
+@keyframes wrs-counter-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.wrs-counter-pop { animation: wrs-counter-pop 0.2s cubic-bezier(0.4, 0, 0.2, 1) both; animation-delay: 60ms; }
+
+/* Inspiration step — reference card insertion: card settles into place, then a brief accent
+   highlight, then back to normal. No scale overshoot/bounce — a plain settle-and-highlight,
+   professional rather than playful. ~300ms, inside the 250-350ms target. */
+@keyframes reference-card-insert {
+  0%   { opacity: 0; transform: translateY(6px); border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+  40%  { opacity: 1; transform: translateY(0); border-color: var(--color-ir-accent); box-shadow: 0 0 0 3px rgba(170,204,0,0.35); }
+  100% { border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(170,204,0,0); }
+}
+.reference-card-insert { animation: reference-card-insert 0.3s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* Inspiration step — "Add website" button icon swap (idle/loading/completed). Each state is
+   a separately-mounted element, so this just gives every mount a quick, non-bouncy fade+scale
+   instead of an abrupt pixel-swap when the icon changes. */
+@keyframes ref-btn-icon-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.ref-btn-icon-in { animation: ref-btn-icon-in 0.15s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ir-fade,
+  .ir-fade-up,
+  .step-enter-forward,
+  .step-enter-backward,
+  .ir-pulse,
+  .node-center,
+  .ai-guide-in,
+  .ai-guide-out,
+  .ai-guide-float,
+  .ai-guide-pulse,
+  .ai-guide-celebrate-pop,
+  .ai-guide-mascot-enter,
+  .ai-guide-chip-in,
+  .ai-guide-panel-in,
+  .ai-guide-panel-out,
+  .ai-guide-content-in,
+  .conf-sheet-in,
+  .conf-backdrop-in,
+  .conf-gain-in,
+  .wsdrawer-in,
+  .wrs-mobile-bar-in,
+  .wrs-floating-preview-in,
+  .wrs-floating-preview-out,
+  .preview-palette-flash,
+  .preview-section-in,
+  .wrs-row-landed,
+  .wrs-row-removing,
+  .wrs-card-select-pulse,
+  .wrs-card-glow,
+  .wrs-suggest-in,
+  .wrs-counter-pop,
+  .reference-card-insert,
+  .ref-btn-icon-in,
+  .ai-timeline-entry-in,
+  .ai-notebook-entry-in,
+  .ai-hint-in,
+  .ai-hint-out,
+  .ai-hint-content-in,
+  .ai-guide-popover-in,
+  .mascot-svg,
+  .mascot-float-wrap,
+  .mascot-halo,
+  .mascot-spark,
+  .luma-dot,
+  .luma-loader-sq { animation: none; opacity: 0.7; }
+  .luma-dot { animation: none; }
+  .mascot-eye, .mascot-hl { transition: none; }
+  .ai-hint-msg { transition: opacity 140ms ease; }
+}
+
+@keyframes ai-timeline-entry-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ai-timeline-entry-in {
+  animation: ai-timeline-entry-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; /* timeline */
+}
+
+@keyframes ai-notebook-entry-in {
+  from { opacity: 0; transform: translateY(5px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ai-notebook-entry-in {
+  animation: ai-notebook-entry-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; /* notebook */
+}
+
+/* AI hint (redesigned guide) — gentle enter/exit, no overshoot */
+@keyframes ai-hint-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ai-hint-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(3px); }
+}
+@keyframes ai-hint-content-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ai-hint-in          { animation: ai-hint-in          0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.ai-hint-out         { animation: ai-hint-out         0.18s ease-in both; }
+.ai-hint-content-in  { animation: ai-hint-content-in  0.18s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* AI Guide popover — scales up from the pill anchor */
+@keyframes ai-guide-popover-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.ai-guide-popover-in {
+  animation: ai-guide-popover-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   AI MASCOT — Motion Language
+   Two-layer animation: float (wrapper) × breathe (svg) run out-of-phase
+   so their combined effect feels organic rather than mechanical.
+   All amplitudes are intentionally small — presence, not performance.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Layer 1: Float — vertical oscillation on the wrapper div ── */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0);      }
+  50%       { transform: translateY(-1.5px); }
+}
+@keyframes mascot-float-celebrate {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-3px); }
+}
+
+.mascot-float-wrap {
+  animation: mascot-float 3.2s ease-in-out infinite;
+  display: block;
+}
+/* Mood-contextual float speed — faster = more attentive/excited */
+[data-mood="tip"]       .mascot-float-wrap,
+.mascot-float-wrap[data-mood="tip"]       { animation-duration: 3.8s; }
+[data-mood="insight"]   .mascot-float-wrap,
+.mascot-float-wrap[data-mood="insight"]   { animation-duration: 3.0s; }
+[data-mood="recommend"] .mascot-float-wrap,
+.mascot-float-wrap[data-mood="recommend"] { animation-duration: 2.8s; }
+[data-mood="celebrate"] .mascot-float-wrap,
+.mascot-float-wrap[data-mood="celebrate"] {
+  animation-name:     mascot-float-celebrate;
+  animation-duration: 2.2s;
+}
+
+/* ── Layer 2: Breathe — subtle scale on the svg, ~4.5 s period ── */
+@keyframes mascot-breathe {
+  0%, 100% { transform: scale(1);      }
+  50%       { transform: scale(1.028); }
+}
+.mascot-svg {
+  animation: mascot-breathe 4.5s ease-in-out infinite;
+  transform-origin: center;
+  display: block;
+}
+[data-mood="celebrate"] .mascot-svg,
+.mascot-float-wrap[data-mood="celebrate"] .mascot-svg {
+  animation-duration: 2.6s;
+}
+
+/* ── Eye geometry: mood transitions (cy/ry) + gaze glances (cx) ── */
+.mascot-eye, .mascot-hl {
+  transform-box:    fill-box;
+  transform-origin: center;
+  transition:
+    cy 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+    ry 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+    cx 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── LUMA celebrate halo — ring expands and fades from the squircle border ── */
+@keyframes mascot-halo {
+  0%   { transform: scale(1);    opacity: 0.8; }
+  100% { transform: scale(1.55); opacity: 0;   }
+}
+.mascot-halo {
+  transform-box:    fill-box;
+  transform-origin: center;
+  animation: mascot-halo 0.9s ease-out infinite;
+}
+
+/* ── LUMA corner sparkle dots (twinkling) ── */
+@keyframes mascot-spark {
+  0%, 100% { transform: scale(0.2); opacity: 0;   }
+  50%       { transform: scale(1.5); opacity: 0.9; }
+}
+.mascot-spark {
+  transform-box:    fill-box;
+  transform-origin: center;
+  animation: mascot-spark 1.2s ease-in-out infinite;
+}
+.mascot-spark-a { animation-delay: 0ms;   }
+.mascot-spark-b { animation-delay: 300ms; }
+.mascot-spark-c { animation-delay: 600ms; }
+.mascot-spark-d { animation-delay: 900ms; }
+
+/* ── LUMA loader squircle — breathe animation for page loading states ── */
+@keyframes luma-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.45; }
+  50%       { transform: scale(1);    opacity: 0.9;  }
+}
+.luma-loader-sq {
+  transform-origin: center;
+  animation: luma-breathe 1.6s ease-in-out infinite;
+}
+
+/* ── LUMA thinking dots — visible during message crossfade ── */
+@keyframes luma-dot-bounce {
+  0%, 80%, 100% { transform: translateY(0);    opacity: 0.3; }
+  40%            { transform: translateY(-3px); opacity: 1;   }
+}
+.luma-dot {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #AACC00;
+  animation: luma-dot-bounce 0.8s ease-in-out infinite;
+}
+
+/* ── Guide card — mode-aware top accent stripe + ambient glow ── */
+.ai-guide-card {
+  transition: box-shadow 0.5s ease;
+}
+.ai-guide-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--guide-stripe, transparent);
+  transition: background 0.5s ease;
+  pointer-events: none;
+}
+.ai-guide-card[data-mode="insight"]   { --guide-stripe: #AACC00; }
+.ai-guide-card[data-mode="recommend"] { --guide-stripe: rgba(13,110,253,0.55); }
+.ai-guide-card[data-mode="tip"]       { --guide-stripe: rgba(160,163,171,0.28); }
+.ai-guide-card[data-mode="celebrate"] {
+  --guide-stripe: #34C759;
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, #34C759 18%, transparent),
+    0 4px 20px  color-mix(in srgb, #34C759 10%, transparent);
+}
+
+/* ── Message micro-lift — text arrives from 2px below on crossfade ── */
+.ai-hint-msg {
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.ai-hint-msg.fading  { opacity: 0; transform: translateY(2px);  }
+.ai-hint-msg.visible { opacity: 1; transform: translateY(0);    }
+
+/* ── Skeleton shimmer — AI analysis loading state ── */
+@keyframes wrs-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.wrs-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.06) 25%,
+    rgba(0,0,0,0.11) 50%,
+    rgba(0,0,0,0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: wrs-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+.wrs-skeleton-dark {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.06) 25%,
+    rgba(255,255,255,0.13) 50%,
+    rgba(255,255,255,0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: wrs-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ── Reveal: skeleton → content ── */
+@keyframes wrs-reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.wrs-reveal { animation: wrs-reveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ── Spinner for submit loading state ── */
+@keyframes wrs-spin {
+  to { transform: rotate(360deg); }
+}
+.wrs-spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: wrs-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Quiz selection flash — card brightens briefly before advancing ── */
+@keyframes wrs-quiz-select {
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, #AACC00 0%,  transparent); }
+  40%  { box-shadow: 0 0 0 4px color-mix(in srgb, #AACC00 30%, transparent); }
+  100% { box-shadow: 0 0 0 4px color-mix(in srgb, #AACC00 0%,  transparent); }
+}
+.wrs-quiz-selected {
+  animation: wrs-quiz-select 0.22s ease-out both;
+  border-color: #AACC00 !important;
+}
+
+/* ── Preview context strip entrance ── */
+@keyframes wrs-strip-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wrs-strip-in { animation: wrs-strip-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ── Panel tab cross-fade — seamless content swap, no layout shift ── */
+@keyframes wrs-tab-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.wrs-tab-enter {
+  animation: wrs-tab-enter 140ms ease-out both;
+}
+
+/* ── Reduced motion overrides ── */
+@media (prefers-reduced-motion: reduce) {
+  .wrs-skeleton,
+  .wrs-skeleton-dark { animation: none; background: rgba(0,0,0,0.07); }
+  .wrs-spinner       { animation: none; opacity: 0.5; }
+  .wrs-quiz-selected { animation: none; }
+  .wrs-reveal        { animation: none; }
+  .wrs-strip-in      { animation: none; }
+  .wrs-tab-enter     { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOUCH INTERACTION UTILITIES
+   Shared helpers for touch-driven surfaces (drag handles, tappable cards,
+   user-supplied images) — kept as classes rather than repeating the same
+   three declarations at every call site.
+   ═══════════════════════════════════════════════════════════════════ */
+@layer utilities {
+  /* Suppresses iOS's long-press callout (copy/save/share sheet) and Android's
+     long-press image-save menu — for drag handles and user-uploaded images
+     where a long-press should do nothing, not interrupt the gesture. */
+  .wrs-no-callout {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+  }
+
+  /* Floating preview toast offset. On mobile it has to clear the sticky action bar and
+     the collapsed workspace handle stacked at the bottom of the screen; from md up
+     neither exists, so it sits near the edge instead of floating oddly high. Kept here
+     rather than inline so the env() fallback comma survives (Tailwind arbitrary values
+     mangle it) and so the breakpoint lives with the rest of the layout system. */
+  .wrs-floating-preview-pos {
+    bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    .wrs-floating-preview-pos { bottom: 24px; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WORKSPACE LAYOUT SYSTEM
+   Adaptive workspace that replaces the fixed-width container approach.
+   All client-facing flows use .wrs-workspace as the outer shell.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Responsive workspace gutters — align with StepIndicator */
+  --wrs-px: 20px;
+  /* Per-step content width tokens */
+  --wrs-form-max:  680px;   /* comfortable reading width for form-heavy steps */
+  --wrs-wide-max:  1040px;  /* card selection / visual comparison steps */
+}
+@media (min-width: 640px)  { :root { --wrs-px: 24px; } }
+@media (min-width: 1024px) { :root { --wrs-px: 40px; } }
+@media (min-width: 1280px) { :root { --wrs-px: 56px; } }
+@media (min-width: 1536px) { :root { --wrs-px: 80px; } }
+
+@layer utilities {
+  /* Workspace shell — responsive gutters, no fixed max-width cap */
+  .wrs-workspace {
+    padding-inline: var(--wrs-px);
+  }
+
+  /* Form zone — constrains text inputs & reading content to comfortable width */
+  .wrs-form-zone {
+    max-width: var(--wrs-form-max);
+  }
+
+  /* Wide zone — card grids, visual comparison, use available workspace width */
+  .wrs-wide-zone {
+    max-width: var(--wrs-wide-max);
+  }
+
+  /* Step surface variants */
+  .wrs-step-card {
+    background: var(--color-ir-card);
+    border: 1px solid var(--color-ir-border);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(6,7,15,0.08);
+    padding: 24px;
+  }
+  @media (min-width: 768px) { .wrs-step-card { padding: 32px; } }
+
+  /* Full-bleed workspace step — no card chrome; used for preview/gallery steps */
+  .wrs-step-open {
+    /* no border, no bg, no padding — content floats directly in workspace */
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLIENT MODE TYPOGRAPHY — Prompt (Google Fonts, Cadson Demak)
+   Scoped to .client-mode wrapper (src/app/(client)/layout.tsx)
+   Thai + Latin · Phase 1 · See design-system.md §Typography
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Type scale tokens ── */
+:root {
+  /* fluid size: clamp(mobile, preferred, desktop) */
+  --type-display-size:   clamp(1.75rem, 5vw, 2.5rem);   /* 28–40px */
+  --type-h1-size:        clamp(1.5rem,  4vw, 2rem);      /* 24–32px */
+  --type-h2-size:        clamp(1.25rem, 3vw, 1.5rem);    /* 20–24px */
+  --type-h3-size:        clamp(1.125rem,2.5vw,1.25rem);  /* 18–20px */
+  --type-h4-size:        1.125rem;   /* 18px */
+  --type-title-size:     1.125rem;   /* 18px */
+  --type-body-lg-size:   1rem;       /* 16px */
+  --type-body-size:      1rem;       /* 16px */
+  --type-small-size:     0.875rem;   /* 14px */
+  --type-caption-size:   0.75rem;    /* 12px */
+  --type-overline-size:  0.6875rem;  /* 11px */
+}
+
+/* ── Apply Prompt to all client-facing surfaces ── */
+.client-mode,
+.client-mode input,
+.client-mode textarea,
+.client-mode select,
+.client-mode button {
+  font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", sans-serif;
+}
+
+/* Override @layer base h1-h3 (display font) for client mode */
+.client-mode h1,
+.client-mode h2,
+.client-mode h3,
+.client-mode h4,
+.client-mode h5,
+.client-mode h6 {
+  font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* ── Semantic type utilities — available inside .client-mode ── */
+@layer utilities {
+  /* Display — hero headings, flow titles */
+  .type-display {
+    font-size: var(--type-display-size);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  /* H1 — page section headings */
+  .type-h1 {
+    font-size: var(--type-h1-size);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* H2 — card / panel headings */
+  .type-h2 {
+    font-size: var(--type-h2-size);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  /* H3 — sub-section headings */
+  .type-h3 {
+    font-size: var(--type-h3-size);
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* H4 — component / card sub-titles */
+  .type-h4 {
+    font-size: var(--type-h4-size);
+    line-height: 1.45;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  /* Title — UI labels, step indicators */
+  .type-title {
+    font-size: var(--type-title-size);
+    line-height: 1.5;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  /* Body Large — lead / description text */
+  .type-body-lg {
+    font-size: var(--type-body-lg-size);
+    line-height: 1.7;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-wrap: pretty;
+  }
+
+  /* Body — default reading text */
+  .type-body {
+    font-size: var(--type-body-size);
+    line-height: 1.65;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-wrap: pretty;
+  }
+
+  /* Small — secondary / helper text */
+  .type-small {
+    font-size: var(--type-small-size);
+    line-height: 1.6;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  /* Caption — meta, dates, tags */
+  .type-caption {
+    font-size: var(--type-caption-size);
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  /* Overline — category labels, section dividers */
+  .type-overline {
+    font-size: var(--type-overline-size);
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
