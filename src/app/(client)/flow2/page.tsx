@@ -2786,6 +2786,19 @@ function ConceptBoard({ draft }: { draft: any }) {
     </span>
   );
 
+  // The customer's own Explore picks, in question order — the moodboard is built from
+  // these. Drafts from before quizPicks existed fall back to the industry stock shots.
+  const picked = ((draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[])
+    .map((pk) => {
+      const q = QUIZ.find((x) => x.id === pk.questionId);
+      return q ? (pk.letter === "A" ? q.optionA : q.optionB) : undefined;
+    })
+    .filter((o): o is QuizOption => !!o);
+  // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it
+  // instead of always rendering on the dark brand gradient.
+  const q2 = (draft.quizPicks ?? []).find((pk: { questionId: string }) => pk.questionId === "q2");
+  const prefersLight = q2 ? q2.letter === "B" : (p?.contrastDark ?? 0) < 0;
+
   // Compact imagery — a few tuned shots, not a 9-tile wall.
   const shots: { role: ImageRole; seed: number }[] = [
     { role: "hero", seed: 0 }, { role: "executive", seed: 1 },
@@ -2815,23 +2828,53 @@ function ConceptBoard({ draft }: { draft: any }) {
             gradient. One large visual the eye lands on first (bento anchor principle
             from /design-bentogrids-com). ── */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          {/* Feeling photo — 4:3, tinted with the brand gradient */}
-          <div className="sm:col-span-3 rounded-2xl overflow-hidden relative ring-1 ring-black/[0.06]" style={{ aspectRatio: "4/3" }}>
-            <div className="absolute inset-0" style={{ background: bgImage(photo("hero", draft.industry, 0, 720, 540), dir?.bg ?? `linear-gradient(135deg,${primary},${primary})`, 0.12), backgroundSize: "cover", backgroundPosition: "center" }} />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.5) 100%)" }} />
-            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-1.5">
-              {swatches.map((s) => <span key={s.hex} className="w-4 h-4 rounded-full ring-1 ring-white/40" style={{ background: s.hex }} />)}
+          {picked.length > 0 ? (
+            // Moodboard from the customer's own picks — the first-question pick (overall
+            // impression) leads, the other four sit underneath as a strip.
+            <div className="sm:col-span-3 flex flex-col gap-1.5">
+              <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={picked[0].image} alt={picked[0].label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                <span className="absolute left-3 bottom-3 rounded-full bg-ir-dark/75 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">จากภาพที่คุณเลือก</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {picked.slice(1).map((o) => (
+                  <div key={o.image} className="relative overflow-hidden rounded-[10px] ring-1 ring-black/[0.06] wrs-skeleton" style={{ paddingTop: "56.42%" }} title={o.label}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={o.image} alt={o.label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          {/* Mood panel — drenched in the brand gradient, mood words in the heading font */}
-          <div className="sm:col-span-2 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden" style={{ background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/55">Mood</span>
-            <div className="flex flex-col gap-0.5 my-1">
+          ) : (
+            /* Feeling photo — 4:3, tinted with the brand gradient (drafts without quiz picks) */
+            <div className="sm:col-span-3 rounded-2xl overflow-hidden relative ring-1 ring-black/[0.06]" style={{ aspectRatio: "4/3" }}>
+              <div className="absolute inset-0" style={{ background: bgImage(photo("hero", draft.industry, 0, 720, 540), dir?.bg ?? `linear-gradient(135deg,${primary},${primary})`, 0.12), backgroundSize: "cover", backgroundPosition: "center" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.5) 100%)" }} />
+              <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-1.5">
+                {swatches.map((s) => <span key={s.hex} className="w-4 h-4 rounded-full ring-1 ring-white/40" style={{ background: s.hex }} />)}
+              </div>
+            </div>
+          )}
+          {/* Mood panel — mood words in the heading font. Dark brand gradient when the
+              customer chose "Dark & Premium"; a light surface with brand-colored type when
+              they chose "Light & Clear", so the board matches the tone they asked for. */}
+          <div
+            className={`sm:col-span-2 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
+            style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
+          >
+            <span className={`text-[12px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
+              Mood · {prefersLight ? "Light & Clear" : "Dark & Premium"}
+            </span>
+            <div className="flex flex-col gap-0.5 my-2">
               {(dir?.mood ?? ["Professional & Clean"]).map((m) => (
-                <span key={m} className="text-[21px] leading-tight font-semibold drop-shadow-sm" style={{ fontFamily: fontStack(pairing.heading) }}>{m}</span>
+                <span key={m} className={`text-[21px] leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{m}</span>
               ))}
             </div>
-            {dir?.tagline && <span className="text-[12px] text-white/75 leading-snug">{dir.tagline}</span>}
+            {dir?.tagline && <span className={`text-[13px] leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
+            <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
+              {swatches.map((s) => <span key={s.hex} className={`w-5 h-5 rounded-full ring-1 ${prefersLight ? "ring-black/10" : "ring-white/40"}`} style={{ background: s.hex }} />)}
+            </div>
           </div>
         </div>
 
@@ -2917,15 +2960,20 @@ function ConceptBoard({ draft }: { draft: any }) {
           <p className="text-[12.5px] text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;วางโครงสร้าง&quot; เพื่อเลือก</p>
         )}
 
-        {/* ── Visual Style — compact imagery strip, merged in ── */}
-        <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><span className="text-[11px] text-ir-t3 truncate">{draft.industry || "องค์กรของคุณ"}</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="grid grid-cols-4 gap-2.5">
-          {shots.map((s, i) => (
-            <div key={i} className="rounded-xl overflow-hidden border border-ir-border" style={{ aspectRatio: "4/3" }}>
-              <div className="w-full h-full" style={{ background: bgImage(photo(s.role, draft.industry, s.seed, 240, 180), "linear-gradient(135deg,#1f2937,#111827)"), backgroundSize: "cover", backgroundPosition: "center" }} />
+        {/* ── Visual Style — industry stock strip, only for drafts without quiz picks (the
+            moodboard above already shows the customer's own imagery otherwise) ── */}
+        {picked.length === 0 && (
+          <>
+            <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><span className="text-[11px] text-ir-t3 truncate">{draft.industry || "องค์กรของคุณ"}</span><div className="flex-1 h-px bg-ir-border" /></div>
+            <div className="grid grid-cols-4 gap-2.5">
+              {shots.map((s, i) => (
+                <div key={i} className="rounded-xl overflow-hidden border border-ir-border" style={{ aspectRatio: "4/3" }}>
+                  <div className="w-full h-full" style={{ background: bgImage(photo(s.role, draft.industry, s.seed, 240, 180), "linear-gradient(135deg,#1f2937,#111827)"), backgroundSize: "cover", backgroundPosition: "center" }} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
