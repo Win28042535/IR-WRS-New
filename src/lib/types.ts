@@ -184,6 +184,7 @@ export interface RequirementVersion {
 export interface Requirement {
   id: string;            // IRP-xxxxxx
   flow: FlowType;
+  flowStep?: number;     // last step reached in the client flow, restored after a reload
   status: RequirementStatus;
   projectId?: string;    // links back to the Sales-created Project
   createdAt: number;

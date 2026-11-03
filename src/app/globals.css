@@ -116,10 +116,14 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 0 0 3px rgba(185, 230, 4, 0.28);
 }
 
-/* Keyboard focus on anything interactive — visible on every surface */
-:where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid var(--color-ir-ring);
-  outline-offset: 2px;
+/* Keyboard focus on anything interactive — visible on every surface. In @layer base so a
+   component's own focus treatment (e.g. OptionCard's ring, `focus-visible:outline-none`)
+   still wins; unlayered it would override every Tailwind utility. */
+@layer base {
+  :where(a, button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--color-ir-ring);
+    outline-offset: 2px;
+  }
 }
 
 /* Placeholder contrast fix — browser default fails WCAG 4.5:1; ir-t3 (#686D64) = 5.3:1 on white */

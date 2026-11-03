@@ -91,6 +91,15 @@ export default function Flow2() {
     }
     if (!st.draft || st.draft.flow !== "flow2") {
       startFlow("flow2"); // prefill from memory applied atomically inside startFlow
+      return;
+    }
+    // Resume where the customer left off. Quiz answers live in component state (not the
+    // draft), so a draft without a Direction yet resumes at the quiz rather than past it.
+    let resume = st.draft.flowStep ?? 1;
+    if (resume > 3 && !st.draft.selectedDirection) resume = 3;
+    if (resume > 1) {
+      prevStep.current = resume;
+      setStep(resume);
     }
   }, [startFlow, updateDraft]);
 
@@ -159,6 +168,7 @@ export default function Flow2() {
     setDir(n > prevStep.current ? "forward" : "backward");
     prevStep.current = n;
     setStep(n);
+    updateDraft({ flowStep: n });
   };
 
   const panelTransition = isResizing ? "none" : "width 260ms cubic-bezier(0.4, 0, 0.2, 1)";
@@ -421,14 +431,17 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // secondaryAudiences. Removing a card promotes the next selected one so
   // primaryAudience is only ever empty when nothing is selected at all.
   const selectedAudiences: string[] = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])].filter(Boolean);
+  // Read the live draft from the store, not this render's `draft` — taps that land before
+  // a re-render would otherwise each see the same stale state and overwrite one another.
   const toggleAudience = (id: string) => {
-    const cur = draft.secondaryAudiences ?? [];
-    if (draft.primaryAudience === id) {
+    const d = useStore.getState().draft ?? draft;
+    const cur = d.secondaryAudiences ?? [];
+    if (d.primaryAudience === id) {
       const [next, ...rest] = cur;
       updateDraft({ primaryAudience: next ?? "", secondaryAudiences: rest });
     } else if (cur.includes(id)) {
       updateDraft({ secondaryAudiences: cur.filter((a: string) => a !== id) });
-    } else if (!draft.primaryAudience) {
+    } else if (!d.primaryAudience) {
       updateDraft({ primaryAudience: id });
     } else {
       updateDraft({ secondaryAudiences: [...cur, id] });
@@ -437,8 +450,9 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // Promote an already-picked audience to primary; the old primary becomes the first
   // secondary so nothing else in the order shifts.
   const makePrimary = (id: string) => {
-    const rest = (draft.secondaryAudiences ?? []).filter((a: string) => a !== id);
-    updateDraft({ primaryAudience: id, secondaryAudiences: draft.primaryAudience ? [draft.primaryAudience, ...rest] : rest });
+    const d = useStore.getState().draft ?? draft;
+    const rest = (d.secondaryAudiences ?? []).filter((a: string) => a !== id);
+    updateDraft({ primaryAudience: id, secondaryAudiences: d.primaryAudience ? [d.primaryAudience, ...rest] : rest });
   };
   const ok = !!(draft.company.trim() && draft.projectType && draft.primaryAudience);
 
@@ -728,11 +742,12 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   // Collapsing is only offered when it wouldn't hide a goal the user already picked.
   const canCollapseGoals = showAllGoals && !hasHiddenSelection;
 
+  // Live store read — see toggleAudience.
   const toggleGoal = (id: string) => {
-    const has = draft.businessGoals.includes(id);
-    if (has) updateDraft({ businessGoals: draft.businessGoals.filter((x: string) => x !== id) });
-    else if (draft.businessGoals.length < RULES.goals.max)
-      updateDraft({ businessGoals: [...draft.businessGoals, id] });
+    const goals: string[] = (useStore.getState().draft ?? draft).businessGoals;
+    if (goals.includes(id)) updateDraft({ businessGoals: goals.filter((x: string) => x !== id) });
+    else if (goals.length < RULES.goals.max)
+      updateDraft({ businessGoals: [...goals, id] });
   };
   const ok = draft.businessGoals.length >= RULES.goals.min;
 
@@ -1371,6 +1386,8 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
   // the ghost's starting point instead.
   const toggle = (id: string, sourceRectOverride?: DOMRect) => {
     if (REQUIRED_SECTION_IDS.includes(id)) return; // fundamental structure — not user-toggleable
+    // Live store read (see toggleAudience) so quick successive picks don't overwrite each other.
+    const selected: string[] = (useStore.getState().draft ?? draft).selectedSections ?? [];
     const isAdding = !selected.includes(id);
 
     if (isAdding) {
@@ -3155,7 +3172,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 disabled={!canSubmit || submitting}
                 // Same black pill + lime arrow disc as the landing CTA — this is the flow's
                 // final primary action. Disabled keeps a readable label on a gray fill.
-                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[15px] font-semibold transition-[background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[15px] font-semibold transition-[background-color,color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
                   canSubmit && !submitting
                     ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer"
                     : "bg-ir-border text-ir-t3 cursor-not-allowed"

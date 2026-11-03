@@ -224,7 +224,7 @@ export function NextButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-[15px] font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
+      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-[15px] font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
     >
       {children}
       {!accent && (
