@@ -79,6 +79,7 @@ export interface BusinessGoalDef {
   desc: string;
   impact: string;
   comps: string[];
+  hidden?: boolean;     // kept for corporate-site projects; not offered in the IR flow
 }
 
 // Smart Discovery Quiz (Flow 2)

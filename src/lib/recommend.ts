@@ -116,8 +116,9 @@ export function rankProfileDirections(p: DesignProfile): { direction: Direction;
         (f.densityData - p.densityData) ** 2 +
         (f.energyBold - p.energyBold) ** 2
     );
-    // max distance ~ sqrt(4*200^2)=400 → confidence
-    return { direction: d, confidence: Math.max(40, Math.round(100 - (dist / 400) * 100)) };
+    // max distance ~ sqrt(4*200^2)=400 → confidence. No floor: a 40% minimum used to tie
+    // every weak match at the same figure, so the ranking on the result screen read as noise.
+    return { direction: d, confidence: Math.max(0, Math.round(100 - (dist / 400) * 100)) };
   }).sort((a, b) => b.confidence - a.confidence);
 }
 

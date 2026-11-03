@@ -25,6 +25,9 @@ const STEPS    = ["ทำความเข้าใจ", "กำหนดเป
 const STEPS_EN = ["Understand",   "Define",         "Explore",      "Structure",    "Inspiration",   "Deliver"];
 
 const IR_CATEGORY_ORDER = ["Core", "People", "Investor", "Sustainability", "Engagement"];
+// Goals offered in the IR flow — the non-IR ones (lead generation, product launch) stay in
+// the data for corporate-site projects but aren't shown here.
+const VISIBLE_GOALS = BUSINESS_GOALS.filter((g) => !g.hidden);
 
 const WS_WIDTH_KEY = "wrs_workspace_left_pct";
 
@@ -698,7 +701,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   // lives past that cutoff (e.g. returning to this step with a saved draft), reveal
   // everything automatically so a selection is never hidden from the user.
   const [showAllGoals, setShowAllGoals] = useState(false);
-  const hasHiddenSelection = BUSINESS_GOALS.slice(GOALS_COLLAPSE_AT).some((bg: any) => draft.businessGoals.includes(bg.id));
+  const hasHiddenSelection = VISIBLE_GOALS.slice(GOALS_COLLAPSE_AT).some((bg: any) => draft.businessGoals.includes(bg.id));
   const goalsExpanded = showAllGoals || hasHiddenSelection;
   // Collapsing is only offered when it wouldn't hide a goal the user already picked.
   const canCollapseGoals = showAllGoals && !hasHiddenSelection;
@@ -754,7 +757,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       <div>
         <SectionLabel badge={<RuleBadge ruleKey="goals" count={draft.businessGoals.length} />}>เป้าหมายหลัก</SectionLabel>
         <div className="grid md:grid-cols-2 gap-2.5 mt-2">
-          {BUSINESS_GOALS.map((goal, i) => {
+          {VISIBLE_GOALS.map((goal, i) => {
             const sel = draft.businessGoals.includes(goal.id);
             const memFreq = memory.frequentGoals.find((f) => f.value === goal.id);
             const hiddenOnMobile = i >= GOALS_COLLAPSE_AT && !goalsExpanded;
@@ -776,14 +779,14 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
             which read as "something disappeared") so the disclosure is reversible. Hidden
             only when collapsing would hide an already-selected goal, since a selection must
             never end up out of sight. */}
-        {BUSINESS_GOALS.length > GOALS_COLLAPSE_AT && (!goalsExpanded || canCollapseGoals) && (
+        {VISIBLE_GOALS.length > GOALS_COLLAPSE_AT && (!goalsExpanded || canCollapseGoals) && (
           <button
             type="button"
             onClick={() => setShowAllGoals((v) => !v)}
             aria-expanded={goalsExpanded}
             className="md:hidden mt-2.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-ir-border text-[13px] font-medium text-ir-t2 active:bg-ir-hover"
           >
-            {goalsExpanded ? "ย่อรายการ" : `ดูเป้าหมายเพิ่มเติมอีก ${BUSINESS_GOALS.length - GOALS_COLLAPSE_AT} รายการ`}
+            {goalsExpanded ? "ย่อรายการ" : `ดูเป้าหมายเพิ่มเติมอีก ${VISIBLE_GOALS.length - GOALS_COLLAPSE_AT} รายการ`}
             <svg
               width="24" height="24" viewBox="0 0 12 12" fill="none"
               className={`shrink-0 transition-transform duration-200 ${goalsExpanded ? "rotate-180" : ""}`}
@@ -2629,34 +2632,17 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
   );
 }
 
-// ── Google-font loader — injects a stylesheet link so concept specimens render in the
-// actual recommended typeface (falls back gracefully if the network blocks it). ──
-function useGoogleFonts(families: string[]) {
-  const key = families.join("|");
-  useEffect(() => {
-    if (!families.length) return;
-    const id = "gf-" + key.replace(/[^a-z0-9]/gi, "");
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id;
-    link.rel = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?${families
-      .map((f) => `family=${encodeURIComponent(f)}:wght@400;500;600;700`)
-      .join("&")}&display=swap`;
-    document.head.appendChild(link);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-}
-
 // AI-recommended Google font pairing per direction — heading paired with a neutral body
 // on a contrast axis (serif/geometric heading + humanist body), all free on Google Fonts.
-const FONT_PAIRINGS: Record<string, { heading: string; body: string; note: string }> = {
-  "premium-corporate": { heading: "Fraunces", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับ Sans ที่อ่านง่าย" },
-  "esg-focused":       { heading: "Manrope", body: "Inter", note: "Humanist sans อบอุ่น เป็นมิตร" },
-  "modern-tech":       { heading: "Space Grotesk", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
-  "growth-oriented":   { heading: "Sora", body: "Inter", note: "Grotesk เน้นความชัดของตัวเลข" },
+// `thai` is the Thai heading face matched to each Latin heading's character (serif with
+// serif, geometric with geometric) — the Latin fonts carry no Thai glyphs.
+const FONT_PAIRINGS: Record<string, { heading: string; thai: string; body: string; note: string }> = {
+  "premium-corporate": { heading: "Fraunces", thai: "Noto Serif Thai", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับ Sans ที่อ่านง่าย" },
+  "esg-focused":       { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "Humanist sans อบอุ่น เป็นมิตร" },
+  "modern-tech":       { heading: "Space Grotesk", thai: "Bai Jamjuree", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
+  "growth-oriented":   { heading: "Sora", thai: "Kanit", body: "Inter", note: "Grotesk เน้นความชัดของตัวเลข" },
 };
-const DEFAULT_PAIRING = { heading: "Manrope", body: "Inter", note: "คู่ฟอนต์อเนกประสงค์ อ่านง่ายทุกขนาด" };
+const DEFAULT_PAIRING = { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "คู่ฟอนต์อเนกประสงค์ อ่านง่ายทุกขนาด" };
 
 // CSS variables set by next/font in the root layout for every font FONT_PAIRINGS names.
 const FONT_VARS: Record<string, string> = {
@@ -2665,6 +2651,10 @@ const FONT_VARS: Record<string, string> = {
   "Space Grotesk": "--font-space-grotesk",
   Sora: "--font-sora",
   Inter: "--font-inter",
+  "Noto Serif Thai": "--font-noto-serif-thai",
+  Anuphan: "--font-anuphan",
+  "Bai Jamjuree": "--font-bai-jamjuree",
+  Kanit: "--font-kanit",
 };
 
 /** font-family for a pairing font — the loaded next/font face, then a system fallback. */
@@ -2758,7 +2748,6 @@ function ConceptIcon({ directionId, color }: { directionId?: string; color: stri
 function ConceptBoard({ draft }: { draft: any }) {
   const dir = directionById(draft.selectedDirection);
   const pairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
-  useGoogleFonts([pairing.heading, pairing.body]);
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;
@@ -2899,23 +2888,25 @@ function ConceptBoard({ draft }: { draft: any }) {
               {pairing.heading}
             </p>
             <span className="text-ir-t3 text-[13px]">+</span>
+            <p className="text-[22px] sm:text-[24px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700 }} title={pairing.thai}>
+              {pairing.thai}
+            </p>
+            <span className="text-ir-t3 text-[13px]">+</span>
             <p className="text-[18px] text-ir-t2" style={{ fontFamily: fontStack(pairing.body), fontWeight: 500 }} title={pairing.body}>
               {pairing.body}
             </p>
           </div>
           <p className="text-[13px] text-ir-t2 leading-relaxed mt-2 max-w-[560px]">
-            {pairing.heading} สำหรับหัวข้อ จับคู่กับ {pairing.body} สำหรับเนื้อหา — {pairing.note} มอบความคมชัดและความสม่ำเสมอในการแสดงผลบนทุกอุปกรณ์และทุกขนาดหน้าจอ
+            {pairing.heading} สำหรับหัวข้อภาษาอังกฤษ คู่กับ {pairing.thai} สำหรับหัวข้อภาษาไทย และ {pairing.body} สำหรับเนื้อหา — {pairing.note}
           </p>
           <div className="mt-2"><GoogleTag /></div>
 
           <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[1.1fr,1.3fr] gap-4">
             <div>
               <span className={eyebrow}>ตัวอย่าง</span>
-              {/* Thai copy stays on the system's own IBM Plex Sans Thai, not the AI-recommended
-                  pairing — those Google fonts (Sora, Inter, Fraunces, ...) are Latin-only, so
-                  Thai glyphs here would silently fall back to whatever the browser's default
-                  Thai font is instead, reading inconsistently with the rest of the app. */}
-              <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
+              {/* Thai headline in the pairing's Thai face; body copy stays on the app's
+                  IBM Plex Sans Thai (Inter, the body pairing, has no Thai glyphs). */}
+              <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
                 นักลงทุนสัมพันธ์
               </p>
               <p className="text-[13px] text-ir-t2 leading-relaxed mt-1.5">
