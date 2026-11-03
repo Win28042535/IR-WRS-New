@@ -1383,6 +1383,29 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
   const goalSuggested = (draft.businessGoals ?? []).flatMap((g: string) => GOAL_SECTIONS[g] ?? []);
   const recommended = new Set<string>([...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]);
 
+  // Why each section is recommended — shown on its card. Same precedence as above, so the
+  // reason given is the one that actually got the section into the set.
+  const recReason: Record<string, string> = {};
+  const noteWhy = (ids: string[], why: string) => ids.forEach((id) => { recReason[id] ??= why; });
+  (draft.businessGoals ?? []).forEach((g: string) =>
+    noteWhy(GOAL_SECTIONS[g] ?? [], `คุณเลือกเป้าหมาย “${BUSINESS_GOALS.find((b) => b.id === g)?.label ?? g}”`));
+  if (aud) noteWhy(aud.prioritizes, `${aud.label}ต้องหาข้อมูลนี้เจอเร็ว`);
+  const dirLabel = directionById(draft.selectedDirection)?.label;
+  if (dirLabel) noteWhy(dirSuggested.slice(0, 6), `เป็นส่วนสำคัญของแนวทาง ${dirLabel}`);
+
+  // Page order for recommended sections: what the primary audience looks for first leads
+  // (an institutional investor wants Financial Highlights before About Us), then secondary
+  // audiences, then goal sections, then the usual IA order.
+  const audienceOrder = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])]
+    .flatMap((a: string) => audienceById(a)?.prioritizes ?? []);
+  const pageRank = (id: string) => {
+    const a = audienceOrder.indexOf(id);
+    if (a >= 0) return a;
+    const g = goalSuggested.indexOf(id);
+    if (g >= 0) return 100 + g;
+    return 200 + SECTIONS.findIndex((s) => s.id === id);
+  };
+
   // Source-card DOM refs, keyed by section id — read at click time to know where the
   // "flying card" ghost should start from (see GhostFlightLayer).
   const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -1566,7 +1589,9 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
     : [];
   const acceptAllRecommended = () => {
     const room = RULES.sections.max - selected.length;
-    const toAdd = recommendedUnselected.slice(0, room);
+    // Which sections make the cut follows `recommended` (goals first); where they land on
+    // the page follows pageRank (audience first).
+    const toAdd = recommendedUnselected.slice(0, room).sort((a, b) => pageRank(a) - pageRank(b));
     if (toAdd.length === 0) return;
     updateDraft({ selectedSections: toAdd.reduce((acc, id) => insertBeforeTrailing(acc, id), selected) });
     setLastPickedId(toAdd[toAdd.length - 1]);
@@ -1790,6 +1815,9 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                             )}
                           </div>
                           <p className="text-[13px] text-ir-t3 leading-snug line-clamp-2">{s.businessPurpose}</p>
+                          {isRec && !sel && !disabled && recReason[s.id] && (
+                            <p className="mt-1.5 text-[12px] font-medium text-ir-accent-text leading-snug">แนะนำเพราะ{recReason[s.id]}</p>
+                          )}
                         </div>
                         <span className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
                           sel ? "bg-ir-accent border-ir-accent text-ir-on-accent" : "border-ir-border-hi"
