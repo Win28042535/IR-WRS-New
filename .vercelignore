@@ -1,0 +1,6 @@
+# Keep local secrets and build output out of CLI deploy uploads
+.env*
+!.env.local.example
+node_modules
+.next
+.claude
