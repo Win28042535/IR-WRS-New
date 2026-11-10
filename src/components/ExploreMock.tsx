@@ -345,6 +345,147 @@ const MOCKS: Record<string, { label: string; draw: (id: string) => ReactNode; bg
   "q5-b": { label: "โดดเด่น", bg: LIGHT, draw: (id) => <ExpressiveHome t={LIGHT} id={id} /> },
 };
 
+// ── Direction overview: one homepage composed from all five answers ──────────
+// Same primitives as the quiz mocks, so the result reads as "your picks, together":
+// q1 sets corners/buttons/eyebrow, q2 light or dark, q3 what the lower band shows,
+// q4 how many modules, q5 the hero. Colors come from the matched Direction.
+
+type Picks = Partial<Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B">>;
+
+const alpha = (hex: string, a: number) => {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+
+function directionTheme(colors: string[], light: boolean, approachable: boolean): Theme {
+  const [primary, second, surfaceHint] = colors;
+  const shape = approachable ? { r: 24, btnR: 999 } : { r: 2, btnR: 2 };
+  return light
+    ? {
+        bg: "#FFFFFF", surface: surfaceHint && surfaceHint.toUpperCase() !== "#FFFFFF" ? surfaceHint : "#F4F5F8",
+        ink: primary, muted: "#6B7280", line: "#E5E7EB",
+        accent: primary, onAccent: "#FFFFFF", soft: alpha(second, 0.35), ...shape,
+      }
+    : {
+        bg: primary, surface: "rgba(255,255,255,0.07)", ink: "#F5F6F8", muted: "#A9B1C2",
+        line: "rgba(255,255,255,0.16)", accent: second, onAccent: primary, soft: alpha(second, 0.28), ...shape,
+      };
+}
+
+export function DirectionMock({ picks, colors, label }: { picks: Picks; colors: string[]; label: string }) {
+  const approachable = picks.q1 === "A";
+  const light = picks.q2 !== "B";
+  const story = picks.q3 === "A";
+  const dense = picks.q4 === "B";
+  const expressive = picks.q5 === "B";
+  const t = directionTheme(colors, light, approachable);
+  const id = "dm";
+  const top = dense ? 148 : 112; // a market strip sits above the hero on dense pages
+  const band = dense ? 420 : 452;
+
+  const eyebrow = approachable ? (
+    <g>
+      <rect x={col(0)} y={top} width={168} height={32} rx={16} fill={t.soft} />
+      <Txt x={col(0) + 84} y={top + 21} size={14} weight={600} fill={t.ink} anchor="middle">สวัสดีนักลงทุน</Txt>
+    </g>
+  ) : (
+    <g>
+      <Txt x={col(0)} y={top + 18} size={13} weight={600} fill={t.muted} ls={3}>INVESTOR RELATIONS</Txt>
+      <line x1={col(0)} y1={top + 32} x2={col(0) + 64} y2={top + 32} stroke={t.ink} strokeWidth={2} />
+    </g>
+  );
+
+  return (
+    <Frame t={t} label={label}>
+      <Header t={t} />
+
+      {dense && (
+        <>
+          <rect x={col(0)} y={96} width={span(12)} height={36} rx={Math.min(t.r, 8)} fill={t.surface} />
+          {["SET 1,420.75 ▲0.6%", "ABC 42.75 ▲3.0%", "Vol 12.4M", "Mkt Cap 86,400 ลบ."].map((s, i) => (
+            <Txt key={s} x={col(0) + 20 + i * 262} y={120} size={14} weight={600} fill={t.ink}>{s}</Txt>
+          ))}
+        </>
+      )}
+
+      {/* hero */}
+      {expressive ? (
+        <>
+          <clipPath id={`${id}-cut`}><path d={`M${col(6)} ${top - 16} L${W} ${top - 16} L${W} ${band - 40} L${col(5)} ${band - 8} Z`} /></clipPath>
+          <g clipPath={`url(#${id}-cut)`}><Pic x={col(5)} y={top - 16} w={W - col(5)} h={band - top + 8} t={t} r={0} id={`${id}-p`} /></g>
+          <Txt x={col(0)} y={top + (dense ? 90 : 110)} size={dense ? 80 : 96} weight={800} fill={t.ink} ls={-3}>เติบโต</Txt>
+          <Txt x={col(0)} y={top + (dense ? 176 : 210)} size={dense ? 80 : 96} weight={800} fill={light ? colors[1] : t.accent} ls={-3}>ไปด้วยกัน</Txt>
+          <rect x={col(4) + 30} y={band - 128} width={112} height={112} rx={56} fill={t.accent} />
+          <Txt x={col(4) + 86} y={band - 60} size={30} weight={700} fill={t.onAccent} anchor="middle">→</Txt>
+        </>
+      ) : (
+        <>
+          {eyebrow}
+          <Txt x={col(0)} y={top + (dense ? 86 : 104)} size={dense ? 38 : 46} weight={700} fill={t.ink}>สร้างการเติบโต</Txt>
+          <Txt x={col(0)} y={top + (dense ? 134 : 160)} size={dense ? 38 : 46} weight={700} fill={t.ink}>อย่างยั่งยืน</Txt>
+          {!dense && <Lines x={col(0)} y={top + 190} w={span(5)} n={2} t={t} />}
+          <Btn x={col(0)} y={top + (dense ? 160 : 232)} w={span(2) + 20} label="ข้อมูลนักลงทุน" t={t} />
+          <Pic x={col(6) + 24} y={top} w={span(6) - 24} h={band - top - (dense ? 24 : 40)} t={t} id={`${id}-p`} />
+        </>
+      )}
+
+      {/* lower band */}
+      {story ? (
+        <>
+          <line x1={col(0)} y1={band + 44} x2={col(dense ? 6 : 11) + (dense ? 0 : span(1))} y2={band + 44} stroke={t.line} strokeWidth={2} />
+          {[["1998", "ก่อตั้ง"], ["2005", "เข้าตลาด"], ["2015", "ขยายภูมิภาค"], ["2026", "Net Zero"]].map(([y, s], i) => {
+            const x = dense ? col(0) + i * 150 : col(i * 3);
+            return (
+              <g key={y}>
+                <circle cx={x + 8} cy={band + 44} r={8} fill={i === 3 ? t.accent : t.bg} stroke={t.accent} strokeWidth={3} />
+                <Txt x={x} y={band + 92} size={dense ? 18 : 22} weight={700} fill={t.ink}>{y}</Txt>
+                <Txt x={x} y={band + 118} size={14} fill={t.muted}>{s}</Txt>
+              </g>
+            );
+          })}
+          {dense && (
+            <g>
+              <rect x={col(7)} y={band} width={span(5)} height={200} rx={t.r} fill={t.surface} />
+              <Txt x={col(7) + 20} y={band + 32} size={16} weight={600} fill={t.ink}>ข่าวล่าสุด</Txt>
+              {[0, 1, 2].map((k) => (
+                <g key={k}>
+                  <rect x={col(7) + 20} y={band + 50 + k * 46} width={34} height={34} rx={Math.min(t.r, 8)} fill={t.soft} />
+                  <rect x={col(7) + 66} y={band + 56 + k * 46} width={span(5) - 106} height={8} rx={4} fill={t.line} />
+                  <rect x={col(7) + 66} y={band + 72 + k * 46} width={(span(5) - 106) * 0.6} height={8} rx={4} fill={t.line} />
+                </g>
+              ))}
+            </g>
+          )}
+        </>
+      ) : (
+        <>
+          {(dense
+            ? [["รายได้", "28,560"], ["เติบโต", "+18%"], ["ROE", "12.4%"], ["ปันผล/หุ้น", "1.40"]]
+            : [["รายได้รวม", "28,560"], ["เติบโต", "+18%"], ["โครงการ", "128"]]
+          ).map(([k, v], i, all) => {
+            const w = all.length === 4 ? span(3) : span(4);
+            const x = all.length === 4 ? col(i * 3) : col(i * 4);
+            return (
+              <g key={k}>
+                <rect x={x} y={band} width={w} height={dense ? 104 : 150} rx={t.r} fill={t.surface} />
+                <Txt x={x + 20} y={band + 32} size={14} fill={t.muted}>{k}</Txt>
+                <Txt x={x + 20} y={band + (dense ? 78 : 96)} size={dense ? 30 : 40} weight={700} fill={i === 1 ? (light ? t.accent : t.accent) : t.ink}>{v}</Txt>
+              </g>
+            );
+          })}
+          {dense && (
+            <g>
+              {[0.42, 0.55, 0.63, 0.74, 0.92, 0.6, 0.8, 0.7, 0.85, 0.95, 0.75, 0.88].map((b, i) => (
+                <rect key={i} x={col(i)} y={band + 196 - 64 * b} width={span(1)} height={64 * b} rx={Math.min(t.r, 4)} fill={i % 4 === 3 ? t.accent : t.soft} />
+              ))}
+            </g>
+          )}
+        </>
+      )}
+    </Frame>
+  );
+}
+
 /** Mock for a quiz choice, e.g. id "q2-a". Fills its box at 16:9. */
 export function ExploreMock({ id }: { id: string }) {
   const m = MOCKS[id];

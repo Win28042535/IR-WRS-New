@@ -404,3 +404,48 @@ export function sectionById(id: string): SectionDef | undefined {
 export function directionById(id: string): Direction | undefined {
   return DIRECTIONS.find((d) => d.id === id);
 }
+
+// ── Visual Style — 4 curated photos per Direction for the deliver overview. Free
+// Unsplash images (images.unsplash.com, not Unsplash+), picked for clean composition and
+// no posed-to-camera stock. `mood` is the photo direction a designer should follow. ──
+export interface VisualStyle { mood: string; shots: { id: string; cap: string }[] }
+export const VISUAL_STYLES: Record<string, VisualStyle> = {
+  "premium-corporate": {
+    mood: "สถาปัตยกรรมมุมกว้าง กระจกและหิน แสงอุ่นตัดโทนน้ำเงินเข้ม",
+    shots: [
+      { id: "1431576901776-e539bd916ba2", cap: "อาคาร มุมเงย" },
+      { id: "1774186184398-1cc2da3d029e", cap: "ห้องประชุม วิวเมือง" },
+      { id: "1582535200497-8d831d74d18b", cap: "เมืองยามค่ำ" },
+      { id: "1768270181430-3e3672a32283", cap: "ล็อบบี้ วัสดุพรีเมียม" },
+    ],
+  },
+  "esg-focused": {
+    mood: "ธรรมชาติและพลังงานสะอาด แสงธรรมชาติ มุมสูงเห็นภาพรวม",
+    shots: [
+      { id: "1497435334941-8c899ee9e8e9", cap: "โซลาร์ฟาร์ม มุมสูง" },
+      { id: "1497436072909-60f360e1d4b1", cap: "ป่าและแหล่งน้ำ" },
+      { id: "1548337138-e87d889cc369", cap: "กังหันลมกลางทะเล" },
+      { id: "1542601906990-b4d3fb778b09", cap: "มือประคองต้นกล้า" },
+    ],
+  },
+  "modern-tech": {
+    mood: "นามธรรม เส้นสาย แสงนีออนน้ำเงิน และทีมทำงานจริง",
+    shots: [
+      { id: "1594267100238-fd7b1925d6a3", cap: "แสงและเส้นสาย" },
+      { id: "1584169417032-d34e8d805e8b", cap: "ดาต้าเซ็นเตอร์" },
+      { id: "1770777843445-2a1621b1201d", cap: "ทีมทำงาน มุมสูง" },
+      { id: "1592659762303-90081d34b277", cap: "แผงวงจร" },
+    ],
+  },
+  "growth-oriented": {
+    mood: "การดำเนินงานจริงและสเกลใหญ่ สีสันชัด มุมกว้าง",
+    shots: [
+      { id: "1494412519320-aa613dfb7738", cap: "ท่าเรือ มุมสูง" },
+      { id: "1716191299980-a6e8827ba10b", cap: "สายการผลิตอัตโนมัติ" },
+      { id: "1599707254554-027aeb4deacd", cap: "งานก่อสร้าง" },
+      { id: "1627309366653-2dedc084cdf1", cap: "คลังสินค้า" },
+    ],
+  },
+};
+export const unsplashUrl = (id: string, w = 800) =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;

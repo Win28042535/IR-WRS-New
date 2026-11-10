@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, audienceById, directionById, sectionById } from "@/lib/data";
-import { photo, bgImage, type ImageRole } from "@/lib/images";
+import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
-import { ExploreMock } from "@/components/ExploreMock";
+import { ExploreMock, DirectionMock } from "@/components/ExploreMock";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
@@ -2717,24 +2716,22 @@ function ConceptBoard({ draft }: { draft: any }) {
     </span>
   );
 
-  // The customer's own Explore picks, in question order — the moodboard is built from
-  // these. Drafts from before quizPicks existed fall back to the industry stock shots.
-  const picked = ((draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[])
-    .map((pk) => {
-      const q = QUIZ.find((x) => x.id === pk.questionId);
-      return q ? (pk.letter === "A" ? q.optionA : q.optionB) : undefined;
-    })
-    .filter((o): o is QuizOption => !!o);
-  // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it
-  // instead of always rendering on the dark brand gradient.
-  const q2 = (draft.quizPicks ?? []).find((pk: { questionId: string }) => pk.questionId === "q2");
-  const prefersLight = q2 ? q2.letter === "A" : (p?.contrastDark ?? 0) < 0; // q2: A = สว่าง, B = เข้ม
-
-  // Compact imagery — a few tuned shots, not a 9-tile wall.
-  const shots: { role: ImageRole; seed: number }[] = [
-    { role: "hero", seed: 0 }, { role: "executive", seed: 1 },
-    { role: dataDriven >= 0 ? "investor" : "esg", seed: 1 }, { role: "team", seed: 2 },
-  ];
+  // The customer's 5 Explore answers drive one combined homepage mock. Drafts from before
+  // quizPicks existed derive the same answers from the profile axes instead.
+  const pickList = (draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[];
+  const picks: Partial<Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B">> = pickList.length
+    ? Object.fromEntries(pickList.map((pk) => [pk.questionId, pk.letter]))
+    : {
+        q1: (p?.toneCorporate ?? 0) > 0 ? "B" : "A",
+        q2: (p?.contrastDark ?? 0) > 0 ? "B" : "A",
+        q3: dataDriven > 0 ? "B" : "A",
+        q4: dataDriven > 0 ? "B" : "A",
+        q5: (p?.energyBold ?? 0) > 0 ? "B" : "A",
+      };
+  const pickedLabels = QUIZ.map((q) => (picks[q.id as keyof typeof picks] === "B" ? q.optionB : q.optionA).label);
+  // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it.
+  const prefersLight = picks.q2 !== "B"; // q2: A = สว่าง, B = เข้ม
+  const visualStyle = VISUAL_STYLES[draft.selectedDirection];
 
   return (
     <div className="rounded-[20px] border border-ir-border bg-ir-card ir-shadow overflow-hidden">
@@ -2759,32 +2756,16 @@ function ConceptBoard({ draft }: { draft: any }) {
             gradient. One large visual the eye lands on first (bento anchor principle
             from /design-bentogrids-com). ── */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          {picked.length > 0 ? (
-            // Moodboard from the customer's own picks — the first-question pick (overall
-            // impression) leads, the other four sit underneath as a strip.
-            <div className="sm:col-span-3 flex flex-col gap-1.5">
-              <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
-                <div className="absolute inset-0"><ExploreMock id={picked[0].mock} /></div>
-                <span className="absolute left-3 bottom-3 rounded-full bg-ir-dark/75 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">จากแนวทางที่คุณเลือก</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {picked.slice(1).map((o) => (
-                  <div key={o.mock} className="relative overflow-hidden rounded-[10px] ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }} title={o.label}>
-                    <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
-                  </div>
-                ))}
+          {/* One homepage mock combining all 5 answers, drawn in the Direction's colors —
+              the single picture of where the design is heading. */}
+          <figure className="sm:col-span-3 m-0 flex flex-col gap-1.5">
+            <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
+              <div className="absolute inset-0">
+                <DirectionMock picks={picks} colors={dir?.colors ?? [primary]} label={dir?.label ?? "Design Direction"} />
               </div>
             </div>
-          ) : (
-            /* Feeling photo — 4:3, tinted with the brand gradient (drafts without quiz picks) */
-            <div className="sm:col-span-3 rounded-2xl overflow-hidden relative ring-1 ring-black/[0.06]" style={{ aspectRatio: "4/3" }}>
-              <div className="absolute inset-0" style={{ background: bgImage(photo("hero", draft.industry, 0, 720, 540), dir?.bg ?? `linear-gradient(135deg,${primary},${primary})`, 0.12), backgroundSize: "cover", backgroundPosition: "center" }} />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.5) 100%)" }} />
-              <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-1.5">
-                {swatches.map((s) => <span key={s.hex} className="w-4 h-4 rounded-full ring-1 ring-white/40" style={{ background: s.hex }} />)}
-              </div>
-            </div>
-          )}
+            <figcaption className="text-[12px] text-ir-t3 leading-snug">{pickedLabels.join(" · ")}</figcaption>
+          </figure>
           {/* Mood panel — mood words in the heading font. Dark brand gradient when the
               customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}
@@ -2891,18 +2872,22 @@ function ConceptBoard({ draft }: { draft: any }) {
           <p className="text-[12.5px] text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;วางโครงสร้าง&quot; เพื่อเลือก</p>
         )}
 
-        {/* ── Visual Style — industry stock strip, only for drafts without quiz picks (the
-            moodboard above already shows the customer's own imagery otherwise) ── */}
-        {picked.length === 0 && (
+        {/* ── Visual Style — the photo direction for this Direction: 4 curated examples
+            and the mood they share. ── */}
+        {visualStyle && (
           <>
-            <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><span className="text-[11px] text-ir-t3 truncate">{draft.industry || "องค์กรของคุณ"}</span><div className="flex-1 h-px bg-ir-border" /></div>
-            <div className="grid grid-cols-4 gap-2.5">
-              {shots.map((s, i) => (
-                <div key={i} className="rounded-xl overflow-hidden border border-ir-border" style={{ aspectRatio: "4/3" }}>
-                  <div className="w-full h-full" style={{ background: bgImage(photo(s.role, draft.industry, s.seed, 240, 180), "linear-gradient(135deg,#1f2937,#111827)"), backgroundSize: "cover", backgroundPosition: "center" }} />
-                </div>
+            <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><div className="flex-1 h-px bg-ir-border" /></div>
+            <p className="text-[13px] text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {visualStyle.shots.map((s) => (
+                <figure key={s.id} className="m-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-xl object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
+                  <figcaption className="mt-1 text-[11.5px] text-ir-t3 leading-snug">{s.cap}</figcaption>
+                </figure>
               ))}
             </div>
+            <p className="mt-2 text-[11px] text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
           </>
         )}
       </div>
