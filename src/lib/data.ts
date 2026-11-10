@@ -350,33 +350,33 @@ export const DIRECTIONS: Direction[] = [
 
 // ── Smart Discovery Quiz (UX #1) ──
 // Questions, topics and A/B choices follow the design team's Explore spec (Drive:
-// "Explore 5 ข้อ / รายละเอียด"); photos are that folder's 0NA / 0NB images, one-to-one.
+// "Explore 5 ข้อ / รายละเอียด"); each choice is drawn by ExploreMock (flat UI illustration).
 // `value` points each choice at its axis pole: +1 = corporate / dark / data-heavy / bold.
 export const QUIZ: QuizQuestion[] = [
   {
     id: "q1", topic: "บุคลิกแบรนด์", question: "เว็บไซต์ควรให้ความรู้สึกเป็นแบบไหน?", axis: "toneCorporate",
-    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", image: "/design-direction/q1-a.webp" },
-    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", image: "/design-direction/q1-b.webp" },
+    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", mock: "q1-a" },
+    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b" },
   },
   {
     id: "q2", topic: "โทนภาพรวม", question: "ภาพรวมของเว็บไซต์ควรให้อารมณ์แบบไหน?", axis: "contrastDark",
-    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", image: "/design-direction/q2-a.webp" },
-    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", image: "/design-direction/q2-b.webp" },
+    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a" },
+    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b" },
   },
   {
     id: "q3", topic: "การเน้นเนื้อหา", question: "คุณอยากให้ผู้เข้าชม “รับข้อมูล” จากเว็บไซต์แบบไหน?", axis: "densityData",
-    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", image: "/design-direction/q3-a.webp" },
-    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", image: "/design-direction/q3-b.webp" },
+    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", mock: "q3-a" },
+    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", mock: "q3-b" },
   },
   {
     id: "q4", topic: "ความหนาแน่นข้อมูล", question: "คุณอยากให้หนึ่งหน้ามีข้อมูลมากน้อยแค่ไหน?", axis: "densityData",
-    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", image: "/design-direction/q4-a.webp" },
-    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", image: "/design-direction/q4-b.webp" },
+    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a" },
+    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b" },
   },
   {
     id: "q5", topic: "การแสดงออกทางภาพ", question: "เว็บไซต์ควรแสดงตัวตนมากแค่ไหน?", axis: "energyBold",
-    optionA: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", image: "/design-direction/q5-a.webp" },
-    optionB: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", image: "/design-direction/q5-b.webp" },
+    optionA: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a" },
+    optionB: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b" },
   },
 ];
 

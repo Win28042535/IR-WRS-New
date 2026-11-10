@@ -345,8 +345,6 @@ const MOCKS: Record<string, { label: string; draw: (id: string) => ReactNode; bg
   "q5-b": { label: "โดดเด่น", bg: LIGHT, draw: (id) => <ExpressiveHome t={LIGHT} id={id} /> },
 };
 
-export const EXPLORE_MOCK_IDS = Object.keys(MOCKS);
-
 /** Mock for a quiz choice, e.g. id "q2-a". Fills its box at 16:9. */
 export function ExploreMock({ id }: { id: string }) {
   const m = MOCKS[id];

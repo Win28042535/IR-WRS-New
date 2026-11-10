@@ -8,6 +8,7 @@ import { photo, bgImage, type ImageRole } from "@/lib/images";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
+import { ExploreMock } from "@/components/ExploreMock";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
@@ -809,17 +810,14 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   );
 }
 
-// Website mockup photo at the top of each quiz card — the same Explore imagery as the
-// production WRS, so the choice reads as a real website decision.
-function QuizPhoto({ src, alt, letter }: { src: string; alt: string; letter: string }) {
+// Website mock at the top of each quiz card — a flat illustration (ExploreMock) of the
+// choice, so the pair can be told apart at a glance.
+function QuizVisual({ mock, letter }: { mock: string; letter: string }) {
   return (
-    // Production WRS Explore photo: 1200×677 website mockup in an inset 14px frame. Height
-    // comes from the padding-box ratio (56.42% = 677/1200) rather than `aspect-ratio`,
-    // which some mobile WebViews don't lock in — the frame can't collapse while loading,
-    // and the shimmer underneath shows until the photo arrives.
-    <div className="relative overflow-hidden rounded-[10px] sm:rounded-[14px] border border-ir-border wrs-skeleton" style={{ paddingTop: "56.42%" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} width={1200} height={677} draggable={false} className="absolute inset-0 w-full h-full object-cover select-none" />
+    // 16:9 inset frame. Height comes from the padding-box ratio (56.42% = 677/1200) rather
+    // than `aspect-ratio`, which some mobile WebViews don't lock in.
+    <div className="relative overflow-hidden rounded-[10px] sm:rounded-[14px] border border-ir-border select-none" style={{ paddingTop: "56.42%" }}>
+      <div className="absolute inset-0"><ExploreMock id={mock} /></div>
       <span className="absolute top-2 right-2 sm:top-3 sm:right-3 grid place-items-center w-7 h-7 rounded-full bg-ir-dark/75 text-white text-[12px] font-bold backdrop-blur-sm" aria-hidden="true">
         {letter}
       </span>
@@ -856,13 +854,6 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
   };
 
   useEffect(() => () => clearTimeout(pendingTimer.current), []);
-
-  // Warm the cache with the next question's photos so they're ready when it appears.
-  useEffect(() => {
-    const next = QUIZ[idx + 1];
-    if (!next) return;
-    [next.optionA.image, next.optionB.image].forEach((src) => { new window.Image().src = src; });
-  }, [idx]);
 
   const g = useGuide("design");
 
@@ -914,7 +905,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 ? "border-ir-border opacity-50 cursor-default"
                 : "border-ir-border hover:border-ir-select-soft hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.99]",
             ].join(" ")}>
-            <QuizPhoto src={o.image} alt={o.label} letter={letter} />
+            <QuizVisual mock={o.mock} letter={letter} />
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
               <div className="text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</div>
               <div className="text-[13px] sm:text-[14px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
@@ -992,9 +983,8 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                 <li key={p.questionId} className="flex lg:flex-col gap-3 rounded-[16px] border border-ir-border bg-ir-card p-2">
                   {/* Outer box fixes the width; the inner padding ratio is a % of that width */}
                   <div className="w-24 lg:w-full shrink-0">
-                    <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={o.image} alt="" width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                    <div className="relative overflow-hidden rounded-[10px] border border-ir-border" style={{ paddingTop: "56.42%" }}>
+                      <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
                     </div>
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
@@ -2773,16 +2763,14 @@ function ConceptBoard({ draft }: { draft: any }) {
             // Moodboard from the customer's own picks — the first-question pick (overall
             // impression) leads, the other four sit underneath as a strip.
             <div className="sm:col-span-3 flex flex-col gap-1.5">
-              <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={picked[0].image} alt={picked[0].label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
-                <span className="absolute left-3 bottom-3 rounded-full bg-ir-dark/75 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">จากภาพที่คุณเลือก</span>
+              <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
+                <div className="absolute inset-0"><ExploreMock id={picked[0].mock} /></div>
+                <span className="absolute left-3 bottom-3 rounded-full bg-ir-dark/75 px-3 py-1 text-[12px] font-medium text-white backdrop-blur-sm">จากแนวทางที่คุณเลือก</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {picked.slice(1).map((o) => (
-                  <div key={o.image} className="relative overflow-hidden rounded-[10px] ring-1 ring-black/[0.06] wrs-skeleton" style={{ paddingTop: "56.42%" }} title={o.label}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={o.image} alt={o.label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                  <div key={o.mock} className="relative overflow-hidden rounded-[10px] ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }} title={o.label}>
+                    <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
                   </div>
                 ))}
               </div>

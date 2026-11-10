@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { DIRECTIONS, QUIZ } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
+import { ExploreMock } from "@/components/ExploreMock";
 
 const balance = { textWrap: "balance" } as CSSProperties;
 
@@ -21,7 +22,7 @@ const BLUEPRINT = ["Hero Section", "ข้อมูลสำคัญทาง�
 // ── Landing (production WRS layout) ──
 // Hero → product preview → how it works → what you get → closing CTA, on a faint grid
 // with a lime glow behind the hero. Every preview below is built from the flow's own
-// data (real quiz photos, real Direction palettes), never invented figures.
+// data (the quiz mocks, real Direction palettes), never invented figures.
 export default function Landing() {
   const router = useRouter();
   const startFlow = useStore((s) => s.startFlow);
@@ -136,9 +137,8 @@ export default function Landing() {
             <div className="mt-6 grid grid-cols-2 gap-2">
               {[QUIZ[1].optionA, QUIZ[1].optionB].map((o) => (
                 <div key={o.label} className="rounded-[14px] border border-ir-border p-1.5">
-                  <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={o.image} alt={o.label} width={1200} height={677} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="relative overflow-hidden rounded-[10px] border border-ir-border" style={{ paddingTop: "56.42%" }}>
+                    <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
                   </div>
                   <p className="px-1 pt-2 pb-1 text-[13px] font-semibold">{o.label}</p>
                 </div>
@@ -235,9 +235,8 @@ function HeroPreview() {
           <div className="mt-3 grid grid-cols-2 gap-2">
             {[q.optionA, q.optionB].map((o, i) => (
               <div key={o.label} className={`rounded-[14px] border p-1.5 ${i === 0 ? "border-ir-select bg-primary-50" : "border-ir-border"}`}>
-                <div className="relative overflow-hidden rounded-[10px] wrs-skeleton" style={{ paddingTop: "56.42%" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={o.image} alt={o.label} width={1200} height={677} className="absolute inset-0 w-full h-full object-cover" />
+                <div className="relative overflow-hidden rounded-[10px] border border-ir-border" style={{ paddingTop: "56.42%" }}>
+                  <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
                 </div>
                 <p className="px-1 pt-2 pb-1 text-[13px] font-semibold">{o.label}</p>
               </div>
