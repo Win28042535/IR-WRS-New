@@ -10,7 +10,7 @@
 // 12 columns of 66px with 24px gutters (column i starts at x = 72 + 90·i, an n-column
 // span is 90·n − 24 wide), vertical rhythm in 8px steps.
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 const W = 1200;
 const H = 677;
@@ -123,53 +123,81 @@ const StandardHome = ({ t, id }: { t: Theme; id: string }) => (
   </>
 );
 
-// ── q1 · brand personality — same layout, different character ───────────────
-const PersonalityHome = ({ t, formal, id }: { t: Theme; formal: boolean; id: string }) => (
+// ── q1 · brand personality — same visual style as the other mocks; the two answers
+// differ in composition and in what the page talks about. Approachable: one big round
+// image, floating question bubbles, a chat card and FAQ. Formal: a strict grid, a
+// full-width image band, a company-facts table and a numbered index. ───────────────
+const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    {formal ? (
-      <>
-        <Txt x={col(0)} y={136} size={13} weight={600} fill={t.muted} ls={3}>CORPORATE · SINCE 1998</Txt>
-        <line x1={col(0)} y1={152} x2={col(0) + 64} y2={152} stroke={t.ink} strokeWidth={2} />
-        <Txt x={col(0)} y={214} size={48} weight={700} fill={t.ink}>มุ่งมั่นสร้างคุณค่า</Txt>
-        <Txt x={col(0)} y={274} size={48} weight={700} fill={t.ink}>อย่างมั่นคง</Txt>
-      </>
-    ) : (
-      <>
-        <rect x={col(0)} y={112} width={168} height={32} rx={16} fill={t.soft} />
-        <Txt x={col(0) + 84} y={133} size={14} weight={600} fill={t.accent} anchor="middle">สวัสดีนักลงทุน</Txt>
-        <Txt x={col(0)} y={214} size={48} weight={700} fill={t.ink}>มาเติบโต</Txt>
-        <Txt x={col(0)} y={274} size={48} weight={700} fill={t.ink}>ไปด้วยกันนะ</Txt>
-      </>
-    )}
-    <Lines x={col(0)} y={304} w={span(5)} n={2} t={t} />
-    <Btn x={col(0)} y={352} w={span(2) + 20} label={formal ? "ข้อมูลนักลงทุน" : "เริ่มทำความรู้จัก"} t={t} />
-    {formal ? (
-      <Pic x={col(6) + 24} y={112} w={span(6) - 24} h={300} t={t} id={`${id}-p`} />
-    ) : (
-      <g>
-        <circle cx={col(9) + 10} cy={262} r={150} fill={t.soft} />
-        <circle cx={col(11) + 24} cy={148} r={40} fill={t.accent} opacity={0.85} />
-        <circle cx={col(7)} cy={380} r={26} fill="#FFC56B" />
-        <Pic x={col(7) + 10} y={150} w={span(4) - 20} h={224} t={t} r={110} id={`${id}-p`} />
+    <rect x={col(0)} y={112} width={168} height={32} rx={16} fill={t.soft} />
+    <Txt x={col(0) + 84} y={133} size={14} weight={600} fill={t.accent} anchor="middle">สวัสดีนักลงทุน</Txt>
+    <Txt x={col(0)} y={206} size={48} weight={700} fill={t.ink}>มาเติบโต</Txt>
+    <Txt x={col(0)} y={266} size={48} weight={700} fill={t.ink}>ไปด้วยกันนะ</Txt>
+    <Lines x={col(0)} y={292} w={span(5) - 40} n={2} t={t} />
+    <Btn x={col(0)} y={336} w={span(2) + 30} label="คุยกับทีม IR" t={t} />
+    {/* one big round image */}
+    <Pic x={col(7) + 30} y={104} w={316} h={316} t={t} r={158} id={`${id}-p`} />
+    {/* questions people actually ask, floating over the image */}
+    {([["ปันผลจ่ายเมื่อไหร่?", col(6) - 20, 300, 228], ["ดูงบล่าสุดได้ที่ไหน?", col(9) + 30, 186, 232]] as const).map(([s, x, y, w]) => (
+      <g key={s}>
+        <rect x={x} y={y} width={w} height={48} rx={24} fill={t.bg} stroke={t.line} strokeWidth={2} />
+        <circle cx={x + 26} cy={y + 24} r={12} fill={t.soft} />
+        <Txt x={x + 26} y={y + 29} size={14} weight={700} fill={t.accent} anchor="middle">?</Txt>
+        <Txt x={x + 48} y={y + 30} size={16} weight={600} fill={t.ink}>{s}</Txt>
       </g>
-    )}
-    {formal
-      ? ["01 — ผลประกอบการ", "02 — ธรรมาภิบาล", "03 — ความยั่งยืน"].map((s, i) => (
-          <g key={s}>
-            <line x1={col(i * 4)} y1={460} x2={col(i * 4) + span(4)} y2={460} stroke={t.ink} strokeWidth={2} />
-            <Txt x={col(i * 4)} y={500} size={18} weight={700} fill={t.ink} ls={0.5}>{s}</Txt>
-            <Lines x={col(i * 4)} y={524} w={span(4) - 24} n={3} t={t} gap={16} />
-          </g>
-        ))
-      : ["ผลประกอบการ", "เป้าหมายของเรา", "คุยกับทีม IR"].map((s, i) => (
-          <g key={s}>
-            <rect x={col(i * 4)} y={452} width={span(4)} height={168} rx={t.r} fill={t.surface} />
-            <circle cx={col(i * 4) + 46} cy={498} r={22} fill={t.soft} />
-            <Txt x={col(i * 4) + 24} y={556} size={20} weight={600} fill={t.ink}>{s}</Txt>
-            <Lines x={col(i * 4) + 24} y={574} w={span(4) - 48} n={2} t={t} gap={14} h={7} />
-          </g>
-        ))}
+    ))}
+    {/* chat card */}
+    <rect x={col(0)} y={452} width={span(7)} height={176} rx={t.r} fill={t.surface} />
+    <Txt x={col(0) + 28} y={490} size={18} weight={700} fill={t.ink}>คุยกับทีม IR</Txt>
+    <rect x={col(0) + 28} y={506} width={250} height={34} rx={17} fill={t.bg} />
+    <rect x={col(0) + 46} y={519} width={200} height={8} rx={4} fill={t.line} />
+    <rect x={col(4) + 10} y={548} width={200} height={34} rx={17} fill={t.accent} />
+    <rect x={col(4) + 28} y={561} width={150} height={8} rx={4} fill="rgba(255,255,255,0.6)" />
+    <rect x={col(0) + 28} y={590} width={span(7) - 104} height={26} rx={13} fill={t.bg} />
+    <circle cx={col(0) + span(7) - 50} cy={603} r={16} fill={t.accent} />
+    {/* FAQ card */}
+    <rect x={col(7)} y={452} width={span(5)} height={176} rx={t.r} fill={t.surface} />
+    <Txt x={col(7) + 28} y={490} size={18} weight={700} fill={t.ink}>คำถามที่พบบ่อย</Txt>
+    {[0, 1, 2].map((k) => (
+      <g key={k}>
+        <rect x={col(7) + 28} y={506 + k * 40} width={span(5) - 56} height={32} rx={16} fill={t.bg} />
+        <rect x={col(7) + 46} y={518 + k * 40} width={[190, 150, 170][k]} height={8} rx={4} fill={t.line} />
+        <Txt x={col(7) + span(5) - 48} y={528 + k * 40} size={18} weight={700} fill={t.accent} anchor="middle">+</Txt>
+      </g>
+    ))}
+  </>
+);
+
+const FormalHome = ({ t, id }: { t: Theme; id: string }) => (
+  <>
+    <Header t={t} />
+    <Txt x={col(0)} y={130} size={13} weight={600} fill={t.muted} ls={3}>CORPORATE · SINCE 1998</Txt>
+    <line x1={col(0)} y1={146} x2={col(0) + 64} y2={146} stroke={t.ink} strokeWidth={2} />
+    <Txt x={col(0)} y={200} size={42} weight={700} fill={t.ink}>มุ่งมั่นสร้างคุณค่าอย่างมั่นคง</Txt>
+    <Btn x={col(9)} y={164} w={span(3)} label="รายงานประจำปี 2568" t={t} />
+    {/* full-width image band */}
+    <Pic x={col(0)} y={236} w={span(12)} h={168} t={t} r={0} id={`${id}-p`} />
+    {/* company facts table */}
+    <Txt x={col(0)} y={448} size={16} weight={700} fill={t.ink} ls={0.5}>ข้อมูลบริษัท</Txt>
+    <line x1={col(0)} y1={464} x2={col(0) + span(7)} y2={464} stroke={t.ink} strokeWidth={2} />
+    {[["ก่อตั้ง", "พ.ศ. 2541"], ["ตลาดหลักทรัพย์", "SET · หมวดพลังงาน"], ["ทุนจดทะเบียน", "12,000 ล้านบาท"], ["ผู้สอบบัญชี", "บริษัท XYZ จำกัด"]].map(([k, v], i) => (
+      <g key={k}>
+        <Txt x={col(0)} y={494 + i * 40} size={15} fill={t.muted}>{k}</Txt>
+        <Txt x={col(3)} y={494 + i * 40} size={15} weight={600} fill={t.ink}>{v}</Txt>
+        <line x1={col(0)} y1={506 + i * 40} x2={col(0) + span(7)} y2={506 + i * 40} stroke={t.line} />
+      </g>
+    ))}
+    {/* numbered index */}
+    <Txt x={col(8)} y={448} size={16} weight={700} fill={t.ink} ls={0.5}>สารบัญ</Txt>
+    <line x1={col(8)} y1={464} x2={col(11) + span(1)} y2={464} stroke={t.ink} strokeWidth={2} />
+    {["01  ผลประกอบการ", "02  ธรรมาภิบาล", "03  ความยั่งยืน", "04  เอกสารเผยแพร่"].map((s, i) => (
+      <g key={s}>
+        <Txt x={col(8)} y={494 + i * 40} size={15} weight={600} fill={t.ink}>{s}</Txt>
+        <Txt x={col(11) + span(1)} y={494 + i * 40} size={15} fill={t.muted} anchor="end">→</Txt>
+        <line x1={col(8)} y1={506 + i * 40} x2={col(11) + span(1)} y2={506 + i * 40} stroke={t.line} />
+      </g>
+    ))}
   </>
 );
 
@@ -288,53 +316,63 @@ const DenseHome = ({ t }: { t: Theme }) => (
   </>
 );
 
-// ── q5 · expression — calm vs bold with motion cues ─────────────────────────
+// ── q5 · expression — same palette; a near-empty quiet page vs image and type that
+// fill the frame and move ──────────────────────────────────────────────────────
 const SubtleHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    <Txt x={col(0)} y={176} size={14} fill={t.muted}>บริษัท ABC จำกัด (มหาชน)</Txt>
-    <Txt x={col(0)} y={226} size={36} weight={600} fill={t.ink}>ดำเนินธุรกิจอย่างรับผิดชอบ</Txt>
-    <Lines x={col(0)} y={256} w={span(5)} n={3} t={t} gap={18} />
-    <Txt x={col(0)} y={344} size={15} weight={600} fill={t.accent}>อ่านเพิ่มเติม  →</Txt>
-    <Pic x={col(6) + 24} y={136} w={span(6) - 24} h={240} t={t} id={`${id}-p`} />
-    <line x1={col(0)} y1={436} x2={col(11) + span(1)} y2={436} stroke={t.line} />
+    <Txt x={col(0)} y={208} size={16} weight={500} fill={t.muted} ls={0.5}>บริษัท ABC จำกัด (มหาชน)</Txt>
+    <Txt x={col(0)} y={264} size={40} weight={600} fill={t.ink}>ดำเนินธุรกิจอย่างรับผิดชอบ</Txt>
+    <Lines x={col(0)} y={296} w={span(5) - 24} n={2} t={t} gap={18} />
+    <Txt x={col(0)} y={370} size={16} weight={600} fill={t.accent}>อ่านเพิ่มเติม  →</Txt>
+    <Pic x={col(7) + 24} y={160} w={span(5) - 24} h={260} t={t} id={`${id}-p`} />
+    <line x1={col(0)} y1={484} x2={col(11) + span(1)} y2={484} stroke={t.line} />
     {["เกี่ยวกับเรา", "ข้อมูลนักลงทุน", "การกำกับดูแล"].map((s, i) => (
       <g key={s}>
-        <Txt x={col(i * 4)} y={480} size={18} weight={600} fill={t.ink}>{s}</Txt>
-        <Lines x={col(i * 4)} y={504} w={span(4) - 24} n={3} t={t} gap={16} />
+        <Txt x={col(i * 4)} y={530} size={18} weight={600} fill={t.ink}>{s}</Txt>
+        <Lines x={col(i * 4)} y={552} w={span(4) - 48} n={2} t={t} gap={16} />
       </g>
     ))}
   </>
 );
 
+// Motion is implied by the layout, not animated: a slanted image bleeding off the edges,
+// slide dots and a ticker cut off at both edges as if it were running past. The
+// headline sits on white, clear of the image.
+const TICKER = ["ผลประกอบการ Q3 เติบโต 18%", "ประกาศจ่ายปันผล 1.40 บาท", "Opportunity Day 28 พ.ย.", "ABC 42.75 ▲3.0%"];
+
 const ExpressiveHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
-    <Header t={t} />
-    {/* image breaks out of the grid at an angle */}
-    <clipPath id={`${id}-cut`}><path d={`M${col(6)} 96 L${W} 96 L${W} 520 L${col(5)} 560 Z`} /></clipPath>
+    {/* image bleeds off the top-right and bottom, cut on a slant */}
+    <clipPath id={`${id}-cut`}><path d={`M${col(7) + 20} 82 L${W} 82 L${W} 606 L${col(5) + 20} 606 Z`} /></clipPath>
     <g clipPath={`url(#${id}-cut)`}>
-      <Pic x={col(5)} y={96} w={W - col(5)} h={470} t={t} r={0} id={`${id}-p`} />
+      <Pic x={col(5)} y={82} w={W - col(5)} h={524} t={t} r={0} id={`${id}-p`} />
     </g>
-    <rect x={col(4) + 40} y={410} width={150} height={150} rx={75} fill={t.accent} />
-    <Txt x={col(4) + 115} y={494} size={36} weight={700} fill={t.onAccent} anchor="middle">→</Txt>
-    <Txt x={col(0)} y={232} size={104} weight={800} fill={t.ink} ls={-3}>กล้า</Txt>
-    <Txt x={col(0)} y={344} size={104} weight={800} fill={t.accent} ls={-3}>เปลี่ยน</Txt>
-    <Txt x={col(0)} y={400} size={18} fill={t.muted}>พลังงานแห่งอนาคต เริ่มที่วันนี้</Txt>
-    {/* motion cues: progress dots, scroll hint, speed lines */}
-    {[0, 60, 92].map((dx, i) => (
-      <rect key={dx} x={col(0) + dx} y={452} width={i === 0 ? 48 : 20} height={6} rx={3} fill={i === 0 ? t.ink : t.line} />
+    <Header t={t} />
+    <Txt x={col(0) - 4} y={236} size={112} weight={800} fill={t.ink} ls={-3}>เติบโต</Txt>
+    <Txt x={col(0) - 4} y={364} size={112} weight={800} fill={t.accent} ls={-3}>ไปด้วยกัน</Txt>
+    <Txt x={col(0)} y={424} size={18} fill={t.muted}>สร้างผลตอบแทนให้ผู้ถือหุ้นอย่างต่อเนื่อง</Txt>
+    {/* slide dots: the current slide is the long one */}
+    {[[0, 64], [84, 24], [116, 24]].map(([dx, w], i) => (
+      <rect key={dx} x={col(0) + dx} y={486} width={w} height={6} rx={3} fill={i === 0 ? t.ink : t.line} />
     ))}
-    <Txt x={col(0)} y={612} size={13} weight={600} fill={t.muted} ls={3}>SCROLL ↓</Txt>
-    {[0, 1, 2].map((i) => (
-      <line key={i} x1={col(8) - 40 + i * 24} y1={600 + i * 10} x2={col(11) + span(1) - i * 30} y2={600 + i * 10} stroke={t.accent} strokeWidth={3} strokeLinecap="round" opacity={0.6 - i * 0.15} />
+    <circle cx={col(4) + 20} cy={524} r={62} fill={t.accent} />
+    <Txt x={col(4) + 20} y={538} size={36} weight={700} fill={t.onAccent} anchor="middle">→</Txt>
+    {/* news ticker cut off at both edges */}
+    <rect x={0} y={606} width={W} height={71} fill={t.ink} />
+    {[...TICKER, TICKER[0]].map((s, i) => (
+      <g key={i}>
+        <circle cx={i * 300 - 130} cy={643} r={4} fill={t.soft} />
+        <Txt x={i * 300 - 112} y={650} size={20} weight={700} fill={i % 2 ? t.soft : t.onAccent}>{s}</Txt>
+      </g>
     ))}
   </>
 );
 
 // ── registry ─────────────────────────────────────────────────────────────────
 const MOCKS: Record<string, { label: string; draw: (id: string) => ReactNode; bg: Theme }> = {
-  "q1-a": { label: "เข้าถึงง่าย", bg: WARM, draw: (id) => <PersonalityHome t={WARM} formal={false} id={id} /> },
-  "q1-b": { label: "เป็นทางการ", bg: FORMAL, draw: (id) => <PersonalityHome t={FORMAL} formal id={id} /> },
+  "q1-a": { label: "เข้าถึงง่าย", bg: WARM, draw: (id) => <ApproachableHome t={WARM} id={id} /> },
+  "q1-b": { label: "เป็นทางการ", bg: FORMAL, draw: (id) => <FormalHome t={FORMAL} id={id} /> },
   "q2-a": { label: "สว่าง", bg: LIGHT, draw: (id) => <StandardHome t={LIGHT} id={id} /> },
   "q2-b": { label: "เข้ม", bg: DARK, draw: (id) => <StandardHome t={DARK} id={id} /> },
   "q3-a": { label: "เล่าเรื่อง", bg: LIGHT, draw: (id) => <StoryHome t={LIGHT} id={id} /> },
@@ -379,7 +417,7 @@ export function DirectionMock({ picks, colors, label }: { picks: Picks; colors: 
   const dense = picks.q4 === "B";
   const expressive = picks.q5 === "B";
   const t = directionTheme(colors, light, approachable);
-  const id = "dm";
+  const id = `dm${useId().replace(/[^a-zA-Z0-9]/g, "")}`; // unique per instance: clipPath ids are document-global
   const top = dense ? 148 : 112; // a market strip sits above the hero on dense pages
   const band = dense ? 420 : 452;
 
@@ -410,13 +448,18 @@ export function DirectionMock({ picks, colors, label }: { picks: Picks; colors: 
 
       {/* hero */}
       {expressive ? (
+        // q5-B: slanted image bleeding off the edge, big headline kept clear of it on the
+        // page background, slide dots and an arrow — motion implied, nothing animates.
         <>
-          <clipPath id={`${id}-cut`}><path d={`M${col(6)} ${top - 16} L${W} ${top - 16} L${W} ${band - 40} L${col(5)} ${band - 8} Z`} /></clipPath>
-          <g clipPath={`url(#${id}-cut)`}><Pic x={col(5)} y={top - 16} w={W - col(5)} h={band - top + 8} t={t} r={0} id={`${id}-p`} /></g>
-          <Txt x={col(0)} y={top + (dense ? 90 : 110)} size={dense ? 80 : 96} weight={800} fill={t.ink} ls={-3}>เติบโต</Txt>
-          <Txt x={col(0)} y={top + (dense ? 176 : 210)} size={dense ? 80 : 96} weight={800} fill={light ? colors[1] : t.accent} ls={-3}>ไปด้วยกัน</Txt>
-          <rect x={col(4) + 30} y={band - 128} width={112} height={112} rx={56} fill={t.accent} />
-          <Txt x={col(4) + 86} y={band - 60} size={30} weight={700} fill={t.onAccent} anchor="middle">→</Txt>
+          <clipPath id={`${id}-cut`}><path d={`M${col(7)} ${top - 16} L${W} ${top - 16} L${W} ${band - 24} L${col(5) + 40} ${band - 24} Z`} /></clipPath>
+          <g clipPath={`url(#${id}-cut)`}><Pic x={col(5)} y={top - 16} w={W - col(5)} h={band - top - 8} t={t} r={0} id={`${id}-p`} /></g>
+          <Txt x={col(0) - 4} y={top + (dense ? 82 : 96)} size={dense ? 76 : 90} weight={800} fill={t.ink} ls={-3}>เติบโต</Txt>
+          <Txt x={col(0) - 4} y={top + (dense ? 160 : 190)} size={dense ? 76 : 90} weight={800} fill={light ? colors[1] : t.accent} ls={-3}>ไปด้วยกัน</Txt>
+          {[[0, 56], [72, 20], [100, 20]].map(([dx, w], i) => (
+            <rect key={dx} x={col(0) + dx} y={band - 64} width={w} height={6} rx={3} fill={i === 0 ? t.ink : t.line} />
+          ))}
+          <circle cx={col(3) + 30} cy={band - 62} r={42} fill={t.accent} />
+          <Txt x={col(3) + 30} y={band - 52} size={26} weight={700} fill={t.onAccent} anchor="middle">→</Txt>
         </>
       ) : (
         <>
@@ -424,8 +467,26 @@ export function DirectionMock({ picks, colors, label }: { picks: Picks; colors: 
           <Txt x={col(0)} y={top + (dense ? 86 : 104)} size={dense ? 38 : 46} weight={700} fill={t.ink}>สร้างการเติบโต</Txt>
           <Txt x={col(0)} y={top + (dense ? 134 : 160)} size={dense ? 38 : 46} weight={700} fill={t.ink}>อย่างยั่งยืน</Txt>
           {!dense && <Lines x={col(0)} y={top + 190} w={span(5)} n={2} t={t} />}
-          <Btn x={col(0)} y={top + (dense ? 160 : 232)} w={span(2) + 20} label="ข้อมูลนักลงทุน" t={t} />
-          <Pic x={col(6) + 24} y={top} w={span(6) - 24} h={band - top - (dense ? 24 : 40)} t={t} id={`${id}-p`} />
+          <Btn x={col(0)} y={top + (dense ? 160 : 232)} w={span(2) + 20} label={approachable ? "คุยกับทีม IR" : "ข้อมูลนักลงทุน"} t={t} />
+          {approachable ? (
+            // q1-A: one big round image with a question bubble floating over it
+            (() => {
+              const s = Math.min(band - top - 32, 300);
+              const bx = col(7) - 30, by = top + s - 64;
+              return (
+                <>
+                  <Pic x={col(8) + 10} y={top} w={s} h={s} t={t} r={s / 2} id={`${id}-p`} />
+                  <rect x={bx} y={by} width={228} height={48} rx={24} fill={t.bg} stroke={t.line} strokeWidth={2} />
+                  <circle cx={bx + 26} cy={by + 24} r={12} fill={t.soft} />
+                  <Txt x={bx + 26} y={by + 29} size={14} weight={700} fill={t.ink} anchor="middle">?</Txt>
+                  <Txt x={bx + 48} y={by + 30} size={16} weight={600} fill={t.ink}>ปันผลจ่ายเมื่อไหร่?</Txt>
+                </>
+              );
+            })()
+          ) : (
+            // q1-B: a plain rectangular image, square corners
+            <Pic x={col(6) + 24} y={top} w={span(6) - 24} h={band - top - (dense ? 24 : 40)} t={t} id={`${id}-p`} />
+          )}
         </>
       )}
 
