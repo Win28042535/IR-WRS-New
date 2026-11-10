@@ -898,7 +898,8 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         </div>
         <span className="font-mono text-[12px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-[20px] sm:text-[22px] font-semibold tracking-[-0.02em] text-ir-t1 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
+      <p className="text-center text-[13px] font-semibold text-ir-accent-text">{String(idx + 1).padStart(2, "0")} — {q.topic}</p>
+      <p className="text-center text-[20px] sm:text-[22px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
       <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
@@ -997,7 +998,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                     </div>
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
-                    <p className="font-mono text-[12px] text-ir-t3">ข้อ {i + 1}</p>
+                    <p className="text-[12px] text-ir-t3 truncate">ข้อ {i + 1} · {q.topic}</p>
                     <p className="text-[14px] font-semibold leading-snug text-ir-t1">{o.label}</p>
                   </div>
                 </li>
@@ -2737,7 +2738,7 @@ function ConceptBoard({ draft }: { draft: any }) {
   // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it
   // instead of always rendering on the dark brand gradient.
   const q2 = (draft.quizPicks ?? []).find((pk: { questionId: string }) => pk.questionId === "q2");
-  const prefersLight = q2 ? q2.letter === "B" : (p?.contrastDark ?? 0) < 0;
+  const prefersLight = q2 ? q2.letter === "A" : (p?.contrastDark ?? 0) < 0; // q2: A = สว่าง, B = เข้ม
 
   // Compact imagery — a few tuned shots, not a 9-tile wall.
   const shots: { role: ImageRole; seed: number }[] = [
@@ -2797,14 +2798,14 @@ function ConceptBoard({ draft }: { draft: any }) {
             </div>
           )}
           {/* Mood panel — mood words in the heading font. Dark brand gradient when the
-              customer chose "Dark & Premium"; a light surface with brand-colored type when
-              they chose "Light & Clear", so the board matches the tone they asked for. */}
+              customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
+              chose "สว่าง" (Light), so the board matches the tone they asked for. */}
           <div
             className={`sm:col-span-2 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
             style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
           >
             <span className={`text-[12px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
-              Mood · {prefersLight ? "Light & Clear" : "Dark & Premium"}
+              Mood · {prefersLight ? "Light" : "Dark"}
             </span>
             <div className="flex flex-col gap-0.5 my-2">
               {(dir?.mood ?? ["Professional & Clean"]).map((m) => (

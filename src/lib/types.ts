@@ -85,6 +85,7 @@ export interface BusinessGoalDef {
 // Smart Discovery Quiz (Flow 2)
 export interface QuizQuestion {
   id: string;
+  topic: string;                // short heading shown above the question, e.g. "บุคลิกแบรนด์"
   question: string;
   axis: keyof DesignProfile;   // which profile dimension this informs
   optionA: QuizOption;

@@ -349,31 +349,34 @@ export const DIRECTIONS: Direction[] = [
 ];
 
 // ── Smart Discovery Quiz (UX #1) ──
+// Questions, topics and A/B choices follow the design team's Explore spec (Drive:
+// "Explore 5 ข้อ / รายละเอียด"); photos are that folder's 0NA / 0NB images, one-to-one.
+// `value` points each choice at its axis pole: +1 = corporate / dark / data-heavy / bold.
 export const QUIZ: QuizQuestion[] = [
   {
-    id: "q1", question: "ภาพลักษณ์ที่อยากให้นักลงทุนรู้สึกเมื่อเข้าเว็บไซต์ IR?", axis: "toneCorporate",
-    optionA: { label: "Corporate & Formal", desc: "เป็นทางการ น่าเชื่อถือ มั่นคงระดับสถาบัน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", image: "/design-direction/q1-a-corporate-formal.webp" },
-    optionB: { label: "Modern & Approachable", desc: "ทันสมัย เข้าถึงข้อมูลได้ง่าย", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", image: "/design-direction/q1-b-modern-approachable.webp" },
+    id: "q1", topic: "บุคลิกแบรนด์", question: "เว็บไซต์ควรให้ความรู้สึกเป็นแบบไหน?", axis: "toneCorporate",
+    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", image: "/design-direction/q1-a.webp" },
+    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", image: "/design-direction/q1-b.webp" },
   },
   {
-    id: "q2", question: "โทนสีเว็บไซต์แบบไหนที่เหมาะกับองค์กรคุณ?", axis: "contrastDark",
-    optionA: { label: "Dark & Premium", desc: "สีเข้ม หนักแน่น ดูมีระดับ", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", image: "/design-direction/q2-a-dark-premium.webp" },
-    optionB: { label: "Light & Clear", desc: "สว่าง โปร่ง สื่อสารได้ชัดเจน", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", image: "/design-direction/q2-b-light-clear.webp" },
+    id: "q2", topic: "โทนภาพรวม", question: "ภาพรวมของเว็บไซต์ควรให้อารมณ์แบบไหน?", axis: "contrastDark",
+    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", image: "/design-direction/q2-a.webp" },
+    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", image: "/design-direction/q2-b.webp" },
   },
   {
-    id: "q3", question: "รูปแบบตัวอักษรแบบไหนเหมาะกับเว็บไซต์ของคุณ?", axis: "densityData",
-    optionA: { label: "Precise & Data-forward", desc: "ชัดเจน คมชัด เน้นความแม่นยำของตัวเลขและข้อมูล", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", image: "/design-direction/q3-a-precise-data.webp" },
-    optionB: { label: "Editorial & Narrative", desc: "มีลีลา อบอุ่น เหมาะกับการเล่าเรื่อง", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", image: "/design-direction/q3-b-editorial-narrative.webp" },
+    id: "q3", topic: "การเน้นเนื้อหา", question: "คุณอยากให้ผู้เข้าชม “รับข้อมูล” จากเว็บไซต์แบบไหน?", axis: "densityData",
+    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", image: "/design-direction/q3-a.webp" },
+    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", image: "/design-direction/q3-b.webp" },
   },
   {
-    id: "q4", question: "สไตล์การนำเสนอข้อมูล IR ที่ต้องการ?", axis: "energyBold",
-    optionA: { label: "Bold & Confident", desc: "โดดเด่น มั่นใจ สื่อถึงการเติบโต", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", image: "/design-direction/q4-a-bold-confident.webp" },
-    optionB: { label: "Minimal & Professional", desc: "เรียบง่าย สุภาพ น่าเชื่อถือ", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", image: "/design-direction/q4-b-minimal-professional.webp" },
+    id: "q4", topic: "ความหนาแน่นข้อมูล", question: "คุณอยากให้หนึ่งหน้ามีข้อมูลมากน้อยแค่ไหน?", axis: "densityData",
+    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", image: "/design-direction/q4-a.webp" },
+    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", image: "/design-direction/q4-b.webp" },
   },
   {
-    id: "q5", question: "ระหว่างสองแนวทางนี้ เหมาะกับองค์กรคุณมากกว่า?", axis: "toneCorporate",
-    optionA: { label: "Premium / Institutional", desc: "หรูหรา ระดับสถาบันการเงิน", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", image: "/design-direction/q5-a-premium-institutional.webp" },
-    optionB: { label: "Tech / Transparent", desc: "ทันสมัย โปร่งใส ตรวจสอบได้ง่าย", value: -1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", image: "/design-direction/q5-b-tech-transparent.webp" },
+    id: "q5", topic: "การแสดงออกทางภาพ", question: "เว็บไซต์ควรแสดงตัวตนมากแค่ไหน?", axis: "energyBold",
+    optionA: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", image: "/design-direction/q5-a.webp" },
+    optionB: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", image: "/design-direction/q5-b.webp" },
   },
 ];
 
