@@ -449,3 +449,7 @@ export const VISUAL_STYLES: Record<string, VisualStyle> = {
 };
 export const unsplashUrl = (id: string, w = 800) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;
+
+// ── Client flow steps — shown in the flow's step bar and listed on the homepage. ──
+export const FLOW_STEPS = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "วางโครงสร้าง", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
+export const FLOW_STEPS_EN = ["Understand", "Define", "Explore", "Structure", "Inspiration", "Deliver"];

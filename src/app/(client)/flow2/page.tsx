@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
@@ -23,8 +23,8 @@ import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
 
-const STEPS    = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "วางโครงสร้าง", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
-const STEPS_EN = ["Understand",   "Define",         "Explore",      "Structure",    "Inspiration",   "Deliver"];
+const STEPS = FLOW_STEPS;
+const STEPS_EN = FLOW_STEPS_EN;
 
 const IR_CATEGORY_ORDER = ["Core", "People", "Investor", "Sustainability", "Engagement"];
 // Goals offered in the IR flow — the non-IR ones (lead generation, product launch) stay in
