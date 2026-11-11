@@ -41,7 +41,8 @@ export default function SubmittedPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
       {/* success header */}
-      <div className="bg-ir-card border border-ir-border rounded-[28px] overflow-hidden ir-shadow mb-6">
+      {/* overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside. */}
+      <div className="bg-ir-card border border-ir-border rounded-[28px] overflow-clip ir-shadow mb-6">
         <div className="relative text-center px-8 py-10 bg-ir-dark">
           {/* LUMA squircle success badge — scales down on narrow screens instead of
               staying a fixed 80px, which read as oversized relative to the card on mobile */}
@@ -68,7 +69,7 @@ export default function SubmittedPage() {
 
         {/* info */}
         <div className="p-6 md:p-8">
-          <div className="grid sm:grid-cols-2 gap-2.5 mb-5">
+          <div className="sc-reveal grid sm:grid-cols-2 gap-2.5 mb-5">
             <Field k="บริษัท / องค์กร" v={req.company || "-"} />
             <Field k="ผู้ติดต่อ" v={req.name || "-"} />
             <Field k="วันที่ส่ง" v={fmtDate(req.createdAt)} />
@@ -76,7 +77,7 @@ export default function SubmittedPage() {
           </div>
 
           {/* client-friendly confirmation no internal workflow language */}
-          <div className="flex items-start gap-3 bg-primary-50 border border-ir-select-soft rounded-[18px] px-4 py-4 mb-6">
+          <div className="sc-reveal flex items-start gap-3 bg-primary-50 border border-ir-select-soft rounded-[18px] px-4 py-4 mb-6">
             <span className="mt-[3px]"><LumaChip type="celebrate" size={16} /></span>
             <div>
               <div className="text-[14px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
@@ -89,7 +90,7 @@ export default function SubmittedPage() {
             const dir = directionById(req.selectedDirection);
             const colors = dir?.colors ?? [];
             return (
-              <div className="rounded-[18px] border border-ir-border bg-ir-bg overflow-hidden">
+              <div className="sc-reveal rounded-[18px] border border-ir-border bg-ir-bg overflow-hidden">
                 {/* Color palette strip actual colors from quiz-derived direction */}
                 {colors.length > 0 && (
                   <div className="flex h-2">

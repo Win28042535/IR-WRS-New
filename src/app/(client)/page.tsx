@@ -39,7 +39,8 @@ export default function Landing() {
   const shown = flow.inProgress ? flow.company : company;
 
   return (
-    <div className="relative overflow-hidden">
+    // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines.
+    <div className="relative overflow-clip">
       {/* Backdrop — 64px grid fading out from the top, lime glow behind the hero */}
       <div
         aria-hidden="true"
@@ -97,7 +98,7 @@ export default function Landing() {
 
       {/* ── Each step, previewed ── */}
       <section id="steps" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
-        <div className="text-center">
+        <div className="sc-reveal text-center">
           <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">6 ขั้นตอน</span>{" "}<span className="whitespace-nowrap">แต่ละขั้นทำอะไร</span>
           </h2>
@@ -108,8 +109,8 @@ export default function Landing() {
 
       {/* ── More detail, folded — for those who want to read first ── */}
       <section className="relative mx-auto max-w-[920px] px-5 sm:px-8 pt-16 sm:pt-20">
-        <h2 className="text-center text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
-        <div className="mt-6 divide-y divide-ir-border rounded-[24px] border border-black/[0.06] bg-ir-card">
+        <h2 className="sc-reveal text-center text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
+        <div className="sc-reveal mt-6 divide-y divide-ir-border rounded-[24px] border border-black/[0.06] bg-ir-card">
           <Fold title="ต้องเตรียมอะไรบ้าง">
             <p className="text-[15px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
             <ul className="mt-3 grid gap-2 pb-5">
@@ -130,7 +131,7 @@ export default function Landing() {
 
       {/* ── Closing banner — start (or resume) right here, no scrolling back up ── */}
       <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-16 sm:pt-20 pb-16">
-        <div className="relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
+        <div className="sc-reveal relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-[-220px] h-[440px] w-[760px] -translate-x-1/2 rounded-full"

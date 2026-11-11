@@ -967,15 +967,16 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
 
   return (
     <>
-      <div className="text-center">
+      <div className="sc-rise text-center">
         <span className="text-[14px] font-semibold text-ir-accent-text">ผลการสำรวจ</span>
         <h2 className="mt-2 text-[24px] sm:text-[28px] font-semibold tracking-[-0.02em] text-ir-t1" style={{ textWrap: "balance" } as CSSProperties}>
           {isTop ? "แนวทางที่ใกล้กับองค์กรคุณที่สุด" : "แนวทางที่คุณเลือก"}
         </h2>
       </div>
 
-      {/* Matched Direction — drenched in its own gradient */}
-      <div className="mt-6 rounded-[24px] p-6 sm:p-8 text-white" style={{ background: d.bg }}>
+      {/* Matched Direction — drenched in its own gradient. Scroll-motion tier A (globals.css). */}
+      <div className="sc-stage mt-6">
+      <div className="sc-show rounded-[24px] p-6 sm:p-8 text-white" style={{ background: d.bg }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[13px] font-semibold text-white/75">Design Direction</p>
@@ -1001,10 +1002,11 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
           </div>
         </div>
       </div>
+      </div>
 
       {/* Why — the five picks, each with the photo that was chosen */}
       {picks.length > 0 && (
-        <div className="mt-8">
+        <div className="sc-reveal mt-8">
           <p className="text-[16px] font-semibold text-ir-t1">มาจากคำตอบของคุณ</p>
           <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {picks.map((p, i) => {
@@ -1031,7 +1033,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
       )}
 
       {/* Other Directions — ranked, switchable */}
-      <div className="mt-8">
+      <div className="sc-reveal mt-8">
         <p className="text-[16px] font-semibold text-ir-t1">แนวทางอื่นที่ใกล้เคียง</p>
         <p className="mt-1 text-[14px] text-ir-t3">ถ้าแนวทางอื่นตรงกับองค์กรมากกว่า เลือกแทนได้เลย</p>
         <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
@@ -1762,7 +1764,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
               // around more cards — the individual section cards still carry their own
               // border, popping against the tray rather than nesting inside another one.
               // Collapsed / desktop: no wash, nothing to visually unify.
-              className={!collapsedOnMobile ? "rounded-2xl bg-ir-t1/[0.03] md:bg-transparent md:rounded-none" : ""}
+              className={`sc-reveal ${!collapsedOnMobile ? "rounded-2xl bg-ir-t1/[0.03] md:bg-transparent md:rounded-none" : ""}`}
             >
               {/* Category header. On mobile it's a self-evident accordion control: a chevron
                   in its own circular affordance makes it obvious the group opens/closes on
@@ -1976,7 +1978,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
       </p>
       {/* Always paired 2-up so all four options stay comparable at a glance (same as the
           quiz step), even on mobile. */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+      <div className="sc-reveal grid grid-cols-2 gap-2.5 sm:gap-3">
         {sites.map((s) => {
           const isSelected = activeDomain === s.domain;
           return (
@@ -2717,7 +2719,7 @@ function ConceptBoard({ draft }: { draft: any }) {
   // Mobile gets a tighter vertical rhythm between subsections — this board is the
   // longest single scroll in the flow, and it previously carried the same rhythm at
   // every width (no `md:` overrides anywhere in this component).
-  const sectionRule = "flex items-center gap-3 mt-5 md:mt-6 mb-2.5 md:mb-3 first:mt-0";
+  const sectionRule = "sc-reveal flex items-center gap-3 mt-5 md:mt-6 mb-2.5 md:mb-3 first:mt-0";
 
   const GoogleTag = () => (
     <span className="inline-flex items-center gap-1.5 text-[12px] text-ir-t3">
@@ -2743,7 +2745,8 @@ function ConceptBoard({ draft }: { draft: any }) {
   const visualStyle = VISUAL_STYLES[draft.selectedDirection];
 
   return (
-    <div className="rounded-[20px] border border-ir-border bg-ir-card ir-shadow overflow-hidden">
+    // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside.
+    <div className="rounded-[20px] border border-ir-border bg-ir-card ir-shadow overflow-clip">
       {/* Header strip — Direction name is the actual content here, so it carries the
           weight; "Concept" is just the eyebrow label identifying what this card is. */}
       <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-5 md:py-4 border-b border-ir-border">
@@ -2764,18 +2767,18 @@ function ConceptBoard({ draft }: { draft: any }) {
             words set in the actual heading typeface, over the direction's own brand
             gradient. One large visual the eye lands on first (bento anchor principle
             from /design-bentogrids-com). ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+        <div className="sc-stage grid grid-cols-1 sm:grid-cols-5 gap-2.5">
           {/* The customer's IR homepage, hi-fi: Direction colors + fonts + a Visual Style
               photo + their sections, laid out by the 5 answers. Shown as a plain first
               look at the site — no labels on what came from where. */}
           {/* Phones: the same page large in a phone frame — the browser composition below is
               ~300px wide on a phone and its text can't be read. */}
-          <div className="sm:hidden mx-auto w-full max-w-[340px] relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
+          <div className="sc-show sm:hidden mx-auto w-full max-w-[340px] relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
             <div className="absolute inset-0">
               <DirectionPhonePreview directionId={draft.selectedDirection} picks={picks} colors={dir?.colors ?? [primary, primary]} label={dir?.label ?? "Design Direction"} company={draft.company} />
             </div>
           </div>
-          <div className="hidden sm:block sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
+          <div className="sc-show hidden sm:block sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
             <div className="absolute inset-0">
               <DirectionPreview
                 directionId={draft.selectedDirection}
@@ -2811,7 +2814,7 @@ function ConceptBoard({ draft }: { draft: any }) {
 
         {/* ── Colors — solid swatch + hex only, no ramp bar / name chips ── */}
         <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+        <div className="sc-reveal grid grid-cols-3 sm:grid-cols-6 gap-2.5">
           {paletteSwatches.map((hex, i) => (
             <div key={`${hex}-${i}`} className="rounded-xl overflow-hidden ring-1 ring-black/[0.06]">
               <div style={{ background: hex, aspectRatio: "1/1" }} />
@@ -2824,7 +2827,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             (headline/body/CTA + numeral-heavy stat tiles) so the choice reads as how it
             will actually look, not just an isolated font-name label. ── */}
         <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="rounded-2xl border border-ir-border p-4 md:p-5">
+        <div className="sc-reveal rounded-2xl border border-ir-border p-4 md:p-5">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-[26px] sm:text-[30px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
               {pairing.heading}
@@ -2881,7 +2884,7 @@ function ConceptBoard({ draft }: { draft: any }) {
           <div className="flex-1 h-px bg-ir-border" />
         </div>
         {homepageSections.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="sc-reveal grid grid-cols-1 sm:grid-cols-3 gap-2">
             {homepageSections.map((s, i) => (
               <div key={s.id} className="flex items-center gap-2.5 rounded-xl border border-ir-border px-3 py-2.5 min-w-0">
                 <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[12px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
@@ -2899,7 +2902,7 @@ function ConceptBoard({ draft }: { draft: any }) {
           <>
             <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><div className="flex-1 h-px bg-ir-border" /></div>
             <p className="text-[13px] text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="sc-reveal grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {visualStyle.shots.map((s) => (
                 <figure key={s.id} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

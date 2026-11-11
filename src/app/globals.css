@@ -91,7 +91,54 @@
   --color-ir-accent-text: #CCFB1A;   /* brighter green reads better on dark */
 }
 
-html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* ── Scroll motion (DNA: Aceternity "container scroll") ──────────────────────────────
+   Scroll-scrubbed, linear, reversible: a surface tilted back in 3D (rotateX at a
+   1000px perspective) stands upright as it scrolls in. Three tiers:
+   A  .sc-show   — the reveal moments only (QuizResult, ConceptBoard). Strong tilt.
+                   Above the fold there is nothing to scroll, so the same move plays once
+                   on mount instead (individual rotate/scale props, so it composes with the
+                   scroll-linked transform rather than fighting it). Parent: .sc-stage.
+      .sc-rise   — the heading above a showpiece, lifted ahead of it (the parallax half).
+   B  .sc-reveal — every other block below the fold: light tilt + fade, done by the time
+                   its top is a quarter-screen in, so nothing is tilted when it is clicked.
+   C  nothing    — inputs, answer cards, sticky/fixed UI (nav, workspace, drawers, aside).
+   view() binds to the nearest scroll container (window, or flow2's left column from md
+   up), so an ancestor must not be overflow:hidden — use overflow-clip for rounding. */
+:root { --scroll-tilt-show: 12deg; --scroll-tilt: 6deg; }
+@media (max-width: 767px) { :root { --scroll-tilt-show: 5deg; --scroll-tilt: 3deg; } }
+.sc-stage { perspective: 1000px; }
+
+@keyframes sc-show-in { from { rotate: x var(--scroll-tilt-show); scale: 1.04; opacity: 0; } }
+@keyframes sc-rise-in { from { translate: 0 16px; opacity: 0; } }
+@keyframes sc-show { from { transform: rotateX(var(--scroll-tilt-show)) scale(1.04); } to { transform: none; } }
+@keyframes sc-rise { from { transform: translateY(48px); } to { transform: none; } }
+@keyframes sc-reveal { from { opacity: 0; transform: perspective(1000px) rotateX(var(--scroll-tilt)) scale(0.98) translateY(20px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .sc-show { transform-origin: 50% 100%; animation: sc-show-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+  .sc-rise { animation: sc-rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @supports (animation-timeline: view()) {
+    .sc-show {
+      animation: sc-show-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both, sc-show linear both;
+      animation-timeline: auto, view();
+      animation-range: normal, entry 0% entry 50vh;
+    }
+    .sc-rise {
+      animation: sc-rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both, sc-rise linear both;
+      animation-timeline: auto, view();
+      animation-range: normal, entry 0% entry 40vh;
+    }
+    .sc-reveal {
+      transform-origin: 50% 100%;
+      animation: sc-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 25vh;
+    }
+  }
+}
 
 /* In @layer base so Tailwind text-* utilities (later layer) can override on dark surfaces */
 @layer base {
