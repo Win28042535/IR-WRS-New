@@ -5,7 +5,7 @@
 export const FONT_PAIRINGS: Record<string, { heading: string; thai: string; body: string; note: string }> = {
   "premium-corporate": { heading: "Fraunces", thai: "Noto Sans Thai", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับอักษรไทยไม่มีหัวที่เรียบ เป็นทางการ" },
   "esg-focused":       { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "Humanist sans อบอุ่น เป็นมิตร" },
-  "modern-tech":       { heading: "Space Grotesk", thai: "Bai Jamjuree", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
+  "modern-tech":       { heading: "Space Grotesk", thai: "Prompt", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
   "growth-oriented":   { heading: "Sora", thai: "Kanit", body: "Inter", note: "Grotesk เน้นความชัดของตัวเลข" },
 };
 export const DEFAULT_PAIRING = { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "คู่ฟอนต์อเนกประสงค์ อ่านง่ายทุกขนาด" };
@@ -19,7 +19,7 @@ const FONT_VARS: Record<string, string> = {
   Inter: "--font-inter",
   "Noto Sans Thai": "--font-noto-sans-thai",
   Anuphan: "--font-anuphan",
-  "Bai Jamjuree": "--font-bai-jamjuree",
+  Prompt: "--font-prompt",
   Kanit: "--font-kanit",
 };
 

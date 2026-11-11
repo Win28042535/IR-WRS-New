@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anuphan, Bai_Jamjuree, Fraunces, IBM_Plex_Sans_Thai, Inter, Kanit, Manrope, Noto_Sans_Thai, Sora, Space_Grotesk } from "next/font/google";
+import { Anuphan, Fraunces, IBM_Plex_Sans_Thai, Inter, Kanit, Manrope, Noto_Sans_Thai, Prompt, Sora, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { RealtimeSync } from "@/components/RealtimeSync";
@@ -30,7 +30,7 @@ const sora = Sora({ variable: "--font-sora", subsets: ["latin"], preload: false 
 // Thai counterparts for each pairing — the Latin heading fonts above have no Thai glyphs.
 const notoSansThai = Noto_Sans_Thai({ variable: "--font-noto-sans-thai", subsets: ["thai"], preload: false });
 const anuphan = Anuphan({ variable: "--font-anuphan", subsets: ["thai"], weight: ["600", "700"], preload: false });
-const baiJamjuree = Bai_Jamjuree({ variable: "--font-bai-jamjuree", subsets: ["thai"], weight: ["600", "700"], preload: false });
+const prompt = Prompt({ variable: "--font-prompt", subsets: ["thai"], weight: ["600", "700"], preload: false });
 const kanit = Kanit({ variable: "--font-kanit", subsets: ["thai"], weight: ["600", "700"], preload: false });
 
 export const metadata: Metadata = {
@@ -42,7 +42,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="th" className={`${plex.variable} ${inter.variable} ${fraunces.variable} ${manrope.variable} ${spaceGrotesk.variable} ${sora.variable} ${notoSansThai.variable} ${anuphan.variable} ${baiJamjuree.variable} ${kanit.variable} h-full`}>
+    <html lang="th" className={`${plex.variable} ${inter.variable} ${fraunces.variable} ${manrope.variable} ${spaceGrotesk.variable} ${sora.variable} ${notoSansThai.variable} ${anuphan.variable} ${prompt.variable} ${kanit.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-ir-bg text-ir-t1">
         <RealtimeSync />
         <Header />
