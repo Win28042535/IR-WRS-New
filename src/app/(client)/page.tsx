@@ -275,9 +275,9 @@ function PrimaryCta({ children, onClick, type = "button", onDark }: { children: 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
     <details className="group px-6 py-1">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold text-ir-t1 [&::-webkit-details-marker]:hidden">
+      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-[14px] px-3 text-[16px] font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
         {title}
-        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-[18px] text-ir-t2 transition-transform duration-200 group-open:rotate-45">+</span>
+        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-[18px] text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
       </summary>
       {children}
     </details>

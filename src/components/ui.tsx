@@ -54,6 +54,22 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
 // move when picked — order is shown by the rank number instead. The whole card is the hit
 // area (stretched ::after on the main button); `aside` controls sit above it so they stay
 // separately clickable without nesting buttons.
+// ── Selection indicator — the shared "pickable / picked" mark (globals.css .sel-*) ──
+// Always visible: an empty ring says the card can be picked, the ring darkens on hover
+// (inside a `group/sel`) as a preview, and fills lime with a springing check once picked.
+export function SelectDot({ on, className = "" }: { on: boolean; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`grid place-items-center w-7 h-7 shrink-0 rounded-full border-2 transition-[background-color,border-color] duration-200 ${
+        on ? "border-ir-accent bg-ir-accent text-ir-on-accent" : "border-ir-border-hi bg-ir-card group-hover/sel:border-ir-select"
+      } ${className}`}
+    >
+      {on && <IconCheck width={20} height={20} className="sel-check" />}
+    </span>
+  );
+}
+
 export function OptionCard({
   icon: Icon,
   title,
@@ -63,6 +79,7 @@ export function OptionCard({
   rank,
   tag,
   aside,
+  disabled = false,
   className = "",
 }: {
   icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element;
@@ -73,21 +90,26 @@ export function OptionCard({
   rank?: number;
   tag?: ReactNode;
   aside?: ReactNode;
+  /** Max reached and this one isn't picked: dims and stops taking taps. */
+  disabled?: boolean;
   className?: string;
 }) {
   return (
     <div
-      className={`relative flex items-center gap-3 rounded-[18px] border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
+      className={`group/sel relative flex items-center gap-3 rounded-[18px] border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
         selected
-          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
-          : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60"
+          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)] active:scale-[0.98]"
+          : disabled
+            ? "border-ir-border bg-ir-card opacity-40"
+            : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 active:scale-[0.98]"
       } ${className}`}
     >
       <button
         type="button"
         onClick={onSelect}
         aria-pressed={selected}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none after:absolute after:inset-0 after:rounded-[18px] after:content-['']"
+        disabled={disabled}
+        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-[18px] after:content-['']"
       >
         {rank ? (
           <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-[14px] font-bold">
@@ -103,11 +125,7 @@ export function OptionCard({
           {desc && <span className="block text-[13px] text-ir-t3 leading-snug mt-0.5">{desc}</span>}
           {tag}
         </span>
-        {selected && !rank && (
-          <span className="grid place-items-center w-7 h-7 shrink-0 rounded-full bg-ir-accent text-ir-on-accent" aria-hidden="true">
-            <IconCheck width={24} height={24} />
-          </span>
-        )}
+        <SelectDot on={selected} />
       </button>
       {aside && <div className="relative z-10 flex items-center shrink-0">{aside}</div>}
     </div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
+import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { DirectionPreview, DirectionPhonePreview } from "@/components/DirectionPreview";
@@ -720,6 +720,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       updateDraft({ businessGoals: [...goals, id] });
   };
   const ok = draft.businessGoals.length >= RULES.goals.min;
+  const goalsFull = draft.businessGoals.length >= RULES.goals.max;
 
   // Objectives → timeline
   useEffect(() => {
@@ -776,11 +777,18 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
                 desc={goal.desc}
                 selected={sel}
                 onSelect={() => toggleGoal(goal.id)}
+                disabled={goalsFull && !sel}
                 tag={memFreq && !sel ? <OptionTag>เคยเลือกบ่อย</OptionTag> : undefined}
               />
             );
           })}
         </div>
+        {/* Max reached: say so where the dimmed cards are, not only in the n/4 badge. */}
+        {goalsFull && (
+          <p className="ir-fade mt-3 text-[14px] text-ir-t2" role="status">
+            เลือกครบ {RULES.goals.max} ข้อแล้ว · กดข้อที่เลือกไว้เพื่อเอาออกก่อน ถ้าต้องการเปลี่ยน
+          </p>
+        )}
         {/* Expand/collapse toggle — stays in place after expanding (rather than vanishing,
             which read as "something disappeared") so the disclosure is reversible. Hidden
             only when collapsing would hide an already-selected goal, since a selection must
@@ -909,18 +917,20 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
             aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
-              "rounded-[14px] sm:rounded-[20px] border bg-ir-card p-1 sm:p-2.5 text-left select-none transition-[border-color,box-shadow,opacity,transform] duration-200",
+              "group/sel relative rounded-[14px] sm:rounded-[20px] border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
               pending === letter
-                ? "wrs-quiz-selected border-ir-select"
+                ? "wrs-quiz-selected border-ir-select bg-primary-50"
                 : pending
-                ? "border-ir-border opacity-50 cursor-default"
-                : "border-ir-border hover:border-ir-select-soft hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.99]",
+                // The other option recedes (desaturated) while the pick settles.
+                ? "border-ir-border bg-ir-card opacity-60 grayscale-[0.5] cursor-default"
+                : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.98]",
             ].join(" ")}>
             <QuizVisual mock={o.mock} />
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
               <div className="flex items-center gap-2">
                 <LetterBadge letter={letter} />
-                <span className="text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</span>
+                <span className="flex-1 min-w-0 text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</span>
+                <SelectDot on={pending === letter} className="hidden sm:grid" />
               </div>
               <div className="text-[13px] sm:text-[14px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
@@ -1720,7 +1730,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   <button
                     key={sid}
                     onClick={(e) => toggle(sid, e.currentTarget.getBoundingClientRect())}
-                    className="flex items-center gap-1 text-[12px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.96] transition-all"
+                    className="flex items-center gap-1 text-[12px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
                   >
                     <span className="text-[12px] leading-none">{s.icon}</span>
                     {s.name.split(" / ")[0]}
@@ -1820,11 +1830,12 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                       ref={(el) => { cardRefs.current[s.id] = el; }}
                       onClick={() => toggle(s.id)}
                       disabled={disabled}
+                      aria-pressed={sel}
                       className={[
                         // Same selected/hover language as OptionCard (production WRS): lime-tinted
                         // fill + olive border + soft ring when picked. Kept as its own button
                         // (not OptionCard) because the ghost-flight animation needs its ref.
-                        "text-left rounded-[18px] border p-3.5 transition-[background-color,border-color,box-shadow,transform] duration-200 active:scale-[0.98] select-none",
+                        "group/sel text-left rounded-[18px] border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-200 active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
                         sel
                           ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
                           : disabled
@@ -1854,11 +1865,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                             <p className="mt-1.5 text-[12px] font-medium text-ir-accent-text leading-snug">แนะนำเพราะ{recReason[s.id]}</p>
                           )}
                         </div>
-                        <span className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
-                          sel ? "bg-ir-accent border-ir-accent text-ir-on-accent" : "border-ir-border-hi"
-                        }`}>
-                          {sel && <IconCheck width={24} height={24} />}
-                        </span>
+                        <SelectDot on={sel} />
                       </div>
                     </button>
                   );
@@ -1984,8 +1991,11 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
           return (
             <div
               key={s.domain}
-              className={`rounded-[16px] sm:rounded-[20px] border bg-ir-card p-1.5 sm:p-2 transition-[border-color,box-shadow] duration-200 ${
-                isSelected ? "border-ir-select shadow-[0_0_0_2px_rgba(185,230,4,0.12)]" : "border-ir-border hover:border-ir-select-soft"
+              // Once one is picked, the others recede (sel-recede) and come back on hover.
+              className={`group/sel rounded-[16px] sm:rounded-[20px] border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-200 ${
+                isSelected
+                  ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
+                  : `border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 ${activeDomain ? "sel-recede" : ""}`
               }`}
             >
               {/* Monogram tile in the Direction's own gradient — identifies the company
@@ -1995,18 +2005,14 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                 onClick={() => pick(s.domain)}
                 aria-pressed={isSelected}
                 aria-label={`เลือก ${s.name} เป็นเว็บอ้างอิง`}
-                className="relative block w-full overflow-hidden rounded-[12px] sm:rounded-[14px] text-left"
+                className="relative block w-full overflow-hidden rounded-[12px] sm:rounded-[14px] text-left transition-[scale] duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
                 style={{ paddingTop: "56.42%", background: dir?.bg ?? "#141613" }}
               >
                 <span className="absolute inset-0 flex flex-col justify-between p-3 sm:p-4 text-white">
                   <span className="text-[12px] font-medium text-white/75">{s.market} · {s.sector}</span>
                   <span className="font-mono text-[22px] sm:text-[30px] font-bold leading-none tracking-tight">{s.symbol}</span>
                 </span>
-                {isSelected && (
-                  <span className="absolute top-2 right-2 grid place-items-center w-7 h-7 rounded-full bg-ir-accent text-ir-on-accent" aria-hidden="true">
-                    <IconCheck width={24} height={24} />
-                  </span>
-                )}
+                <SelectDot on={isSelected} className="absolute top-2 right-2" />
               </button>
               <div className="px-1.5 sm:px-2 pt-2.5 pb-1">
                 <p className="text-[14px] sm:text-[15px] font-semibold text-ir-t1 leading-snug truncate">{s.name}</p>
@@ -2026,8 +2032,9 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                   <button
                     type="button"
                     onClick={() => pick(s.domain)}
-                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full text-[13px] font-semibold transition-colors ${
-                      isSelected ? "bg-ir-dark text-white" : "border border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
+                    aria-pressed={isSelected}
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-[13px] font-semibold transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                      isSelected ? "border-ir-select bg-ir-accent-soft text-ir-accent-text" : "border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >
                     {isSelected ? "เลือกแล้ว" : "เลือก"}
@@ -2406,7 +2413,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => setNoteEditing(noteEditing === u.id ? null : u.id)}
                       aria-label={u.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform] active:scale-90 ${
+                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
                         noteEditing === u.id
                           ? "bg-ir-accent text-ir-on-accent opacity-100"
                           : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"
@@ -2445,7 +2452,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => setNoteEditing(noteEditing === img.id ? null : img.id)}
                       aria-label={img.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform] active:scale-90 ${
+                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
                         noteEditing === img.id
                           ? "bg-ir-accent text-ir-on-accent opacity-100"
                           : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"

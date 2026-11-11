@@ -678,7 +678,21 @@ input:focus, textarea:focus, select:focus {
 }
 .wrs-quiz-selected {
   animation: wrs-quiz-select 0.22s ease-out both;
-  border-color: #B9E604 !important;
+  border-color: var(--color-ir-select) !important;
+}
+
+/* ── Selection state (one contract for every pickable control — see SelectDot in ui.tsx) ──
+   default: empty ring always visible (says "pickable") · hover: ring + card tint preview
+   the selected look · press: 0.98 cards / 0.95 small controls · selected: ring fills lime
+   and the check springs in · max reached: others dim to 40% and disable · single choice
+   made: the other options recede (.sel-recede) and come back on hover. */
+@keyframes sel-check-in { from { scale: 0; opacity: 0; } }
+
+.sel-check { animation: sel-check-in 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.sel-recede { opacity: 0.7; filter: grayscale(0.5); transition: opacity 200ms ease, filter 200ms ease; }
+.sel-recede:hover, .sel-recede:focus-within { opacity: 1; filter: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sel-check { animation: none; }
 }
 
 /* ── Preview context strip entrance ── */
