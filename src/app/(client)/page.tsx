@@ -58,9 +58,13 @@ export default function Landing() {
       {/* ── Hero: the outcome, the first question, the live preview ── */}
       <section className="relative mx-auto grid max-w-[1320px] items-center gap-10 px-5 sm:px-8 pt-8 sm:pt-14 lg:grid-cols-[1fr_1.12fr] lg:gap-12 ir-fade-up">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-[13px] font-medium text-ir-t2 shadow-sm backdrop-blur">
-            <span className="rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
-            สำหรับลูกค้า IR Plus · บริษัทจดทะเบียน
+          {/* Narrow phones wrap after "สำหรับลูกค้า ·", so the pill softens to a rounded box. */}
+          <span className="inline-flex items-center gap-2 rounded-[18px] min-[440px]:rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-[13px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
+            <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
+            <span>
+              สำหรับลูกค้า ·{" "}
+              <span className="whitespace-nowrap">บริษัทจดทะเบียนในตลาดหลักทรัพย์</span>
+            </span>
           </span>
           <h1 className="mt-6 text-[clamp(2.2rem,4.6vw,3.9rem)] font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
             <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
