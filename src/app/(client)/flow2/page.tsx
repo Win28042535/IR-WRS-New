@@ -7,7 +7,9 @@ import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
-import { ExploreMock, DirectionMock } from "@/components/ExploreMock";
+import { ExploreMock } from "@/components/ExploreMock";
+import { DirectionPreview } from "@/components/DirectionPreview";
+import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
@@ -2573,37 +2575,6 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
   );
 }
 
-// AI-recommended Google font pairing per direction — heading paired with a neutral body
-// on a contrast axis (serif/geometric heading + humanist body), all free on Google Fonts.
-// `thai` is the Thai heading face matched to each Latin heading's character (serif with
-// serif, geometric with geometric) — the Latin fonts carry no Thai glyphs.
-const FONT_PAIRINGS: Record<string, { heading: string; thai: string; body: string; note: string }> = {
-  "premium-corporate": { heading: "Fraunces", thai: "Noto Serif Thai", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับ Sans ที่อ่านง่าย" },
-  "esg-focused":       { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "Humanist sans อบอุ่น เป็นมิตร" },
-  "modern-tech":       { heading: "Space Grotesk", thai: "Bai Jamjuree", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
-  "growth-oriented":   { heading: "Sora", thai: "Kanit", body: "Inter", note: "Grotesk เน้นความชัดของตัวเลข" },
-};
-const DEFAULT_PAIRING = { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "คู่ฟอนต์อเนกประสงค์ อ่านง่ายทุกขนาด" };
-
-// CSS variables set by next/font in the root layout for every font FONT_PAIRINGS names.
-const FONT_VARS: Record<string, string> = {
-  Fraunces: "--font-fraunces",
-  Manrope: "--font-manrope",
-  "Space Grotesk": "--font-space-grotesk",
-  Sora: "--font-sora",
-  Inter: "--font-inter",
-  "Noto Serif Thai": "--font-noto-serif-thai",
-  Anuphan: "--font-anuphan",
-  "Bai Jamjuree": "--font-bai-jamjuree",
-  Kanit: "--font-kanit",
-};
-
-/** font-family for a pairing font — the loaded next/font face, then a system fallback. */
-function fontStack(name: string) {
-  const v = FONT_VARS[name];
-  return `${v ? `var(${v})` : `"${name}"`}, system-ui, sans-serif`;
-}
-
 // Perceptual lightness of a hex — decides readable ink on a swatch.
 function isLightHex(hex: string) {
   const h = hex.replace("#", "");
@@ -2756,21 +2727,37 @@ function ConceptBoard({ draft }: { draft: any }) {
             gradient. One large visual the eye lands on first (bento anchor principle
             from /design-bentogrids-com). ── */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          {/* One homepage mock combining all 5 answers, drawn in the Direction's colors —
-              the single picture of where the design is heading. */}
-          <figure className="sm:col-span-3 m-0 flex flex-col gap-1.5">
+          {/* The customer's IR homepage, hi-fi: Direction colors + fonts + a Visual Style
+              photo + their sections, laid out by the 5 answers. Numbered dots mark which
+              answer shaped which part; the legend below reads them. */}
+          <figure className="sm:col-span-5 m-0 flex flex-col gap-2">
             <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
               <div className="absolute inset-0">
-                <DirectionMock picks={picks} colors={dir?.colors ?? [primary]} label={dir?.label ?? "Design Direction"} />
+                <DirectionPreview
+                  directionId={draft.selectedDirection}
+                  picks={picks}
+                  colors={dir?.colors ?? [primary, primary]}
+                  label={dir?.label ?? "Design Direction"}
+                  sections={draft.selectedSections}
+                  annotate
+                />
               </div>
             </div>
-            <figcaption className="text-[12px] text-ir-t3 leading-snug">{pickedLabels.join(" · ")}</figcaption>
+            <figcaption className="flex flex-wrap gap-x-3 gap-y-1.5">
+              {pickedLabels.map((l, i) => (
+                <span key={l} className="inline-flex items-center gap-1.5 text-[12.5px] text-ir-t2">
+                  <span className="w-[18px] h-[18px] rounded-full bg-ir-dark text-white text-[11px] font-semibold flex items-center justify-center">{i + 1}</span>
+                  {QUIZ[i]?.topic && <span className="text-ir-t3">{QUIZ[i].topic}:</span>}
+                  <span className="font-medium text-ir-t1">{l}</span>
+                </span>
+              ))}
+            </figcaption>
           </figure>
           {/* Mood panel — mood words in the heading font. Dark brand gradient when the
               customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}
           <div
-            className={`sm:col-span-2 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
+            className={`sm:col-span-5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
             style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
           >
             <span className={`text-[12px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
