@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMouseEvent, type SVGProps } from "react";
+import { createPortal } from "react-dom";
 import { IconArrowRight, IconArrowLeft, IconCheck } from "./icons";
 import { RULES } from "@/lib/data";
 
@@ -12,7 +13,7 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 // "บันทึกอัตโนมัติ" note. Sticky so it stays in view while the step content scrolls.
 export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; stepsEn?: string[]; current: number }) {
   return (
-    <div className="sticky top-0 z-30 bg-ir-bg/85 backdrop-blur-md">
+    <div className="sticky top-14 md:top-0 z-30 bg-ir-bg/85 backdrop-blur-md">
       <div className="max-w-[1000px] mx-auto px-5 lg:px-7 pt-3 pb-3">
         <div className="relative flex items-center justify-center min-h-9">
           <div
@@ -129,7 +130,7 @@ export function RuleBadge({ ruleKey, count }: { ruleKey: keyof typeof RULES; cou
   const full = count >= rule.max;
   return (
     <span
-      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
+      className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
         ok ? "bg-ir-accent/12 text-ir-accent-text" : "bg-black/[0.05] text-ir-t3"
       }`}
       title={`เลือกได้ ${rule.min}-${rule.max} รายการ`}
@@ -384,14 +385,19 @@ export function StepNav({
         {next}
       </div>
 
-      {showFloating && (
+      {/* Portaled to <body>: the step card animates in with a transform, and any transformed
+          ancestor turns `position: fixed` into "fixed to that card", which left this bar
+          parked at the end of the card instead of pinned to the screen. It sits above any
+          bottom dock (the Structure step's sheet sets --wrs-bottom-dock while it's open). */}
+      {showFloating && createPortal(
         <div
-          className="md:hidden fixed bottom-0 inset-x-0 z-40 ir-frost border-t border-black/[0.08] flex items-center justify-between gap-3 px-4 pt-3 wrs-mobile-bar-in"
-          style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+          className="md:hidden fixed inset-x-0 z-40 ir-frost border-t border-black/[0.08] flex items-center justify-between gap-3 px-4 pt-3 wrs-mobile-bar-in"
+          style={{ bottom: "var(--wrs-bottom-dock, 0px)", paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
         >
           <BackButton onClick={onBack}>{backLabel}</BackButton>
           {next}
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

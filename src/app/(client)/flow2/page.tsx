@@ -8,7 +8,7 @@ import { rankDirections, buildProfile, profileToDirection, rankProfileDirections
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
-import { DirectionPreview } from "@/components/DirectionPreview";
+import { DirectionPreview, DirectionPhonePreview } from "@/components/DirectionPreview";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -123,7 +123,9 @@ export default function Flow2() {
       hasNavigated.current = true;
       return;
     }
+    // Phones scroll the page itself; from md up the questionnaire column scrolls.
     leftPanelRef.current?.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
     stepCardRef.current?.focus({ preventScroll: true });
   }, [step, quizIdx, quizDone]);
 
@@ -218,18 +220,20 @@ export default function Flow2() {
 
   return (
     <ProjectContextProvider>
-    <div className="flex flex-col" style={{ height: "calc(100vh - 56px)" }}>
+    {/* Phones: the document scrolls (address bar can collapse, tap-status-bar-to-top works).
+        From md up: a fixed-height split workspace whose left column scrolls on its own. */}
+    <div className="flex flex-col md:h-[calc(100dvh-56px)]">
       <GhostFlightLayer />
       <FloatingPreviewToast />
       <StepIndicator steps={STEPS} stepsEn={STEPS_EN} current={step} />
 
       {/* ── Full-width split workspace ── */}
-      <div ref={containerRef} className="flex-1 min-h-0 flex overflow-hidden">
+      <div ref={containerRef} className="flex-1 min-h-0 flex md:overflow-hidden">
 
         {/* ── Left: scrollable questionnaire ── */}
         <div
           ref={leftPanelRef}
-          className="overflow-y-auto shrink-0"
+          className="md:overflow-y-auto shrink-0"
           style={{
             width: !showWorkspace || isOverlayWorkspace ? "100%" : wsCollapsed ? "100%" : `${leftPct}%`,
             transition: panelTransition,
@@ -602,7 +606,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         <div>
           <div className="flex items-baseline gap-2">
             <SectionLabel>เว็บไซต์ปัจจุบัน</SectionLabel>
-            <span className="text-[11px] text-ir-t3">(ไม่บังคับ)</span>
+            <span className="text-[12px] text-ir-t3">(ไม่บังคับ)</span>
           </div>
           <div className="relative mt-2">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3 text-base select-none">🌐</span>
@@ -641,7 +645,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
                   <button
                     type="button"
                     onClick={() => makePrimary(aud.id)}
-                    className="text-[12px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
+                    className="min-h-11 md:min-h-8 text-[12px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
                   >
                     ตั้งเป็นกลุ่มหลัก
                   </button>
@@ -658,7 +662,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
       <div>
         <div className="flex items-baseline gap-2">
           <SectionLabel>Corporate Identity (CI)</SectionLabel>
-          <span className="text-[11px] text-ir-t3">(ไม่บังคับ)</span>
+          <span className="text-[12px] text-ir-t3">(ไม่บังคับ)</span>
         </div>
         <p className="text-[14px] text-ir-t3 mb-3 mt-1">บริษัทมี CI เดิม (เว็บไซต์ โลโก้ หรือแนวทางแบรนด์) ที่ต้องการให้ AI ใช้อ้างอิงตอนออกแบบหรือไม่?</p>
         <div className="grid sm:grid-cols-2 gap-2.5">
@@ -813,23 +817,29 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
 // Website mock at the top of each quiz card — a flat illustration (ExploreMock) of the
 // choice, so the pair can be told apart at a glance.
-function QuizVisual({ mock, letter }: { mock: string; letter: string }) {
+function QuizVisual({ mock }: { mock: string }) {
   return (
     // 16:9 inset frame. Height comes from the padding-box ratio (56.42% = 677/1200) rather
-    // than `aspect-ratio`, which some mobile WebViews don't lock in.
+    // than `aspect-ratio`, which some mobile WebViews don't lock in. Nothing sits on top of
+    // the mock — on a phone it's only ~150px wide and every pixel of it is the comparison.
     <div className="relative overflow-hidden rounded-[10px] sm:rounded-[14px] border border-ir-border select-none" style={{ paddingTop: "56.42%" }}>
       <div className="absolute inset-0"><ExploreMock id={mock} /></div>
-      <span className="absolute top-2 right-2 sm:top-3 sm:right-3 grid place-items-center w-7 h-7 rounded-full bg-ir-dark/75 text-white text-[12px] font-bold backdrop-blur-sm" aria-hidden="true">
-        {letter}
-      </span>
     </div>
   );
 }
+
+const LetterBadge = ({ letter }: { letter: string }) => (
+  <span className="grid place-items-center w-6 h-6 rounded-full bg-ir-dark text-white text-[12px] font-bold shrink-0" aria-hidden="true">{letter}</span>
+);
 
 // ── S2 Smart Discovery Quiz (A/B) ──
 function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebookEntry, quizIdx }: any) {
   const opts: [QuizOption, string][] = [[q.optionA, "A"], [q.optionB, "B"]];
   const [pending, setPending] = useState<string | null>(null);
+  // Phones only: the two-up mocks are ~150px wide each, too small to read the details that
+  // tell A from B. "ดูภาพใหญ่" shows both full width, stacked, right under the cards —
+  // inline, no modal, and it stays open across questions once opened.
+  const [bigView, setBigView] = useState(false);
   const pendingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const selectOption = (o: QuizOption, letter: string) => {
@@ -894,25 +904,46 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       <p className="text-center text-[20px] sm:text-[22px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         {opts.map(([o, letter]) => (
           <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
             aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
-              "rounded-[16px] sm:rounded-[20px] border bg-ir-card p-1.5 sm:p-2.5 text-left select-none transition-[border-color,box-shadow,opacity,transform] duration-200",
+              "rounded-[14px] sm:rounded-[20px] border bg-ir-card p-1 sm:p-2.5 text-left select-none transition-[border-color,box-shadow,opacity,transform] duration-200",
               pending === letter
                 ? "wrs-quiz-selected border-ir-select"
                 : pending
                 ? "border-ir-border opacity-50 cursor-default"
                 : "border-ir-border hover:border-ir-select-soft hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.99]",
             ].join(" ")}>
-            <QuizVisual mock={o.mock} letter={letter} />
+            <QuizVisual mock={o.mock} />
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
-              <div className="text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</div>
+              <div className="flex items-center gap-2">
+                <LetterBadge letter={letter} />
+                <span className="text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</span>
+              </div>
               <div className="text-[13px] sm:text-[14px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
           </button>
         ))}
+      </div>
+      <div className="sm:hidden mt-3">
+        <button type="button" onClick={() => setBigView((v) => !v)} aria-expanded={bigView}
+          className="w-full min-h-11 rounded-full border border-ir-border text-[14px] font-semibold text-ir-t1 bg-ir-card">
+          {bigView ? "ย่อภาพ" : "ดูภาพใหญ่"}
+        </button>
+        {bigView && (
+          <div className="mt-3 space-y-3">
+            {opts.map(([o, letter]) => (
+              <figure key={letter} className="m-0">
+                <QuizVisual mock={o.mock} />
+                <figcaption className="mt-1.5 flex items-center gap-2 text-[14px] font-semibold text-ir-t1">
+                  <LetterBadge letter={letter} />{o.label}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex justify-center mt-6">
         <BackButton onClick={onBack}>ย้อนกลับ</BackButton>
@@ -1236,6 +1267,13 @@ function MobileWorkspaceSheet({
     }
   };
 
+  // Tell the floating Back/Next bar (StepNav) to sit above this sheet's collapsed bar.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--wrs-bottom-dock", `${SHEET_COLLAPSED_PX}px`);
+    return () => { root.style.removeProperty("--wrs-bottom-dock"); };
+  }, []);
+
   const currentHeight = dragPx ?? pxFor(wsCollapsed ? "collapsed" : sheetHeight);
   // Header/Hero/Footer are fixed structure, not a choice — counting them here read as "3
   // sections already picked" before the user had touched anything. The bar now only counts
@@ -1305,12 +1343,12 @@ function MobileWorkspaceSheet({
                   <p className="text-[13px] font-semibold text-ir-t1 leading-tight tabular-nums">
                     {optionalCount} Section
                   </p>
-                  <p className="text-[10.5px] text-ir-t3 leading-tight mt-0.5">
+                  <p className="text-[12px] text-ir-t3 leading-tight mt-0.5">
                     {remaining > 0 ? `เพิ่มได้อีก ${remaining}` : "ครบจำนวนสูงสุดแล้ว"}
                   </p>
                 </>
               ) : (
-                <p className="text-[11.5px] font-medium text-ir-t2 leading-tight">
+                <p className="text-[12px] font-medium text-ir-t2 leading-tight">
                   แตะเพื่อย่อหน้าต่างนี้
                 </p>
               )}
@@ -1622,7 +1660,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
             setLastPickedId(null);
             setDismissedFor(null);
           }}
-          className="flex items-center gap-1.5 -my-2 py-2 text-[12px] font-medium text-ir-t3 hover:text-ir-t1 active:text-ir-t1 transition-colors"
+          className="flex items-center gap-1.5 -my-3 min-h-11 text-[12px] font-medium text-ir-t3 hover:text-ir-t1 active:text-ir-t1 transition-colors"
         >
           <IconReset width={20} height={20} />
           รีเซ็ต
@@ -1650,7 +1688,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
             <p className="text-[12.5px] font-medium text-ir-t1 leading-snug">
               AI แนะนำ {recommendedUnselected.length} Section ให้ตามกลุ่มเป้าหมายและ Direction ของคุณ
             </p>
-            <p className="text-[11px] text-ir-t3 mt-0.5">เพิ่มได้ในคลิกเดียว หรือเลือกเองด้านล่างก็ได้</p>
+            <p className="text-[12px] text-ir-t3 mt-0.5">เพิ่มได้ในคลิกเดียว หรือเลือกเองด้านล่างก็ได้</p>
           </div>
           <button
             type="button"
@@ -1669,7 +1707,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
         <div key={suggestionSource} className="wrs-suggest-in flex items-start gap-2 mb-5 px-3 py-2.5 rounded-xl bg-ir-accent/[0.05] border border-ir-accent/20">
           <span className="text-[13px] shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-ir-t3 mb-1.5">
+            <p className="text-[12px] text-ir-t3 mb-1.5">
               AI แนะนำเพิ่มจาก <span className="font-medium text-ir-t2">{sectionById(suggestionSource!)?.name?.split(" / ")[0]}</span>
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -1680,7 +1718,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   <button
                     key={sid}
                     onClick={(e) => toggle(sid, e.currentTarget.getBoundingClientRect())}
-                    className="flex items-center gap-1 text-[11.5px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.96] transition-all"
+                    className="flex items-center gap-1 text-[12px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.96] transition-all"
                   >
                     <span className="text-[12px] leading-none">{s.icon}</span>
                     {s.name.split(" / ")[0]}
@@ -1742,17 +1780,17 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   collapsedOnMobile
                     ? "rounded-xl border border-ir-border bg-ir-card px-3.5 py-3 mb-2 active:bg-ir-t1/[0.04]"
                     : "px-3.5 pt-3 pb-2",
-                  "md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:mb-3 md:active:bg-transparent md:cursor-default",
+                  "md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:min-h-6 md:mb-3 md:active:bg-transparent md:cursor-default",
                 ].join(" ")}
               >
                 <span className="text-[12.5px] font-semibold text-ir-t1 md:text-[12px] md:text-ir-t2">{SECTION_CATEGORY_LABEL[cat]}</span>
                 {selectedInCat > 0 && (
-                  <span className="text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none">{selectedInCat}</span>
+                  <span className="text-[12px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none">{selectedInCat}</span>
                 )}
                 {/* Item count — only useful while collapsed, so you know what's hidden
                     before tapping to reveal it. */}
                 {collapsedOnMobile && (
-                  <span className="md:hidden text-[10.5px] text-ir-t3">{items.length} รายการ</span>
+                  <span className="md:hidden text-[12px] text-ir-t3">{items.length} รายการ</span>
                 )}
                 {/* Desktop keeps the section-header divider rule; mobile just pushes the chevron right. */}
                 <div className="hidden md:block flex-1 h-px bg-ir-border" />
@@ -1977,7 +2015,8 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     target="_blank"
                     rel="noopener noreferrer"
                     title={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
-                    className="shrink-0 inline-flex items-center justify-center gap-1 h-9 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-[13px] font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
+                    aria-label={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
+                    className="shrink-0 inline-flex items-center justify-center gap-1 h-11 sm:h-9 min-w-11 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-[13px] font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
                   >
                     <IconExternalLink width={24} height={24} className="-my-1" />
                     <span className="hidden sm:inline">เปิดเว็บ IR</span>
@@ -1985,7 +2024,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                   <button
                     type="button"
                     onClick={() => pick(s.domain)}
-                    className={`flex-1 inline-flex items-center justify-center gap-1 h-9 rounded-full text-[13px] font-semibold transition-colors ${
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full text-[13px] font-semibold transition-colors ${
                       isSelected ? "bg-ir-dark text-white" : "border border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >
@@ -2308,9 +2347,9 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           {/* Progressive validation — recomputed on every keystroke, no submit required to
               find out the link won't work. Falls back to the generic hint when empty. */}
           {urlValidation === "empty" ? (
-            <p className="text-[10.5px] text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" เพื่อใส่ลิงก์ถัดไป · {urls.length}/{MAX_REFERENCE_URLS}</p>
+            <p className="text-[12px] text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" เพื่อใส่ลิงก์ถัดไป · {urls.length}/{MAX_REFERENCE_URLS}</p>
           ) : (
-            <p role="status" className={`text-[10.5px] mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
+            <p role="status" className={`text-[12px] mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
               {URL_VALIDATION_COPY[urlValidation].label}
             </p>
@@ -2326,7 +2365,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             <div className="mb-6 md:mb-0">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-[12px] font-semibold text-ir-t2">เพิ่มแล้ว</span>
-                <span className={`text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
+                <span className={`text-[12px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {urls.map((u, i) => (
@@ -2439,7 +2478,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-md object-cover shrink-0" />
                       )}
-                      <span className="text-[11.5px] font-medium text-ir-t2 truncate flex-1">
+                      <span className="text-[12px] font-medium text-ir-t2 truncate flex-1">
                         {editingUrl ? domainOf(editingUrl.value) : editingImage!.name}
                       </span>
                       <button
@@ -2484,7 +2523,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             <span className="w-10 h-10 rounded-xl bg-ir-accent/10 flex items-center justify-center text-[18px] mb-1">🖼️</span>
             <p className="text-[13.5px] font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
             <p className="text-[12px] text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
-            <p className="text-[10.5px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
+            <p className="text-[12px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
           </div>
         </div>
@@ -2674,14 +2713,14 @@ function ConceptBoard({ draft }: { draft: any }) {
   const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
     .map((id) => ({ id, name: sectionById(id)?.name ?? id }));
 
-  const eyebrow = "text-[10px] font-semibold uppercase tracking-wider text-ir-t3";
+  const eyebrow = "text-[12px] font-semibold uppercase tracking-wider text-ir-t3";
   // Mobile gets a tighter vertical rhythm between subsections — this board is the
   // longest single scroll in the flow, and it previously carried the same rhythm at
   // every width (no `md:` overrides anywhere in this component).
   const sectionRule = "flex items-center gap-3 mt-5 md:mt-6 mb-2.5 md:mb-3 first:mt-0";
 
   const GoogleTag = () => (
-    <span className="inline-flex items-center gap-1.5 text-[11px] text-ir-t3">
+    <span className="inline-flex items-center gap-1.5 text-[12px] text-ir-t3">
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.4 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/><path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.4l3.8 3C6.5 6.7 9 4.8 12 4.8z"/></svg>
       Google · ฟรี
     </span>
@@ -2715,7 +2754,7 @@ function ConceptBoard({ draft }: { draft: any }) {
           <ConceptIcon directionId={draft.selectedDirection} color={primary} />
         </span>
         <div>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-ir-t3">ภาพรวมโปรเจกต์</span>
+          <span className="text-[12px] font-semibold uppercase tracking-wider text-ir-t3">ภาพรวมโปรเจกต์</span>
           <p className="text-[19px] font-semibold text-ir-t1 leading-tight mt-0.5">{dir?.label ?? "Design Direction"}</p>
         </div>
       </div>
@@ -2729,7 +2768,14 @@ function ConceptBoard({ draft }: { draft: any }) {
           {/* The customer's IR homepage, hi-fi: Direction colors + fonts + a Visual Style
               photo + their sections, laid out by the 5 answers. Shown as a plain first
               look at the site — no labels on what came from where. */}
-          <div className="sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
+          {/* Phones: the same page large in a phone frame — the browser composition below is
+              ~300px wide on a phone and its text can't be read. */}
+          <div className="sm:hidden mx-auto w-full max-w-[340px] relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
+            <div className="absolute inset-0">
+              <DirectionPhonePreview directionId={draft.selectedDirection} picks={picks} colors={dir?.colors ?? [primary, primary]} label={dir?.label ?? "Design Direction"} />
+            </div>
+          </div>
+          <div className="hidden sm:block sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
             <div className="absolute inset-0">
               <DirectionPreview
                 directionId={draft.selectedDirection}
@@ -2768,7 +2814,7 @@ function ConceptBoard({ draft }: { draft: any }) {
           {paletteSwatches.map((hex, i) => (
             <div key={`${hex}-${i}`} className="rounded-xl overflow-hidden ring-1 ring-black/[0.06]">
               <div style={{ background: hex, aspectRatio: "1/1" }} />
-              <p className="text-[10px] font-mono text-ir-t3 text-center py-1.5">{hex}</p>
+              <p className="text-[12px] font-mono text-ir-t3 text-center py-1.5">{hex}</p>
             </div>
           ))}
         </div>
@@ -2807,19 +2853,19 @@ function ConceptBoard({ draft }: { draft: any }) {
               <p className="text-[13px] text-ir-t2 leading-relaxed mt-1.5">
                 มุ่งมั่นสร้างการเติบโตอย่างยั่งยืน ด้วยข้อมูลที่โปร่งใสและเชื่อถือได้สำหรับผู้ถือหุ้นทุกท่าน
               </p>
-              <button
-                type="button"
-                className="mt-3 text-[12.5px] font-semibold px-4 py-2 rounded-full"
+              {/* A specimen of the button style, not a control — so not a <button>. */}
+              <span
+                className="inline-block mt-3 text-[12.5px] font-semibold px-4 py-2 rounded-full"
                 style={{ background: primary, color: isLightHex(primary) ? "#151823" : "#fff" }}
               >
                 รายละเอียดเพิ่มเติม
-              </button>
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {TYPE_SPECIMEN_STATS.map((s) => (
                 <div key={s.label} className="rounded-xl bg-ir-bg border border-ir-border px-3 py-2.5">
                   <p className="text-[19px] text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
-                  <p className="text-[10.5px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
+                  <p className="text-[12px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -2830,14 +2876,14 @@ function ConceptBoard({ draft }: { draft: any }) {
             order the client arranged it. ── */}
         <div className={sectionRule}>
           <span className="text-[15px] font-semibold text-ir-t1">IR Homepage Sections</span>
-          {homepageSections.length > 0 && <span className="text-[11px] text-ir-t3 shrink-0">{homepageSections.length} sections</span>}
+          {homepageSections.length > 0 && <span className="text-[12px] text-ir-t3 shrink-0">{homepageSections.length} sections</span>}
           <div className="flex-1 h-px bg-ir-border" />
         </div>
         {homepageSections.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {homepageSections.map((s, i) => (
               <div key={s.id} className="flex items-center gap-2.5 rounded-xl border border-ir-border px-3 py-2.5 min-w-0">
-                <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[11px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
+                <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[12px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
                 <span className="text-[12.5px] text-ir-t1 leading-snug truncate" title={s.name}>{s.name}</span>
               </div>
             ))}
@@ -2857,11 +2903,11 @@ function ConceptBoard({ draft }: { draft: any }) {
                 <figure key={s.id} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-xl object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
-                  <figcaption className="mt-1 text-[11.5px] text-ir-t3 leading-snug">{s.cap}</figcaption>
+                  <figcaption className="mt-1 text-[12px] text-ir-t3 leading-snug">{s.cap}</figcaption>
                 </figure>
               ))}
             </div>
-            <p className="mt-2 text-[11px] text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
+            <p className="mt-2 text-[12px] text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
           </>
         )}
       </div>

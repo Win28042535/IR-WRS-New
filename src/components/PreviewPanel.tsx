@@ -336,7 +336,7 @@ function OpenPanel({
             a tab bar with a missing sibling. It's a heading now, and the section count +
             drag hint live one level down (see SectionWorkspace) so the three read as a
             clear title → count → hint hierarchy instead of three equal-weight lines. */}
-        <h2 className={`flex-1 min-w-0 text-[11.5px] font-semibold tracking-tight truncate ${theme.text1}`}>
+        <h2 className={`flex-1 min-w-0 text-[12px] font-semibold tracking-tight truncate ${theme.text1}`}>
           โครงสร้างเว็บไซต์
         </h2>
 
@@ -389,7 +389,7 @@ function CollapsedStrip({ toggle, theme }: { toggle: () => void; theme: PanelThe
     >
       <IconChevronLeft className={`transition-colors group-hover:${theme.collapseHover}`} />
       <span
-        className="text-[10px] font-semibold tracking-widest transition-colors"
+        className="text-[12px] font-semibold tracking-widest transition-colors"
         style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
       >
         PREVIEW
@@ -557,9 +557,9 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
           <span className={`text-[16px] font-semibold leading-none tabular-nums ${theme.text1}`}>
             {sections.length}
           </span>
-          <span className={`text-[11px] font-medium leading-none ${theme.text2}`}>Section</span>
+          <span className={`text-[12px] font-medium leading-none ${theme.text2}`}>Section</span>
         </div>
-        <p className={`text-[10px] mt-1.5 leading-relaxed ${theme.text3}`}>
+        <p className={`text-[12px] mt-1.5 leading-relaxed ${theme.text3}`}>
           ลากขึ้น-ลงเพื่อจัดลำดับหน้า · เพิ่ม/ลบได้จากขั้นตอนคำถาม
         </p>
       </div>
@@ -583,7 +583,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                 <rect x="2" y="12" width="12" height="2.5" rx="1.25" fill="rgba(170,204,0,0.25)" />
               </svg>
             </div>
-            <p className={`text-[11px] leading-relaxed ${theme.text3}`}>
+            <p className={`text-[12px] leading-relaxed ${theme.text3}`}>
               ยังไม่มี Section<br />เลือกได้จากขั้นตอนคำถาม
             </p>
           </div>
@@ -629,7 +629,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                     className={`relative rounded-lg border cursor-default ${theme.lockedItemBase}`}
                   >
                     <div className="w-full flex items-center gap-1.5 px-2 py-2">
-                      <span className={`text-[10px] w-4 shrink-0 text-right tabular-nums select-none ${theme.text3}`}>
+                      <span className={`text-[12px] w-5 shrink-0 text-right tabular-nums select-none ${theme.text3}`}>
                         {i + 1}
                       </span>
                       {sec?.icon && <span className="text-[14px] leading-none shrink-0 opacity-70">{sec.icon}</span>}
@@ -637,11 +637,11 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                         <p className="truncate leading-tight">
                           <span className={`text-[12.5px] font-medium ${theme.text2}`}>{primaryName}</span>
                           {secondaryName && (
-                            <span className={`ml-1.5 text-[11px] font-normal ${theme.text3}`}>{secondaryName}</span>
+                            <span className={`ml-1.5 text-[12px] font-normal ${theme.text3}`}>{secondaryName}</span>
                           )}
                         </p>
                         {sec?.category && (
-                          <p className={`text-[9px] mt-1 uppercase tracking-wider leading-none ${theme.text3}`}>
+                          <p className={`text-[12px] mt-1 uppercase tracking-wider leading-none ${theme.text3}`}>
                             {sec.category}
                           </p>
                         )}
@@ -705,7 +705,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                       onClick={() => setExpandedId(expanded ? null : id)}
                       className="flex-1 min-w-0 flex items-center gap-2 text-left cursor-pointer"
                     >
-                      <span className={`text-[10px] w-4 shrink-0 text-right tabular-nums select-none ${theme.text3} ${reorderedId === id ? "wrs-counter-pop" : ""}`}>
+                      <span className={`text-[12px] w-5 shrink-0 text-right tabular-nums select-none ${theme.text3} ${reorderedId === id ? "wrs-counter-pop" : ""}`}>
                         {i + 1}
                       </span>
                       {sec?.icon && <span className="text-[14px] leading-none shrink-0">{sec.icon}</span>}
@@ -716,11 +716,11 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                         <p className="truncate leading-tight">
                           <span className={`text-[12.5px] font-semibold ${theme.text1}`}>{primaryName}</span>
                           {secondaryName && (
-                            <span className={`ml-1.5 text-[11px] font-normal ${theme.text3}`}>{secondaryName}</span>
+                            <span className={`ml-1.5 text-[12px] font-normal ${theme.text3}`}>{secondaryName}</span>
                           )}
                         </p>
                         {sec?.category && (
-                          <p className={`text-[9px] mt-1 uppercase tracking-wider leading-none ${theme.text3}`}>
+                          <p className={`text-[12px] mt-1 uppercase tracking-wider leading-none ${theme.text3}`}>
                             {sec.category}
                           </p>
                         )}
@@ -734,11 +734,11 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                   </div>
                   {expanded && (sec?.businessPurpose || sec?.desc) && (
                     <div className="px-2.5 pb-2.5 -mt-0.5">
-                      <p className={`text-[11px] leading-relaxed ${theme.text2}`}>
+                      <p className={`text-[12px] leading-relaxed ${theme.text2}`}>
                         {sec?.businessPurpose ?? sec?.desc}
                       </p>
                       {sec?.example && (
-                        <p className={`text-[10px] mt-1 leading-relaxed ${theme.text3}`}>
+                        <p className={`text-[12px] mt-1 leading-relaxed ${theme.text3}`}>
                           ตัวอย่าง: {sec.example}
                         </p>
                       )}
@@ -770,7 +770,7 @@ function FullscreenOverlay({ ctx, onClose }: { ctx: ReturnType<typeof useProject
         >
           <IconClose width={24} height={24} />
           <span>ปิด</span>
-          <kbd className="text-white/25 text-[11px] ml-1 font-mono">ESC</kbd>
+          <kbd className="text-white/25 text-[12px] ml-1 font-mono">ESC</kbd>
         </button>
       </div>
 

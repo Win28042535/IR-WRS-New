@@ -75,11 +75,11 @@ function ActionContent({ action, content, accentColor }: {
       <div className="grid grid-cols-2 gap-2">
         {dashParts.slice(0, 2).map((seg, i) => (
           <div key={i} className="rounded-lg bg-black/[0.035] px-2.5 py-2">
-            <p className="text-[11px] text-ir-t2 leading-snug">{seg}</p>
+            <p className="text-[12px] text-ir-t2 leading-snug">{seg}</p>
           </div>
         ))}
         {dashParts.length > 2 && (
-          <p className="col-span-2 text-[10.5px] text-ir-t3 leading-snug mt-0.5">
+          <p className="col-span-2 text-[12px] text-ir-t3 leading-snug mt-0.5">
             {dashParts.slice(2).join(" ")}
           </p>
         )}
@@ -93,7 +93,7 @@ function ActionContent({ action, content, accentColor }: {
     return (
       <div>
         <p className="text-[12px] font-semibold leading-snug" style={{ color: accentColor }}>{headline}</p>
-        {rest && <p className="text-[11px] text-ir-t2 leading-snug mt-1">{rest}</p>}
+        {rest && <p className="text-[12px] text-ir-t2 leading-snug mt-1">{rest}</p>}
       </div>
     );
   }
@@ -109,7 +109,7 @@ function ActionContent({ action, content, accentColor }: {
               <path d="M1 4.5L3.5 7L8 1.5" stroke="currentColor" strokeWidth="1.5"
                 strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-[11px] text-ir-t2 leading-snug">{b}</span>
+            <span className="text-[12px] text-ir-t2 leading-snug">{b}</span>
           </li>
         ))}
       </ul>
@@ -125,7 +125,7 @@ function ActionContent({ action, content, accentColor }: {
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 rounded-full mt-[5px]"
                 style={{ width: 5, height: 5, background: accentColor, display: "block" }} />
-              <span className="text-[11px] text-ir-t2 leading-snug">{item}</span>
+              <span className="text-[12px] text-ir-t2 leading-snug">{item}</span>
             </li>
           ))}
         </ul>
@@ -133,7 +133,7 @@ function ActionContent({ action, content, accentColor }: {
     }
   }
 
-  return <p className="text-[11.5px] text-ir-t2 leading-relaxed">{content}</p>;
+  return <p className="text-[12px] text-ir-t2 leading-relaxed">{content}</p>;
 }
 
 // ── Floating card rendered via portal ───────────────────────────────
@@ -190,7 +190,7 @@ function FloatingCard({
                   type="button"
                   onClick={() => onAction(key)}
                   className={[
-                    "text-[10.5px] px-2.5 py-1 rounded-full transition-colors duration-100 ai-guide-chip-in",
+                    "text-[12px] px-2.5 py-1 rounded-full transition-colors duration-100 ai-guide-chip-in",
                     active === key
                       ? "font-medium"
                       : "text-ir-t3 hover:text-ir-t2 hover:bg-black/[0.04]",

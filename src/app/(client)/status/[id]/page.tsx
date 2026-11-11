@@ -134,7 +134,7 @@ export default function SubmittedPage() {
 function Field({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return (
     <div className="bg-ir-bg border border-ir-border rounded-lg px-3.5 py-2.5">
-      <div className="text-[10px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
+      <div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
       <div className={`text-[13px] font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
     </div>
   );

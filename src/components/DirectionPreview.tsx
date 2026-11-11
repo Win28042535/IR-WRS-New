@@ -443,3 +443,39 @@ export function DirectionPreview({ directionId, picks, colors, label, sections }
     </svg>
   );
 }
+
+/** Phones only: the same page in a phone frame, drawn large on its own — the browser-frame
+ *  composition is unreadable at ~300px wide. */
+export function DirectionPhonePreview({ directionId, picks, colors, label }: {
+  directionId: string; picks: Picks; colors: string[]; label: string;
+}) {
+  const id = `dpp${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const k = makeLook(colors, picks.q2 !== "B", picks.q1 === "A");
+  const pairing = FONT_PAIRINGS[directionId] ?? DEFAULT_PAIRING;
+  const shots = VISUAL_STYLES[directionId]?.shots ?? VISUAL_STYLES["premium-corporate"].shots;
+  const photos = shots.map((s, i) => unsplashUrl(s.id, i === 0 ? 900 : 240));
+  const [primary, second] = colors;
+  return (
+    <svg viewBox="0 0 460 860" width="100%" height="100%" role="img" aria-label={`ตัวอย่างหน้าเว็บบนมือถือ ${label}`} style={{ display: "block", fontFamily: BODY }} preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={alpha(primary, 0.16)} />
+          <stop offset="1" stopColor={alpha(isLight(second) ? primary : second, 0.12)} />
+        </linearGradient>
+        <filter id={`${id}-sh`} x="-20%" y="-10%" width="140%" height="130%">
+          <feDropShadow dx="0" dy="16" stdDeviation="18" floodColor="#0B1020" floodOpacity="0.22" />
+        </filter>
+        <clipPath id={`${id}-scr`}><rect x={35} y={35} width={390} height={790} rx={44} /></clipPath>
+      </defs>
+      <rect width={460} height={860} fill="#EEF0F4" />
+      <rect width={460} height={860} fill={`url(#${id}-bg)`} />
+      <g filter={`url(#${id}-sh)`}><rect x={25} y={25} width={410} height={810} rx={54} fill="#0B0B0F" /></g>
+      <g clipPath={`url(#${id}-scr)`}>
+        <svg x={35} y={35} width={390} height={790} viewBox="0 0 390 790" preserveAspectRatio="xMidYMin slice">
+          <PhonePage id={`${id}-pp`} k={k} picks={picks} head={fontStack(pairing.thai)} num={fontStack(pairing.heading)} photos={photos} />
+        </svg>
+      </g>
+      <rect x={180} y={45} width={100} height={26} rx={13} fill="#0B0B0F" />
+    </svg>
+  );
+}
