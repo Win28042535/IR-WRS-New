@@ -2699,7 +2699,6 @@ function ConceptBoard({ draft }: { draft: any }) {
         q4: dataDriven > 0 ? "B" : "A",
         q5: (p?.energyBold ?? 0) > 0 ? "B" : "A",
       };
-  const pickedLabels = QUIZ.map((q) => (picks[q.id as keyof typeof picks] === "B" ? q.optionB : q.optionA).label);
   // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it.
   const prefersLight = picks.q2 !== "B"; // q2: A = สว่าง, B = เข้ม
   const visualStyle = VISUAL_STYLES[draft.selectedDirection];
@@ -2728,31 +2727,19 @@ function ConceptBoard({ draft }: { draft: any }) {
             from /design-bentogrids-com). ── */}
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
           {/* The customer's IR homepage, hi-fi: Direction colors + fonts + a Visual Style
-              photo + their sections, laid out by the 5 answers. Numbered dots mark which
-              answer shaped which part; the legend below reads them. */}
-          <figure className="sm:col-span-5 m-0 flex flex-col gap-2">
-            <div className="relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
-              <div className="absolute inset-0">
-                <DirectionPreview
-                  directionId={draft.selectedDirection}
-                  picks={picks}
-                  colors={dir?.colors ?? [primary, primary]}
-                  label={dir?.label ?? "Design Direction"}
-                  sections={draft.selectedSections}
-                  annotate
-                />
-              </div>
+              photo + their sections, laid out by the 5 answers. Shown as a plain first
+              look at the site — no labels on what came from where. */}
+          <div className="sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
+            <div className="absolute inset-0">
+              <DirectionPreview
+                directionId={draft.selectedDirection}
+                picks={picks}
+                colors={dir?.colors ?? [primary, primary]}
+                label={dir?.label ?? "Design Direction"}
+                sections={draft.selectedSections}
+              />
             </div>
-            <figcaption className="flex flex-wrap gap-x-3 gap-y-1.5">
-              {pickedLabels.map((l, i) => (
-                <span key={l} className="inline-flex items-center gap-1.5 text-[12.5px] text-ir-t2">
-                  <span className="w-[18px] h-[18px] rounded-full bg-ir-dark text-white text-[11px] font-semibold flex items-center justify-center">{i + 1}</span>
-                  {QUIZ[i]?.topic && <span className="text-ir-t3">{QUIZ[i].topic}:</span>}
-                  <span className="font-medium text-ir-t1">{l}</span>
-                </span>
-              ))}
-            </figcaption>
-          </figure>
+          </div>
           {/* Mood panel — mood words in the heading font. Dark brand gradient when the
               customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}

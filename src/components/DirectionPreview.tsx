@@ -389,37 +389,8 @@ function PhonePage({ id, k, picks, head, num, photos }: { id: string; k: Look; p
   );
 }
 
-// ── annotations: numbered dots, in the page margin where possible, marking which
-// answer shaped which part. The legend (numbers → answers) is the caption below. ──
-export const CALLOUT_ORDER = ["q1", "q2", "q3", "q4", "q5"] as const;
-
-function Callouts({ picks }: { picks: Picks }) {
-  const s = 0.75, ox = 36, oy = 68; // page → canvas
-  const dense = picks.q4 === "B", expressive = picks.q5 === "B", approachable = picks.q1 === "A";
-  const heroTop = (dense ? 34 : 0) + 76;
-  const heroH = dense ? 300 : 356;
-  const low = heroTop + heroH;
-  const spots: [number, number][] = [
-    [expressive ? 790 : approachable ? 830 : 712, heroTop + 54],   // q1 — hero image treatment
-    [PW - 22, heroTop + 22],                                     // q2 — page tone
-    [22, low + 50],                                              // q3 — lower band content
-    dense ? [22, 17] : [22, heroTop + heroH - 60],               // q4 — stock bar / breathing room
-    [22, heroTop + (expressive ? 96 : 120)],                     // q5 — hero headline
-  ];
-  return (
-    <g>
-      {spots.map(([x, y], i) => (
-        <g key={i}>
-          <circle cx={ox + x * s} cy={oy + y * s} r={11} fill="#111827" stroke="#FFFFFF" strokeWidth={2.5} />
-          <T x={ox + x * s} y={oy + y * s + 4.5} s={12} w={700} f="#FFFFFF" a="middle">{i + 1}</T>
-        </g>
-      ))}
-    </g>
-  );
-}
-
-export function DirectionPreview({ directionId, picks, colors, label, sections, annotate = false }: {
-  directionId: string; picks: Picks; colors: string[]; label: string; sections?: string[]; annotate?: boolean;
+export function DirectionPreview({ directionId, picks, colors, label, sections }: {
+  directionId: string; picks: Picks; colors: string[]; label: string; sections?: string[];
 }) {
   const id = `dp${useId().replace(/[^a-zA-Z0-9]/g, "")}`; // clip/filter ids are document-global
   const k = makeLook(colors, picks.q2 !== "B", picks.q1 === "A");
@@ -468,8 +439,7 @@ export function DirectionPreview({ directionId, picks, colors, label, sections, 
         </svg>
       </g>
       <rect x={1040} y={250} width={58} height={14} rx={7} fill="#0B0B0F" />
-
-      {annotate && <Callouts picks={picks} />}
+
     </svg>
   );
 }
