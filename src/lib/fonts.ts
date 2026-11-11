@@ -1,9 +1,9 @@
 // AI-recommended Google font pairing per direction — heading paired with a neutral body
 // on a contrast axis (serif/geometric heading + humanist body), all free on Google Fonts.
-// `thai` is the Thai heading face matched to each Latin heading's character (serif with
-// serif, geometric with geometric) — the Latin fonts carry no Thai glyphs.
+// `thai` is the Thai heading face matched to each Latin heading's character — always a
+// loopless (ไม่มีหัว) face, by design decision; the Latin fonts carry no Thai glyphs.
 export const FONT_PAIRINGS: Record<string, { heading: string; thai: string; body: string; note: string }> = {
-  "premium-corporate": { heading: "Fraunces", thai: "Noto Serif Thai", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับ Sans ที่อ่านง่าย" },
+  "premium-corporate": { heading: "Fraunces", thai: "Noto Sans Thai", body: "Inter", note: "Serif ที่ดูมีระดับ คู่กับอักษรไทยไม่มีหัวที่เรียบ เป็นทางการ" },
   "esg-focused":       { heading: "Manrope", thai: "Anuphan", body: "Inter", note: "Humanist sans อบอุ่น เป็นมิตร" },
   "modern-tech":       { heading: "Space Grotesk", thai: "Bai Jamjuree", body: "Inter", note: "Geometric sans ทันสมัย มีเอกลักษณ์" },
   "growth-oriented":   { heading: "Sora", thai: "Kanit", body: "Inter", note: "Grotesk เน้นความชัดของตัวเลข" },
@@ -17,7 +17,7 @@ const FONT_VARS: Record<string, string> = {
   "Space Grotesk": "--font-space-grotesk",
   Sora: "--font-sora",
   Inter: "--font-inter",
-  "Noto Serif Thai": "--font-noto-serif-thai",
+  "Noto Sans Thai": "--font-noto-sans-thai",
   Anuphan: "--font-anuphan",
   "Bai Jamjuree": "--font-bai-jamjuree",
   Kanit: "--font-kanit",

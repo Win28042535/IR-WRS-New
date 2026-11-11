@@ -67,8 +67,8 @@
   --radius-ir: 0.75rem;            /* default control / card radius */
 
   /* --font-plex is injected by next/font as a CSS variable on <html> */
-  --font-display: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
-  --font-sans: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+  --font-display: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", sans-serif;
+  --font-sans: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", sans-serif;
 }
 
 :root {

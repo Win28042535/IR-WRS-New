@@ -16,7 +16,7 @@ const W = 1200;
 const H = 677;
 const col = (i: number) => 72 + 90 * i;
 const span = (n: number) => 90 * n - 24;
-const FONT = "var(--font-plex), 'IBM Plex Sans Thai', 'Leelawadee UI', Tahoma, sans-serif";
+const FONT = "var(--font-plex), 'IBM Plex Sans Thai', 'Leelawadee UI', sans-serif";
 
 type Theme = {
   bg: string; surface: string; ink: string; muted: string; line: string;

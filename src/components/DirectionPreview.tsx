@@ -21,7 +21,7 @@ const W = 1200;
 const H = 677;
 const PW = 1280; // page design width inside the browser frame
 const PH = 770;
-const BODY = "var(--font-plex), 'IBM Plex Sans Thai', 'Leelawadee UI', Tahoma, sans-serif";
+const BODY = "var(--font-plex), 'IBM Plex Sans Thai', 'Leelawadee UI', sans-serif";
 
 // Short Thai nav labels for the sections a customer can pick.
 const NAV_LABEL: Record<string, string> = {
