@@ -13,6 +13,7 @@ export function useStartFlow() {
   const router = useRouter();
   const draft = useStore((s) => s.draft);
   const startFlow = useStore((s) => s.startFlow);
+  const updateDraft = useStore((s) => s.updateDraft);
   // The draft comes from localStorage, which the server render can't see — only trust it
   // after mount so the first client render matches the server HTML.
   const mounted = useSyncExternalStore(noop, () => true, () => false);
@@ -29,6 +30,12 @@ export function useStartFlow() {
     resume: () => router.push("/flow2"),
     startNew: () => {
       startFlow("flow2");
+      router.push("/flow2");
+    },
+    /** Start with the first answer already given on the homepage. */
+    startWith: (company: string) => {
+      startFlow("flow2");
+      updateDraft({ company: company.trim() });
       router.push("/flow2");
     },
   };

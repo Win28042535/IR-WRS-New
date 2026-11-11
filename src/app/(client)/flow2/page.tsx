@@ -2772,7 +2772,7 @@ function ConceptBoard({ draft }: { draft: any }) {
               ~300px wide on a phone and its text can't be read. */}
           <div className="sm:hidden mx-auto w-full max-w-[340px] relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
             <div className="absolute inset-0">
-              <DirectionPhonePreview directionId={draft.selectedDirection} picks={picks} colors={dir?.colors ?? [primary, primary]} label={dir?.label ?? "Design Direction"} />
+              <DirectionPhonePreview directionId={draft.selectedDirection} picks={picks} colors={dir?.colors ?? [primary, primary]} label={dir?.label ?? "Design Direction"} company={draft.company} />
             </div>
           </div>
           <div className="hidden sm:block sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
@@ -2783,6 +2783,7 @@ function ConceptBoard({ draft }: { draft: any }) {
                 colors={dir?.colors ?? [primary, primary]}
                 label={dir?.label ?? "Design Direction"}
                 sections={draft.selectedSections}
+                company={draft.company}
               />
             </div>
           </div>

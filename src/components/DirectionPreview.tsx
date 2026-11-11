@@ -67,6 +67,22 @@ function makeLook(colors: string[], light: boolean, approachable: boolean): Look
   };
 }
 
+// The company name as a site logo: "บริษัท … จำกัด (มหาชน)" / "… PCL" trimmed to the brand,
+// capped so it never runs into the nav; the mark shows its first letter.
+const DEFAULT_BRAND = "ABC Group";
+function brandOf(company?: string, max = 22) {
+  let n = (company ?? "").trim()
+    .replace(/^บริษัท\s*/, "")
+    .replace(/\s*จำกัด\s*(\(มหาชน\))?\s*$/, "")
+    .replace(/\s*(public company limited|pcl\.?|co\.,?\s*ltd\.?)\s*$/i, "")
+    .trim();
+  if (!n) n = DEFAULT_BRAND;
+  const name = [...n].length > max ? [...n].slice(0, max - 1).join("") + "…" : n;
+  // Skip Thai leading vowels (เ แ โ ใ ไ) so the mark shows a consonant.
+  const first = [...n].find((c) => !/[เ-ไ\s]/.test(c)) ?? "A";
+  return { name, initial: first.toUpperCase() };
+}
+
 // ── primitives ──────────────────────────────────────────────────────────────
 const T = ({ x, y, s, w = 400, f, fam = BODY, a, ls, children }: {
   x: number; y: number; s: number; w?: number; f: string; fam?: string; a?: "start" | "middle" | "end"; ls?: number; children: ReactNode;
@@ -125,8 +141,8 @@ const NEWS = [
 ];
 
 // ── the page (1280 wide) ────────────────────────────────────────────────────
-function Page({ id, k, picks, nav, head, num, photos }: {
-  id: string; k: Look; picks: Picks; nav: string[]; head: string; num: string; photos: string[];
+function Page({ id, k, picks, nav, head, num, photos, brand }: {
+  id: string; k: Look; picks: Picks; nav: string[]; head: string; num: string; photos: string[]; brand: { name: string; initial: string };
 }) {
   const approachable = picks.q1 === "A";
   const story = picks.q3 === "A";
@@ -158,8 +174,8 @@ function Page({ id, k, picks, nav, head, num, photos }: {
       {/* header */}
       {(() => { y = bar; return null; })()}
       <rect x={48} y={y + 22} width={32} height={32} rx={approachable ? 10 : 3} fill={k.accent} />
-      <T x={64} y={y + 45} s={18} w={700} f={k.onAccent} fam={num} a="middle">A</T>
-      <T x={92} y={y + 36} s={17} w={700} f={k.ink}>ABC Group</T>
+      <T x={64} y={y + 45} s={18} w={700} f={k.onAccent} fam={num} a="middle">{brand.initial}</T>
+      <T x={92} y={y + 36} s={17} w={700} f={k.ink}>{brand.name}</T>
       <T x={92} y={y + 54} s={11} f={k.muted}>นักลงทุนสัมพันธ์</T>
       {nav.slice(0, 5).map((n, i) => {
         const cx = 520 + i * 112;
@@ -333,7 +349,7 @@ function Page({ id, k, picks, nav, head, num, photos }: {
 }
 
 // ── the same page on a phone (390 wide) ─────────────────────────────────────
-function PhonePage({ id, k, picks, head, num, photos }: { id: string; k: Look; picks: Picks; head: string; num: string; photos: string[] }) {
+function PhonePage({ id, k, picks, head, num, photos, brand }: { id: string; k: Look; picks: Picks; head: string; num: string; photos: string[]; brand: { name: string; initial: string } }) {
   const approachable = picks.q1 === "A";
   const expressive = picks.q5 === "B";
   const story = picks.q3 === "A";
@@ -342,8 +358,8 @@ function PhonePage({ id, k, picks, head, num, photos }: { id: string; k: Look; p
       <rect width={390} height={780} fill={k.bg} />
       <T x={28} y={30} s={14} w={600} f={k.ink}>9:41</T>
       <rect x={24} y={52} width={28} height={28} rx={approachable ? 9 : 3} fill={k.accent} />
-      <T x={38} y={72} s={15} w={700} f={k.onAccent} fam={num} a="middle">A</T>
-      <T x={62} y={72} s={16} w={700} f={k.ink}>ABC Group</T>
+      <T x={38} y={72} s={15} w={700} f={k.onAccent} fam={num} a="middle">{brand.initial}</T>
+      <T x={62} y={72} s={16} w={700} f={k.ink}>{brand.name}</T>
       {[0, 1, 2].map((i) => <rect key={i} x={340} y={58 + i * 8} width={24} height={2.5} rx={1} fill={k.ink} />)}
       {expressive ? (
         <g>
@@ -389,8 +405,8 @@ function PhonePage({ id, k, picks, head, num, photos }: { id: string; k: Look; p
   );
 }
 
-export function DirectionPreview({ directionId, picks, colors, label, sections }: {
-  directionId: string; picks: Picks; colors: string[]; label: string; sections?: string[];
+export function DirectionPreview({ directionId, picks, colors, label, sections, company }: {
+  directionId: string; picks: Picks; colors: string[]; label: string; sections?: string[]; company?: string;
 }) {
   const id = `dp${useId().replace(/[^a-zA-Z0-9]/g, "")}`; // clip/filter ids are document-global
   const k = makeLook(colors, picks.q2 !== "B", picks.q1 === "A");
@@ -427,7 +443,7 @@ export function DirectionPreview({ directionId, picks, colors, label, sections }
         <rect x={336} y={41} width={360} height={19} rx={9.5} fill="#FFFFFF" />
         <T x={516} y={55} s={11.5} f="#6B7280" a="middle">ir.abcgroup.co.th</T>
         <svg x={36} y={68} width={960} height={578} viewBox={`0 0 ${PW} ${PH}`} preserveAspectRatio="xMidYMin slice">
-          <Page id={`${id}-pg`} k={k} picks={picks} nav={nav} head={head} num={num} photos={photos} />
+          <Page id={`${id}-pg`} k={k} picks={picks} nav={nav} head={head} num={num} photos={photos} brand={brandOf(company)} />
         </svg>
       </g>
 
@@ -435,19 +451,19 @@ export function DirectionPreview({ directionId, picks, colors, label, sections }
       <g filter={`url(#${id}-sh)`}><rect x={964} y={236} width={211} height={406} rx={34} fill="#0B0B0F" /></g>
       <g clipPath={`url(#${id}-scr)`}>
         <svg x={972} y={244} width={195} height={390} viewBox="0 0 390 780">
-          <PhonePage id={`${id}-pp`} k={k} picks={picks} head={head} num={num} photos={photos} />
+          <PhonePage id={`${id}-pp`} k={k} picks={picks} head={head} num={num} photos={photos} brand={brandOf(company, 16)} />
         </svg>
       </g>
       <rect x={1040} y={250} width={58} height={14} rx={7} fill="#0B0B0F" />
-
+
     </svg>
   );
 }
 
 /** Phones only: the same page in a phone frame, drawn large on its own — the browser-frame
  *  composition is unreadable at ~300px wide. */
-export function DirectionPhonePreview({ directionId, picks, colors, label }: {
-  directionId: string; picks: Picks; colors: string[]; label: string;
+export function DirectionPhonePreview({ directionId, picks, colors, label, company }: {
+  directionId: string; picks: Picks; colors: string[]; label: string; company?: string;
 }) {
   const id = `dpp${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const k = makeLook(colors, picks.q2 !== "B", picks.q1 === "A");
@@ -472,7 +488,7 @@ export function DirectionPhonePreview({ directionId, picks, colors, label }: {
       <g filter={`url(#${id}-sh)`}><rect x={25} y={25} width={410} height={810} rx={54} fill="#0B0B0F" /></g>
       <g clipPath={`url(#${id}-scr)`}>
         <svg x={35} y={35} width={390} height={790} viewBox="0 0 390 790" preserveAspectRatio="xMidYMin slice">
-          <PhonePage id={`${id}-pp`} k={k} picks={picks} head={fontStack(pairing.thai)} num={fontStack(pairing.heading)} photos={photos} />
+          <PhonePage id={`${id}-pp`} k={k} picks={picks} head={fontStack(pairing.thai)} num={fontStack(pairing.heading)} photos={photos} brand={brandOf(company, 16)} />
         </svg>
       </g>
       <rect x={180} y={45} width={100} height={26} rx={13} fill="#0B0B0F" />
