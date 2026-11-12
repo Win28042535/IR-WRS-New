@@ -1,8 +1,8 @@
 "use client";
 // ── Homepage showcase ──
-// Moodboard: the whole deliverable in one frame — the website itself, plus the Direction,
-// its colors, its font pairing, its photo style and the homepage order. Everything is read
-// from the system's own data, so the example is exactly what the flow produces.
+// Moodboard: the deliverable as a bento of the client's decisions: the Direction, its
+// palette, type, imagery, the picks behind it, the audience and the homepage order. Everything
+// is read from the system's own data, so the example is exactly what the flow produces.
 // StepGallery: one small, faithful mock of each step's screen, so a first-time client
 // sees what each step asks for and what it looks like before they get there.
 
@@ -11,35 +11,42 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { BUSINESS_GOALS, DIRECTIONS, FLOW_STEPS, IR_AUDIENCES, QUIZ, VISUAL_STYLES, unsplashUrl } from "@/lib/data";
 import { FONT_PAIRINGS, fontStack } from "@/lib/fonts";
 import { ExploreMock } from "@/components/ExploreMock";
-import { DirectionPreview, DirectionPhonePreview } from "@/components/DirectionPreview";
-import { IconCheck } from "@/components/icons";
 
 const SAMPLE = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "A" } as const };
 const SAMPLE_SECTIONS = ["Hero Section", "ข้อมูลสำคัญทางการเงิน", "ราคาหลักทรัพย์", "เอกสารนักลงทุน"];
 
-// Motion (globals.css .mb-*): tiles assemble on a diagonal after the website (--d), each
-// plays its content once (--j). Hover lifts the tile and names the step that produces it.
+// Motion (globals.css .mb-*): tiles assemble on a diagonal (--d), each plays its content
+// once (--j). Hover lifts the tile and names the step that produces it.
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 const v = (vars: Record<string, number>): Vars => Object.fromEntries(Object.entries(vars).map(([k, n]) => [`--${k}`, n])) as Vars;
 
-const Tile = ({ label, step, d, children }: { label: string; step: number; d: number; children: ReactNode }) => (
-  <div className="mb-tile min-w-0" style={v({ d })}>
-    <div className="mb-card group relative min-w-0 rounded-[18px] border border-black/[0.06] bg-white p-3.5 sm:p-4 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-black/[0.1] hover:shadow-[0_14px_32px_-12px_rgba(20,22,19,0.18)]">
-      <p className="text-[12px] font-semibold text-ir-t3">{label}</p>
-      {/* Sits on the top edge (like the figure's badge) so it never takes layout space. */}
-      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[11px] font-semibold text-white opacity-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
+const Tile = ({ label, step, d, dark, className = "", children }: { label: string; step: number; d: number; dark?: boolean; className?: string; children: ReactNode }) => (
+  <div className={`mb-tile flex min-w-0 ${className}`} style={v({ d })}>
+    <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-[20px] border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-12px_rgba(20,22,19,0.22)] ${
+      dark ? "isolate border-white/10 text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
+    }`}>
+      <p className={`text-[12px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
+      {/* Sits on the top edge so it never takes layout space. */}
+      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[11px] font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
         จากขั้นที่ {step} · {FLOW_STEPS[step - 1]}
       </span>
-      <div className="mt-2">{children}</div>
+      <div className="mt-3 flex flex-1 flex-col">{children}</div>
     </div>
   </div>
 );
 
+// ── Moodboard: the deliverable as a bento of the client's own decisions ─────────────
+// No website mock: the Direction leads (large, in its own colours and heading font), and
+// around it what it is made of: palette, type, imagery, the five picks behind it, who it is
+// for and the homepage order. Everything is read from the system's data.
 export function Moodboard({ company }: { company: string }) {
   const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
   const pair = FONT_PAIRINGS[SAMPLE.dir];
-  const photos = VISUAL_STYLES[SAMPLE.dir].shots.slice(0, 3);
-  const swatches = d.colors.slice(0, 3);
+  const style = VISUAL_STYLES[SAMPLE.dir];
+  const photos = style.shots.slice(0, 3);
+  const audience = IR_AUDIENCES.find((a) => a.id === "institutional")!;
+  const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 2);
+  const name = company.trim() || "บริษัทของคุณ";
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -54,120 +61,141 @@ export function Moodboard({ company }: { company: string }) {
     return () => io.disconnect();
   }, []);
 
-  const direction = (
-    <Tile label="แนวทางการออกแบบ" step={3} d={1}>
-      <p className="mb-item text-[17px] font-semibold leading-tight text-ir-t1">{d.label}</p>
-      <p className="mb-item mt-1 text-[13px] leading-snug text-ir-t2" style={v({ j: 1 })}>{d.tagline}</p>
-    </Tile>
-  );
-  const colors = (
-    <Tile label="ชุดสี" step={3} d={2}>
-      <ul className="grid gap-1.5">
-        {swatches.map((c, j) => (
-          <li key={c} className="flex items-center gap-2" style={v({ j })}>
-            <span className="mb-swatch h-5 w-8 shrink-0 rounded-[6px] ring-1 ring-black/10" style={{ background: c }} />
-            <span className="mb-item font-mono text-[12px] text-ir-t2">{c}</span>
-          </li>
-        ))}
-      </ul>
-    </Tile>
-  );
-  const type = (
-    <Tile label="ตัวอักษร" step={3} d={3}>
-      <div className="flex items-baseline gap-2 text-ir-t1">
-        <span className="mb-item text-[32px] leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
-        <span className="mb-item text-[30px] leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
-      </div>
-      <p className="mb-item mt-1.5 text-[12px] leading-snug text-ir-t3" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
-    </Tile>
-  );
-  const imagery = (
-    <Tile label="สไตล์ภาพ" step={3} d={2}>
-      <div className="grid grid-cols-3 gap-1.5">
-        {photos.map((p, j) => (
-          <div key={p.id} className="overflow-hidden rounded-[8px] bg-ir-muted">
-            <img src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" className="mb-photo aspect-[4/3] w-full object-cover" style={v({ j })} />
-          </div>
-        ))}
-      </div>
-    </Tile>
-  );
-  const sections = (
-    <Tile label="โครงหน้าแรก" step={4} d={3}>
-      <ol className="grid gap-1">
-        {SAMPLE_SECTIONS.map((s, j) => (
-          <li key={s} className="flex min-w-0 items-center gap-2 text-[13px] text-ir-t1" style={v({ j })}>
-            <span className="mb-num grid w-5 h-5 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[12px] font-bold text-ir-accent-text">{j + 1}</span>
-            <span className="mb-item truncate">{s}</span>
-          </li>
-        ))}
-      </ol>
-    </Tile>
-  );
-
   return (
     // data-mb="wait" holds the assembly until the figure is on screen (it sits below the fold).
     <figure ref={ref} data-mb="wait" className="mbw relative m-0">
-      <div className="rounded-[26px] sm:rounded-[30px] border border-black/[0.06] bg-ir-bg/90 p-2.5 sm:p-3 shadow-[0_30px_80px_rgba(20,22,19,0.12)] backdrop-blur">
-        {/* Phones: phone mock beside a stack of tiles */}
-        <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] gap-2.5 sm:hidden">
-          <div className="mb-tile relative overflow-hidden rounded-[18px] border border-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
-            <div className="absolute inset-0"><DirectionPhonePreview directionId={SAMPLE.dir} picks={SAMPLE.picks} colors={d.colors} label={d.label} company={company} /></div>
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
+        {/* Direction — the lead tile, in the Direction's own colours and heading font */}
+        <Tile label="แนวทางการออกแบบ" step={3} d={0} dark className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
+          <div aria-hidden="true" className="absolute inset-0 -z-10 rounded-[20px]" style={{ background: d.bg }} />
+          <div aria-hidden="true" className="absolute inset-x-5 bottom-0 -z-10 h-1 rounded-t-full" style={{ background: d.colors[1] }} />
+          <p className="mb-item text-[13px] text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
+          <p className="mb-item mt-auto pt-8 text-[clamp(2.1rem,4vw,3.4rem)] font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
+          <p className="mb-item mt-3 text-[16px] text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
+          <div className="mt-5 flex flex-wrap gap-1.5">
+            {[...d.mood, ...d.tags].map((t, j) => (
+              <span key={t} className="mb-item rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[12px] font-medium text-white/90" style={v({ j: 3 + j * 0.5 })}>{t}</span>
+            ))}
           </div>
-          <div className="grid content-start gap-2.5">{direction}{colors}{type}</div>
-          <div className="col-span-2 grid grid-cols-2 gap-2.5">{imagery}{sections}</div>
-        </div>
-        {/* sm and up: the website large, the system around it */}
-        <div className="hidden sm:grid grid-cols-6 gap-3">
-          <div className="mb-tile col-span-6 relative overflow-hidden rounded-[20px] border border-black/[0.06]" style={{ paddingTop: "56.42%" }}>
-            <div className="absolute inset-0"><DirectionPreview directionId={SAMPLE.dir} picks={SAMPLE.picks} colors={d.colors} label={d.label} company={company} /></div>
+        </Tile>
+
+        {/* Palette */}
+        <Tile label={`ชุดสี · ${d.palette}`} step={3} d={1} className="col-span-1 md:col-span-3 lg:col-span-4">
+          <div className="grid flex-1 grid-cols-3 gap-1.5">
+            {d.colors.slice(0, 3).map((c, j) => (
+              <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
+                <span className="mb-swatch block flex-1 rounded-[12px] ring-1 ring-inset ring-black/10" style={{ background: c, transformOrigin: "bottom" }} />
+                <span className="mb-item mt-1.5 font-mono text-[11px] text-ir-t2">{c}</span>
+              </div>
+            ))}
           </div>
-          <div className="col-span-2">{direction}</div>
-          <div className="col-span-2">{colors}</div>
-          <div className="col-span-2">{type}</div>
-          <div className="col-span-3">{imagery}</div>
-          <div className="col-span-3">{sections}</div>
-        </div>
+        </Tile>
+
+        {/* Type */}
+        <Tile label="ตัวอักษร" step={3} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
+          <div className="flex flex-1 items-end gap-2 text-ir-t1">
+            <span className="mb-item text-[clamp(2.6rem,4vw,3.4rem)] leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
+            <span className="mb-item text-[clamp(2.3rem,3.6vw,3rem)] leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
+          </div>
+          <p className="mb-item mt-3 text-[13px] font-semibold text-ir-t1" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
+          <p className="mb-item mt-0.5 text-[12px] leading-snug text-ir-t3" style={v({ j: 3 })}>{pair.note}</p>
+        </Tile>
+
+        {/* Imagery */}
+        <Tile label="สไตล์ภาพ" step={3} d={2} className="col-span-2 md:col-span-6 lg:col-span-7">
+          <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-1.5">
+            {photos.map((p, j) => (
+              <div key={p.id} className="overflow-hidden rounded-[12px] bg-ir-muted">
+                <img src={unsplashUrl(p.id, 420)} alt={p.cap} loading="lazy" className="mb-photo aspect-[4/3] h-full w-full object-cover" style={v({ j })} />
+              </div>
+            ))}
+          </div>
+          <p className="mb-item mt-2.5 text-[13px] leading-snug text-ir-t2" style={v({ j: 3 })}>{style.mood}</p>
+        </Tile>
+
+        {/* The five picks behind the Direction */}
+        <Tile label="สิ่งที่คุณเลือก · 5 ข้อจากภาพ" step={3} d={3} className="col-span-2 md:col-span-6 lg:col-span-5">
+          <ol className="grid gap-1.5">
+            {QUIZ.map((q, j) => {
+              const pick = SAMPLE.picks[q.id as keyof typeof SAMPLE.picks];
+              const opt = pick === "A" ? q.optionA : q.optionB;
+              return (
+                <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
+                  <span className="mb-swatch h-7 w-10 shrink-0 rounded-[8px] ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
+                  <span className="mb-item min-w-0 flex-1 truncate text-[13px] text-ir-t2">{q.topic}</span>
+                  <span className="mb-item shrink-0 text-[13px] font-semibold text-ir-t1">{opt.label}</span>
+                  <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[11px] font-bold text-ir-accent-text">{pick}</span>
+                </li>
+              );
+            })}
+          </ol>
+        </Tile>
+
+        {/* Who it is for */}
+        <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={1} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
+          <p className="mb-item text-[17px] font-semibold leading-tight text-ir-t1">{audience.label}</p>
+          <p className="mb-item mt-1 text-[12px] leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
+          <ul className="mt-3 grid gap-1.5">
+            {goals.map((g, j) => (
+              <li key={g.id} className="flex items-center gap-2 text-[13px] font-medium text-ir-t1" style={v({ j: 2 + j })}>
+                <span className="mb-num ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>
+                <span className="mb-item min-w-0 truncate">{g.label}</span>
+              </li>
+            ))}
+          </ul>
+        </Tile>
+
+        {/* Homepage order as a wireframe */}
+        <Tile label="โครงหน้าแรก" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
+          <ol className="grid gap-1">
+            {SAMPLE_SECTIONS.map((s, j) => (
+              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-[6px] px-2 text-[11px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
+                <span className="font-mono opacity-70">{j + 1}</span><span className="truncate">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </Tile>
       </div>
       <figcaption className="mt-4 text-center text-[13px] text-ir-t3" style={{ textWrap: "balance" }}>
-        หมายเหตุ: ไม่ใช่แบบเว็บไซต์จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
+        หมายเหตุ: ไม่ใช่ Moodboard จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
       </figcaption>
     </figure>
   );
 }
 
 // ── Step gallery ───────────────────────────────────────────────────────────────
-// Each mock is a scaled-down sketch of the real screen, in the app's own visual language.
+// Each mock shows only the one thing that step is about, centred with room around it —
+// a hint of the screen, not a copy of it.
 const Frame = ({ children }: { children: ReactNode }) => (
-  <div className="h-[184px] overflow-hidden rounded-[16px] border border-ir-border bg-ir-bg p-3" aria-hidden="true">{children}</div>
+  <div className="flex h-[184px] flex-col items-center justify-center overflow-hidden rounded-[16px] border border-ir-border bg-ir-bg px-5" aria-hidden="true">{children}</div>
 );
 const Chip = ({ on, t, children }: { on?: boolean; t?: number; children: ReactNode }) => (
-  <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] font-medium ${on ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={t === undefined ? undefined : v({ t })}>
-    {on && <IconCheck width={14} height={14} className="sg-check text-ir-accent-text" />}{children}
+  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium ${on ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={t === undefined ? undefined : v({ t })}>
+    {on && <Tick className="sg-check h-3 w-3 text-ir-accent-text" />}{children}
   </span>
 );
 
 // Each mock acts out its step once (globals.css .sg-*); --t orders the beats inside a card.
 function MockUnderstand() {
-  const aud = IR_AUDIENCES.slice(0, 4).map((a) => a.label);
   return (
     <Frame>
-      <p className="text-[12px] font-semibold text-ir-t1">ชื่อบริษัท / องค์กร</p>
-      <div className="mt-1.5 rounded-full border border-ir-border bg-white px-3 py-1.5 text-[12px] text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด (มหาชน)</span></div>
-      <p className="mt-3 text-[12px] font-semibold text-ir-t1">กลุ่มเป้าหมาย</p>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">{aud.map((a, i) => <Chip key={a} on={i < 2} t={i < 2 ? 3 + i : undefined}>{a}</Chip>)}</div>
+      <div className="w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-[13px] text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด</span></div>
+      <div className="mt-3 flex gap-1.5">
+        <Chip on t={3}>{IR_AUDIENCES[1].label}</Chip>
+        <Chip>{IR_AUDIENCES[0].label}</Chip>
+      </div>
     </Frame>
   );
 }
 function MockDefine() {
-  const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 3);
+  const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 2);
   return (
     <Frame>
-      <div className="grid gap-1.5">
+      <div className="grid w-full max-w-[230px] gap-2">
         {goals.map((g, i) => (
-          <div key={g.id} className={`flex items-center justify-between rounded-[12px] border px-3 py-2 ${i < 2 ? "sg-pick border-ir-select bg-primary-50" : "border-ir-border bg-white"}`} style={v({ t: i })}>
-            <span className="truncate text-[12px] font-semibold text-ir-t1">{g.label}</span>
-            {i < 2 && <span className="sg-check grid w-5 h-5 shrink-0 place-items-center rounded-full bg-ir-accent text-ir-on-accent"><IconCheck width={14} height={14} /></span>}
+          <div key={g.id} className={`flex items-center justify-between rounded-[12px] border px-3.5 py-2.5 ${i === 0 ? "sg-pick border-ir-select bg-primary-50" : "border-ir-border bg-white"}`} style={v({ t: i })}>
+            <span className="truncate text-[13px] font-semibold text-ir-t1">{g.label}</span>
+            {i === 0 && <span className="sg-check ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>}
           </div>
         ))}
       </div>
@@ -178,14 +206,13 @@ function MockExplore() {
   const q = QUIZ[0];
   return (
     <Frame>
-      <p className="text-center text-[12px] font-semibold text-ir-t1">{q.question}</p>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="grid w-full max-w-[250px] grid-cols-2 gap-2.5">
         {[q.optionA, q.optionB].map((o, i) => (
-          <div key={o.label} className={`rounded-[10px] border bg-white p-1 ${i === 1 ? "sg-pickbump border-ir-select" : "border-ir-border"}`} style={v({ t: 1 })}>
-            <div className="relative overflow-hidden rounded-[6px]" style={{ paddingTop: "56.42%" }}>
+          <div key={o.label} className={`relative rounded-[12px] border-2 bg-white p-1 ${i === 1 ? "sg-pickbump border-ir-select" : "border-transparent"}`} style={v({ t: 1 })}>
+            <div className="relative overflow-hidden rounded-[8px]" style={{ paddingTop: "70%" }}>
               <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
             </div>
-            <p className="px-1 pt-1 text-[12px] font-semibold text-ir-t1">{i === 0 ? "A" : "B"} · {o.label}</p>
+            <span className={`absolute -top-2 -left-2 grid h-6 w-6 place-items-center rounded-full font-mono text-[12px] font-bold ${i === 1 ? "ir-grad-fill text-ir-on-accent" : "bg-white text-ir-t3 ring-1 ring-ir-border"}`}>{i === 0 ? "A" : "B"}</span>
           </div>
         ))}
       </div>
@@ -193,22 +220,17 @@ function MockExplore() {
   );
 }
 function MockStructure() {
-  const rows = ["Header", ...SAMPLE_SECTIONS.slice(0, 3), "Footer"];
+  const rows = SAMPLE_SECTIONS.slice(0, 3);
   return (
     <Frame>
-      <div className="grid gap-1">
-        {rows.map((r, i) => {
-          const fixed = i === 0 || i === rows.length - 1;
-          // Row 3 is dragged up past row 4, which drops back down into place.
-          const act = i === 2 ? "sg-drag relative z-10" : i === 3 ? "sg-drop" : "";
-          return (
-            <div key={r} className={`flex items-center gap-2 rounded-[10px] border px-2.5 py-1.5 ${fixed ? "border-transparent bg-ir-muted" : "border-ir-border bg-white"} ${i === 2 ? "shadow-[0_6px_16px_rgba(20,22,19,0.12)] translate-x-1" : ""} ${act}`}>
-              <span className="w-3 text-[12px] leading-none text-ir-t3">{fixed ? "" : "⋮⋮"}</span>
-              <span className="w-4 font-mono text-[12px] text-ir-t3">{i + 1}</span>
-              <span className="truncate text-[12px] font-medium text-ir-t1">{r}</span>
-            </div>
-          );
-        })}
+      <div className="grid w-full max-w-[220px] gap-1.5">
+        {rows.map((r, i) => (
+          // Row 2 is dragged up past row 3, which drops back into place.
+          <div key={r} className={`flex items-center gap-2 rounded-[10px] border border-ir-border bg-white px-3 py-2 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-[0_6px_16px_rgba(20,22,19,0.12)]" : i === 2 ? "sg-drop" : ""}`}>
+            <span className="text-[12px] leading-none text-ir-t3">⋮⋮</span>
+            <span className="truncate text-[13px] font-medium text-ir-t1">{r}</span>
+          </div>
+        ))}
       </div>
     </Frame>
   );
@@ -216,13 +238,11 @@ function MockStructure() {
 function MockInspire() {
   return (
     <Frame>
-      <div className="rounded-full border border-ir-border bg-white px-3 py-1.5 text-[12px] text-ir-t3">วางลิงก์เว็บที่ชอบ…</div>
-      <div className="mt-2.5 grid grid-cols-2 gap-2">
-        {["ตัวอย่างเว็บ IR 1", "ตัวอย่างเว็บ IR 2"].map((t, i) => (
-          <div key={t} className="sg-a rounded-[12px] border border-ir-border bg-white p-1.5" style={v({ t: i })}>
-            <div className="h-12 rounded-[8px]" style={{ background: i ? "linear-gradient(135deg,#1E3A1E,#4A8C4A)" : "linear-gradient(135deg,#0D1B4B,#1A2E6B)" }} />
-            <p className="mt-1 truncate text-[12px] font-semibold text-ir-t1">{t}</p>
-            <span className={`mt-1 block rounded-full py-0.5 text-center text-[12px] font-semibold ${i === 0 ? "sg-pick-dark bg-ir-dark text-white" : "border border-ir-border text-ir-t2"}`} style={i === 0 ? v({ t: 2 }) : undefined}>{i === 0 ? "เลือกแล้ว" : "เลือก"}</span>
+      <div className="grid w-full max-w-[220px] grid-cols-2 gap-2.5">
+        {["linear-gradient(135deg,#0D1B4B,#1A2E6B)", "linear-gradient(135deg,#1E3A1E,#4A8C4A)"].map((bg, i) => (
+          <div key={bg} className={`sg-a relative rounded-[12px] border-2 bg-white p-1 ${i === 0 ? "border-ir-select" : "border-transparent"}`} style={v({ t: i })}>
+            <div className="h-16 rounded-[8px]" style={{ background: bg }} />
+            {i === 0 && <span className="sg-check ir-grad-fill absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full text-ir-on-accent" style={v({ t: 2 })}><Tick className="h-3 w-3" /></span>}
           </div>
         ))}
       </div>
@@ -233,28 +253,25 @@ function MockDeliver() {
   const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
   return (
     <Frame>
-      <div className="grid grid-cols-[1.2fr_1fr] gap-2">
-        <div className="relative overflow-hidden rounded-[8px] border border-ir-border" style={{ paddingTop: "56.42%" }}>
-          <div className="absolute inset-0"><DirectionPreview directionId={SAMPLE.dir} picks={SAMPLE.picks} colors={d.colors} label={d.label} /></div>
-        </div>
-        <div className="grid content-start gap-1.5">
-          {["ชื่อ-นามสกุล", "อีเมล", "โทรศัพท์"].map((f, i) => (
-            <div key={f} style={v({ t: i })} className="sg-a truncate rounded-full border border-ir-border bg-white px-2.5 py-1 text-[12px] text-ir-t3">{f}</div>
-          ))}
-        </div>
+      <div className="sg-a flex w-full max-w-[230px] items-center gap-2.5 rounded-[12px] border border-ir-border bg-white px-3 py-2.5" style={v({ t: 0 })}>
+        <span className="h-7 w-7 shrink-0 rounded-full" style={{ background: d.bg }} />
+        <span className="min-w-0">
+          <span className="block truncate text-[13px] font-semibold text-ir-t1">{d.label}</span>
+          <span className="block text-[12px] text-ir-t3">{SAMPLE_SECTIONS.length} Section</span>
+        </span>
       </div>
-      <div className="sg-press mt-2.5 rounded-full bg-ir-dark py-1.5 text-center text-[12px] font-semibold text-white" style={v({ t: 3.5 })}>ยืนยันและส่งให้ทีม IR Plus</div>
+      <div className="sg-press mt-3 w-full max-w-[230px] rounded-full bg-ir-dark py-2 text-center text-[13px] font-semibold text-white" style={v({ t: 1.5 })}>ส่งให้ทีม IR Plus</div>
     </Frame>
   );
 }
 
 const STEPS_INFO: { mock: () => ReactNode; todo: string; how: string; optional?: boolean }[] = [
-  { mock: MockUnderstand, todo: "กรอกชื่อบริษัท และเลือกกลุ่มนักลงทุนที่เว็บไซต์ต้องสื่อสารด้วย", how: "พิมพ์ + เลือก" },
-  { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ IR ต้องทำให้ได้ เช่น สร้างความน่าเชื่อถือ", how: "เลือกจากรายการ" },
-  { mock: MockExplore, todo: "ตอบคำถาม 5 ข้อ โดยเลือกภาพ A หรือ B ที่ใกล้กับบริษัทคุณ", how: "เลือกจากภาพ" },
-  { mock: MockStructure, todo: "ดูโครงหน้าแรกที่ระบบจัดให้ เพิ่ม ลด หรือลากเพื่อเปลี่ยนลำดับ", how: "ระบบจัดให้ก่อน" },
-  { mock: MockInspire, todo: "วางลิงก์เว็บที่ชอบ หรือเลือกจากเว็บ IR ตัวอย่างที่ระบบเสนอ", how: "ไม่บังคับ", optional: true },
-  { mock: MockDeliver, todo: "ตรวจภาพรวมเว็บไซต์ กรอกข้อมูลผู้ติดต่อ แล้วกดส่ง", how: "ตรวจ + กรอก" },
+  { mock: MockUnderstand, todo: "บอกชื่อบริษัทและกลุ่มนักลงทุนหลัก", how: "พิมพ์ + เลือก" },
+  { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ต้องทำได้", how: "เลือกจากรายการ" },
+  { mock: MockExplore, todo: "ตอบ 5 ข้อ ด้วยการเลือกภาพ A หรือ B", how: "เลือกจากภาพ" },
+  { mock: MockStructure, todo: "ปรับโครงหน้าแรกที่ระบบจัดให้", how: "ระบบจัดให้ก่อน" },
+  { mock: MockInspire, todo: "แนบเว็บที่ชอบ ถ้ามี", how: "ไม่บังคับ", optional: true },
+  { mock: MockDeliver, todo: "ตรวจภาพรวม แล้วกดส่ง", how: "ตรวจ + ส่ง" },
 ];
 
 // Enters when scrolled into view (staggered by its column, like the Moodboard's diagonal),
@@ -475,23 +492,23 @@ export function BriefFlow() {
   const status = step === 0 ? "รอคำตอบ" : step === 5 ? "เรียบเรียงเสร็จ" : `กำลังแปลงคำตอบ ${step}/4`;
 
   return (
-    <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-[28px] sm:rounded-[32px] bg-ir-dark p-4 sm:p-6 lg:p-8">
+    <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-[24px] sm:rounded-[28px] bg-ir-dark p-3 sm:p-5 lg:p-6">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-      <div aria-hidden="true" className="bm-glow pointer-events-none absolute left-1/2 top-1/2 h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
+      <div aria-hidden="true" className="bm-glow pointer-events-none absolute left-1/2 top-1/2 h-[460px] w-[460px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
 
-      <div className="relative grid gap-3 lg:grid-cols-[minmax(0,1fr)_190px_minmax(0,1.1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-7 lg:gap-y-4">
+      <div className="relative grid gap-3 lg:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-5 lg:gap-y-3">
         {/* ① raw input */}
         <div className="lg:col-start-1 lg:row-start-1"><ColHead n="01" title="วัตถุดิบ" sub="สิ่งที่คุณตอบ" /></div>
         <div className="lg:col-start-1 lg:row-start-2">
           <ol className="grid gap-2">
             {inputs.map((x, i) => (
               <li key={x.q} ref={(n) => { ins.current[i] = n; }} data-state={step === i + 1 && phase === "in" ? "active" : step > i + 1 || (step === i + 1 && phase !== "in") ? "done" : "idle"}
-                className="bm-in flex items-start gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-3.5 py-3">
+                className="bm-in flex items-start gap-2.5 rounded-[14px] border border-white/10 bg-white/[0.04] px-3 py-2">
                 <div className="bm-in-body min-w-0 flex-1">
                   <p className="text-[11px] text-white/50">ขั้นที่ {i + 1} · {x.name}</p>
-                  <p className="mt-0.5 text-[14px] font-semibold text-white">{x.q}</p>
-                  <div className="mt-2">{x.body}</div>
+                  <p className="mt-0.5 text-[13px] font-semibold text-white">{x.q}</p>
+                  <div className="mt-1.5">{x.body}</div>
                 </div>
                 {/* reserved slot: the tick appears in place, nothing shifts */}
                 <span aria-hidden="true" className="bm-used ir-grad-fill grid h-6 w-6 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick /></span>
@@ -501,13 +518,13 @@ export function BriefFlow() {
         </div>
 
         {/* ② the machine */}
-        <div className="bm-chamber relative mt-1 lg:mt-0 h-[210px] rounded-[26px] border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] lg:col-start-2 lg:row-start-2 lg:h-auto lg:min-h-[440px]">
+        <div className="bm-chamber relative mt-1 lg:mt-0 h-[170px] rounded-[22px] border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] lg:col-start-2 lg:row-start-2 lg:h-auto lg:min-h-[300px]">
           <span aria-hidden="true" className="bm-scan pointer-events-none absolute inset-x-3 top-0 h-px" />
           <div ref={core} className="absolute left-1/2 top-1/2 h-0 w-0">
-            <div aria-hidden="true" className="bm-ring absolute h-[132px] w-[132px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
-            <div aria-hidden="true" className="absolute h-[104px] w-[104px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-ir-dark" />
-            <div className="bm-core absolute grid h-[72px] w-[72px] -translate-x-1/2 -translate-y-1/2 place-items-center overflow-hidden rounded-full bg-white">
-              <img src="/irplus-logo.jpg" alt="IR Plus" width={56} height={56} className="h-14 w-14 object-contain" />
+            <div aria-hidden="true" className="bm-ring absolute h-[104px] w-[104px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
+            <div aria-hidden="true" className="absolute h-[82px] w-[82px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-ir-dark" />
+            <div className="bm-core absolute grid h-[56px] w-[56px] -translate-x-1/2 -translate-y-1/2 place-items-center overflow-hidden rounded-full bg-white">
+              <img src="/irplus-logo.jpg" alt="IR Plus" width={44} height={44} className="h-11 w-11 object-contain" />
             </div>
             {phase === "proc" && Array.from({ length: 10 }, (_, j) => (
               <span key={`${step}-${j}`} aria-hidden="true" className="bm-spark absolute" style={{ rotate: `${j * 36}deg` }}><span /></span>
@@ -526,11 +543,11 @@ export function BriefFlow() {
         <div className="mt-3 lg:col-start-3 lg:row-start-1 lg:mt-0"><ColHead n="02" title="ผลลัพธ์" sub="สิ่งที่นักออกแบบได้รับ" tone="lime" /></div>
         <div className="lg:col-start-3 lg:row-start-2">
           <div className="relative">
-            <div className="relative rounded-[20px] bg-white p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] sm:p-5">
-              <div className="flex items-center justify-between gap-3 border-b border-ir-border pb-3">
+            <div className="relative rounded-[18px] bg-white p-3.5 shadow-[0_24px_48px_-20px_rgba(0,0,0,0.55)] sm:p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-ir-border pb-2.5">
                 <div>
                   <p className="font-mono text-[11px] font-semibold tracking-[0.12em] text-ir-t3">REQUIREMENT</p>
-                  <p className="text-[16px] font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
+                  <p className="text-[15px] font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
                 </div>
                 <span data-on={step === 5} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-[13px] font-semibold">
                   <span className="bm-ready-dot grid h-6 w-6 place-items-center rounded-full"><Tick /></span>
@@ -539,7 +556,7 @@ export function BriefFlow() {
               </div>
               <div className="divide-y divide-ir-border">
                 {blocks.map((b, i) => (
-                  <div key={b.label} ref={(n) => { outs.current[i] = n; }} data-on={step > i + 1 || (step === i + 1 && phase === "out")} className="bm-blk relative py-3">
+                  <div key={b.label} ref={(n) => { outs.current[i] = n; }} data-on={step > i + 1 || (step === i + 1 && phase === "out")} className="bm-blk relative py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-ir-accent-text">{b.label}</p>
                     <div aria-hidden="true" className="bm-skel absolute inset-x-0 bottom-3 top-8 grid content-start gap-1.5">
                       <span className="h-2.5 w-2/3 rounded-full bg-ir-muted" /><span className="h-2.5 w-1/2 rounded-full bg-ir-muted" />
@@ -552,6 +569,127 @@ export function BriefFlow() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Hero fragments ─────────────────────────────────────────────────────────────
+// Pieces of the deliverable floating around the headline (upper half of the hero only,
+// never beside the form or CTA), on three depth planes so the field reads as real space:
+//   near — edges of the screen, slightly larger, crisper, more opaque, moves most
+//   mid  — normal size and opacity
+//   far  — closer to the headline, smaller, softly blurred, faint, barely moves
+// Background texture, not content: aria-hidden, no pointer events, behind everything.
+// lg shows six (one per row per side), xl all twelve; smaller screens none.
+// Motion: globals.css .hf-*; reduced motion = still.
+type Plane = "near" | "mid" | "far";
+const PLANE: Record<Plane, { depth: number; dur: number }> = { near: { depth: 16, dur: 9 }, mid: { depth: 8, dur: 11.5 }, far: { depth: 3, dur: 14 } };
+const F = ({ i, plane, r, className, children }: { i: number; plane: Plane; r: number; className: string; children: ReactNode }) => (
+  <div className={`hf hf-${plane} absolute ${className}`} style={{ ...v({ i, depth: PLANE[plane].depth, dur: PLANE[plane].dur + (i % 3) }), rotate: `${r}deg` }}>{children}</div>
+);
+const glass = "rounded-[12px] border border-white/70 bg-white/50 shadow-[0_10px_28px_-16px_rgba(20,22,19,0.3)] backdrop-blur-sm";
+
+export function HeroFragments() {
+  const ref = useRef<HTMLDivElement>(null);
+  const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
+  const pair = FONT_PAIRINGS[SAMPLE.dir];
+  const photo = VISUAL_STYLES[SAMPLE.dir].shots[0];
+  const picks = Object.values(SAMPLE.picks);
+  const goal = BUSINESS_GOALS.filter((g) => !g.hidden)[0];
+
+  useEffect(() => {
+    const el = ref.current;
+    const host = el?.parentElement;
+    if (!el || !host || !matchMedia("(pointer: fine) and (prefers-reduced-motion: no-preference)").matches) return;
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const r = host.getBoundingClientRect();
+        el.style.setProperty("--px", (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+        el.style.setProperty("--py", (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+      });
+    };
+    const onLeave = () => { el.style.setProperty("--px", "0"); el.style.setProperty("--py", "0"); };
+    host.addEventListener("pointermove", onMove);
+    host.addEventListener("pointerleave", onLeave);
+    return () => { cancelAnimationFrame(raf); host.removeEventListener("pointermove", onMove); host.removeEventListener("pointerleave", onLeave); };
+  }, []);
+
+  return (
+    <div ref={ref} aria-hidden="true" className="hf-layer pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[60%] lg:block">
+      {/* ── left ── */}
+      <F i={0} plane="near" r={-6} className="left-[1%] top-[5%]">
+        <div className={`${glass} px-2.5 py-2`}>
+          <div className="flex gap-1">{d.colors.map((c) => <span key={c} className="h-6 w-6 rounded-[7px] ring-1 ring-inset ring-black/10" style={{ background: c }} />)}</div>
+          <p className="mt-1 text-[10px] font-medium text-ir-t3">{d.palette}</p>
+        </div>
+      </F>
+      <F i={1} plane="far" r={-3} className="left-[13%] top-[3%] hidden xl:block">
+        <div className={`${glass} flex gap-0.5 rounded-full p-1`}>
+          {picks.map((p, j) => <span key={j} className="grid h-4 w-4 place-items-center rounded-full bg-white/80 font-mono text-[9px] font-bold text-ir-t3">{p}</span>)}
+        </div>
+      </F>
+      <F i={2} plane="mid" r={4} className="left-[5%] top-[31%]">
+        <div className={`${glass} flex items-center gap-1 rounded-full py-1 pl-1 pr-2.5`}>
+          <span className="grid h-4 w-4 place-items-center rounded-full bg-ir-accent/80 text-ir-on-accent"><Tick className="h-2.5 w-2.5" /></span>
+          <span className="text-[11px] font-semibold text-ir-t2">นักลงทุนสถาบัน</span>
+        </div>
+      </F>
+      <F i={3} plane="far" r={3} className="left-[12%] top-[50%] hidden xl:block">
+        <div className={`${glass} w-[62px] p-1.5`}>
+          <span className="block h-2 rounded-[3px] bg-ir-dark/70" />
+          <span className="mt-1 grid grid-cols-3 gap-0.5">{[0, 1, 2].map((j) => <span key={j} className="h-2 rounded-[2px] bg-ir-accent/50" />)}</span>
+        </div>
+      </F>
+      <F i={4} plane="near" r={5} className="left-[0.5%] top-[60%] hidden xl:block">
+        <div className={`${glass} p-1`}>
+          <img src={unsplashUrl(photo.id, 200)} alt="" loading="lazy" className="h-[54px] w-[74px] rounded-[8px] object-cover" />
+        </div>
+      </F>
+      <F i={5} plane="mid" r={-4} className="left-[6%] top-[84%]">
+        <div className={`${glass} rounded-full px-2.5 py-1`}>
+          <span className="text-[11px] font-semibold text-ir-t2" style={{ fontFamily: fontStack(pair.heading) }}>{d.mood[0]}</span>
+        </div>
+      </F>
+
+      {/* ── right ── */}
+      <F i={6} plane="mid" r={5} className="right-[2%] top-[4%]">
+        <div className={`${glass} px-2.5 py-1.5`}>
+          <span className="text-[22px] leading-none text-ir-t2" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span></span>
+        </div>
+      </F>
+      <F i={7} plane="far" r={-2} className="right-[14%] top-[2%] hidden xl:block">
+        <div className={`${glass} px-2 py-0.5`}>
+          <span className="text-[11px] font-semibold text-ir-t3" style={{ fontFamily: fontStack(pair.heading) }}>{d.label}</span>
+        </div>
+      </F>
+      <F i={8} plane="near" r={-5} className="right-[4%] top-[28%]">
+        <span className={`${glass} inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-[12px] font-semibold text-ir-t2`}>
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark/80 text-ir-accent"><Tick className="h-3 w-3" /></span>พร้อมส่ง
+        </span>
+      </F>
+      <F i={9} plane="far" r={3} className="right-[12%] top-[48%] hidden xl:block">
+        <div className={`${glass} flex items-center gap-1 rounded-full py-0.5 pl-0.5 pr-2`}>
+          <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-ir-accent/70 text-ir-on-accent"><Tick className="h-2 w-2" /></span>
+          <span className="text-[10px] font-medium text-ir-t3">{goal.label}</span>
+        </div>
+      </F>
+      <F i={10} plane="mid" r={4} className="right-[1%] top-[60%] hidden xl:block">
+        <div className={`${glass} w-[96px] p-2`}>
+          <p className="text-[9px] font-semibold text-ir-t3">โครงหน้าแรก</p>
+          <div className="mt-1 grid gap-0.5">
+            <span className="h-3 rounded-[3px] bg-ir-dark/80" />
+            <span className="h-2 rounded-[3px] bg-ir-muted" />
+            <span className="h-2 rounded-[3px] bg-ir-muted" />
+          </div>
+        </div>
+      </F>
+      <F i={11} plane="near" r={-3} className="right-[1%] top-[86%] xl:right-[7%] xl:top-[84%]">
+        <div className={`${glass} flex gap-1 rounded-full px-2 py-1.5`}>
+          {[0, 1, 2, 3, 4, 5].map((j) => <span key={j} className={`h-1.5 w-4 rounded-full ${j < 4 ? "ir-grad-fill" : "bg-ir-border"}`} />)}
+        </div>
+      </F>
     </div>
   );
 }

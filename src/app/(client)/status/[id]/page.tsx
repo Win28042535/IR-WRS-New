@@ -30,8 +30,8 @@ export default function SubmittedPage() {
             <line x1="31" y1="17" x2="17" y2="31" stroke="#A0A3AB" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         </div>
-        <h2 className="text-lg font-medium text-ir-t2 mb-2">ไม่พบ Requirement</h2>
-        <Link href="/" className="text-ir-accent-text text-sm underline">กลับหน้าหลัก</Link>
+        <h2 className="text-[20px] font-medium text-ir-t2 mb-2">ไม่พบ Requirement</h2>
+        <Link href="/" className="text-ir-accent-text text-[16px] underline">กลับหน้าหลัก</Link>
       </div>
     );
   }
@@ -52,18 +52,18 @@ export default function SubmittedPage() {
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
           </div>
-          <h1 className="text-white text-2xl font-semibold mb-2">
+          <h1 className="text-white text-[26px] font-semibold mb-2">
             {frozen ? "โครงการพร้อมเริ่มต้นแล้ว 🚀" : "ส่งข้อมูลสำเร็จแล้ว!"}
           </h1>
-          <p className="text-white/80 text-[15px] max-w-sm mx-auto mb-1 leading-relaxed">
+          <p className="text-white/80 text-[17px] max-w-sm mx-auto mb-1 leading-relaxed">
             IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว
           </p>
-          <p className="text-white/70 text-[14px] max-w-xs mx-auto mb-6">
+          <p className="text-white/70 text-[16px] max-w-xs mx-auto mb-6">
             ทีมงานจะติดต่อกลับภายใน 1–2 วันทำการ
           </p>
           <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/15 rounded-full pl-3.5 pr-4 py-1.5">
-            <span className="text-[12px] text-white/70">หมายเลขอ้างอิง</span>
-            <span className="font-mono text-white font-medium tracking-wider text-[13px]">{req.id}</span>
+            <span className="text-[14px] text-white/70">หมายเลขอ้างอิง</span>
+            <span className="font-mono text-white font-medium tracking-wider text-[15px]">{req.id}</span>
           </div>
         </div>
 
@@ -80,8 +80,8 @@ export default function SubmittedPage() {
           <div className="sc-reveal flex items-start gap-3 bg-primary-50 border border-ir-select-soft rounded-[18px] px-4 py-4 mb-6">
             <span className="mt-[3px]"><LumaChip type="celebrate" size={16} /></span>
             <div>
-              <div className="text-[14px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
-              <p className="text-[13px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+              <div className="text-[16px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
+              <p className="text-[15px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
             </div>
           </div>
 
@@ -102,10 +102,10 @@ export default function SubmittedPage() {
                 <div className="px-4 py-4 flex items-start gap-3">
                   <div className="shrink-0 w-10 h-10 rounded-full bg-ir-muted text-ir-t2 grid place-items-center"><IconPalette width={24} height={24} /></div>
                   <div className="flex-1">
-                    <div className="text-[14px] font-semibold text-ir-t1 mb-1">
+                    <div className="text-[16px] font-semibold text-ir-t1 mb-1">
                       Moodboard จะถูกจัดทำและส่งให้ทางอีเมล
                     </div>
-                    <p className="text-[13px] text-ir-t2 leading-relaxed">
+                    <p className="text-[15px] text-ir-t2 leading-relaxed">
                       ทีม IR Plus จะนำ Direction{dir ? ` "${dir.label}"` : ""} · Palette
                       {colors.length > 0 && ` (${dir?.palette ?? ""})`} · และ Sections ที่คุณเลือก
                       มาจัดทำ Moodboard พร้อมส่งไปที่{" "}
@@ -121,12 +121,12 @@ export default function SubmittedPage() {
 
       {/* actions */}
       <div className="flex justify-center">
-        <Link href="/" className="inline-flex items-center h-11 px-8 rounded-full bg-ir-muted text-ir-t1 text-[15px] font-medium hover:bg-ir-border transition-colors">
+        <Link href="/" className="inline-flex items-center h-11 px-8 rounded-full bg-ir-muted text-ir-t1 text-[17px] font-medium hover:bg-ir-border transition-colors">
           กลับหน้าหลัก
         </Link>
       </div>
       <div className="text-center mt-4">
-        <p className="text-ir-t3 text-[13px]">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
+        <p className="text-ir-t3 text-[15px]">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
       </div>
     </div>
   );
@@ -135,8 +135,8 @@ export default function SubmittedPage() {
 function Field({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return (
     <div className="bg-ir-bg border border-ir-border rounded-lg px-3.5 py-2.5">
-      <div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
-      <div className={`text-[13px] font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
+      <div className="text-[14px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
+      <div className={`text-[15px] font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
     </div>
   );
 }

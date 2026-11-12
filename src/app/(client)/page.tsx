@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { FLOW_STEPS } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
-import { BriefFlow, Moodboard, StepGallery } from "@/components/HomeShowcase";
+import { BriefFlow, HeroFragments, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
 import { HomeContact } from "@/components/HomeContact";
 
@@ -17,6 +17,9 @@ const balance = { textWrap: "balance" } as CSSProperties;
 // deliverable as a moodboard. Below: a preview of every step's screen (what to do, what it
 // looks like), then what to prepare and the FAQ, folded.
 // Same mood as before: faint grid, lime glow, black pill CTA with the lime arrow disc.
+
+// "ทีมได้รับอะไร" (the transformation machine) is switched off for now; flip to bring it back.
+const SHOW_BRIEF = false;
 
 const REASSURE = ["ไม่เกิน 20 นาที", "บันทึกอัตโนมัติ", "แก้ไขได้ก่อนเริ่มออกแบบ", "ไม่ต้องสมัครสมาชิก"];
 
@@ -64,7 +67,8 @@ export default function Landing() {
       />
 
       {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
-      <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 text-center ir-fade-up">
+      <section className="relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 pb-6 text-center ir-fade-up">
+        <HeroFragments />
         {/* Narrow phones wrap after "สำหรับลูกค้า ·", so the pill softens to a rounded box. */}
         <span className="inline-flex items-center gap-2 rounded-[18px] min-[440px]:rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[13px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
           <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
@@ -103,7 +107,7 @@ export default function Landing() {
             <span className="whitespace-nowrap">ตัวอย่าง</span><span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">สิ่งที่คุณจะได้</span>
           </h2>
           <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
-            Moodboard ที่ระบบสรุปจากคำตอบ: หน้าเว็บ แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
+            Moodboard ที่ระบบสรุปจากคำตอบ: แนวทาง สี ตัวอักษร ภาพ สิ่งที่คุณเลือก และโครงหน้าแรก
             {shown.trim() && <> · แสดงด้วยชื่อ <span className="font-semibold text-ir-t1">{shown.trim()}</span></>}
           </p>
         </div>
@@ -124,17 +128,19 @@ export default function Landing() {
       </section>
 
       {/* ── What the team receives — each answer becomes a heading of the Requirement ── */}
-      <section id="brief" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
-        <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
-            <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
-          </h2>
-          <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
-            ทีม IR Plus ได้รับ Requirement ที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
-          </p>
-        </div>
-        <div className="sc-reveal mt-10"><BriefFlow /></div>
-      </section>
+      {SHOW_BRIEF && (
+        <section id="brief" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-16 sm:pt-20">
+          <div className="sc-reveal text-center">
+            <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+              <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
+              ทีม IR Plus ได้รับ Requirement ที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
+            </p>
+          </div>
+          <div className="sc-reveal mt-8"><BriefFlow /></div>
+        </section>
+      )}
 
       {/* ── More detail, folded — for those who want to read first ── */}
       <section id="faq" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
@@ -165,10 +171,16 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Leave a message — the tail of the FAQ, its own tinted panel at the same width ── */}
-      <div id="contact" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-10 sm:pt-12">
-        <div className="sc-reveal"><HomeContact /></div>
-      </div>
+      {/* ── Still have a question? Same title DNA as the FAQ; a quiet form below it ── */}
+      <section id="contact" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
+        <div className="sc-reveal text-center">
+          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <span className="whitespace-nowrap">ยังมี<span className="ir-grad-text px-[0.02em] py-[0.15em]">คำถาม?</span></span>
+          </h2>
+          <p className="mt-3 text-[16px] text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+        </div>
+        <div className="sc-reveal mt-10"><HomeContact /></div>
+      </section>
 
       {/* ── Closing banner — start (or resume) right here, no scrolling back up ── */}
       <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-16 sm:pt-20 pb-16">

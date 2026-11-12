@@ -1,6 +1,4 @@
 // ── Homepage "ฝากเรื่องไว้ ทีมติดต่อกลับ" ───────────────────────────────────────
-export const CONTACT_TOPICS = ["สอบถามบริการและราคา", "นัดคุยกับทีม", "ติดปัญหาตอนกรอกแบบฟอร์ม", "เรื่องอื่น"] as const;
-
 export type ContactMessage = {
   id: string;
   createdAt: number;

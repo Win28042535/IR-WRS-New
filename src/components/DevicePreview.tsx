@@ -239,7 +239,7 @@ export function DevicePreview({
     <div className="flex gap-1.5">
       {([["desktop", IconDesktop, "Desktop"], ["tablet", IconTablet, "Tablet"], ["mobile", IconMobile, "Mobile"]] as const).map(([m, Icon, label]) => (
         <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m} aria-label={label}
-          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-lg border text-[13px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
             mode === m ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           <Icon /> {compact ? "" : label}
         </button>
@@ -256,7 +256,7 @@ export function DevicePreview({
       {/* existing pins */}
       {comments.map((c, i) => (
         <button key={c.id} onClick={(e) => { e.stopPropagation(); setDraftPin(null); }}
-          className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-white shadow-md z-10"
+          className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[13px] font-bold flex items-center justify-center ring-2 ring-white shadow-md z-10"
           style={{ left: `${c.x}%`, top: `${c.y}%`, background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>
           {i + 1}
         </button>
@@ -264,10 +264,10 @@ export function DevicePreview({
       {/* new-comment popover */}
       {draftPin && (
         <div className="absolute z-20 w-56 -translate-x-1/2 bg-white border border-ir-border rounded-xl ir-shadow-lg p-2.5" style={{ left: `${draftPin.x}%`, top: `calc(${draftPin.y}% + 14px)` }} onClick={(e) => e.stopPropagation()}>
-          <textarea autoFocus value={draftText} onChange={(e) => setDraftText(e.target.value)} rows={2} placeholder="พิมพ์คอมเมนต์ที่จุดนี้..." className="w-full border border-ir-border rounded-lg px-2 py-1.5 text-[12px] outline-none focus:border-ir-accent resize-none" />
+          <textarea autoFocus value={draftText} onChange={(e) => setDraftText(e.target.value)} rows={2} placeholder="พิมพ์คอมเมนต์ที่จุดนี้..." className="w-full border border-ir-border rounded-lg px-2 py-1.5 text-[14px] outline-none focus:border-ir-accent resize-none" />
           <div className="flex justify-end gap-1.5 mt-1.5">
-            <button onClick={() => setDraftPin(null)} className="text-[11px] px-2 py-1 rounded-md text-ir-t3 hover:text-ir-t1">ยกเลิก</button>
-            <button onClick={addComment} className="text-[11px] px-2.5 py-1 rounded-md bg-ir-accent text-ir-on-accent font-medium hover:bg-ir-accent-hi">เพิ่ม</button>
+            <button onClick={() => setDraftPin(null)} className="text-[13px] px-2 py-1 rounded-md text-ir-t3 hover:text-ir-t1">ยกเลิก</button>
+            <button onClick={addComment} className="text-[13px] px-2.5 py-1 rounded-md bg-ir-accent text-ir-on-accent font-medium hover:bg-ir-accent-hi">เพิ่ม</button>
           </div>
         </div>
       )}
@@ -286,15 +286,15 @@ export function DevicePreview({
     <div>
       <div className="flex items-center justify-end gap-2 mb-4">
         <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[13px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           💬 Comment{comments.length > 0 ? ` (${comments.length})` : ""}
         </button>
-        <button onClick={() => setFull(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-ir-border bg-ir-card text-ir-t2 text-[13px] hover:border-ir-border-hi transition-colors">
+        <button onClick={() => setFull(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-ir-border bg-ir-card text-ir-t2 text-[15px] hover:border-ir-border-hi transition-colors">
           <IconExpand /> Full-screen
         </button>
       </div>
 
-      {commentMode && <div className="mb-3 text-[12px] text-ir-accent-text bg-ir-accent/[0.06] border border-ir-accent/20 rounded-lg px-3 py-2">โหมดคอมเมนต์: คลิกตำแหน่งใดก็ได้บน Preview เพื่อปักหมุดคอมเมนต์ (เหมือน Figma)</div>}
+      {commentMode && <div className="mb-3 text-[14px] text-ir-accent-text bg-ir-accent/[0.06] border border-ir-accent/20 rounded-lg px-3 py-2">โหมดคอมเมนต์: คลิกตำแหน่งใดก็ได้บน Preview เพื่อปักหมุดคอมเมนต์ (เหมือน Figma)</div>}
 
       <div className="bg-ir-bg/60 border border-ir-border rounded-xl p-4 md:p-6">
         {stage(DEVICE_W["desktop"])}
@@ -303,7 +303,7 @@ export function DevicePreview({
       {/* comment list */}
       {comments.length > 0 && (
         <div className="mt-4 space-y-2">
-          <div className="text-[11px] uppercase tracking-wide text-ir-t3">Comments ({comments.filter((c) => c.status === "open").length} open)</div>
+          <div className="text-[13px] uppercase tracking-wide text-ir-t3">Comments ({comments.filter((c) => c.status === "open").length} open)</div>
           {comments.map((c, i) => (
             <CommentRow key={c.id} n={i + 1} c={c} onResolve={() => toggleResolve(c.id)} onDelete={() => removeComment(c.id)} onReply={(t) => addReply(c.id, t)} />
           ))}
@@ -313,10 +313,10 @@ export function DevicePreview({
       {full && createPortal(
         <div className="fixed inset-0 z-[100] bg-ir-bg flex flex-col ir-fade">
           <div className="h-12 shrink-0 flex items-center justify-between px-4 border-b border-ir-border bg-white">
-            <span className="text-ir-t2 text-[13px] font-medium truncate">High-Fidelity Preview {dir?.label} · {brand.paletteName}</span>
+            <span className="text-ir-t2 text-[15px] font-medium truncate">High-Fidelity Preview {dir?.label} · {brand.paletteName}</span>
             <div className="flex items-center gap-3">
               {deviceToggle(true)}
-              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-lg border text-[13px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
+              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
               <button onClick={() => setFull(false)} className="text-ir-t2 hover:text-ir-t1 p-1.5"><IconClose width={24} height={24} /></button>
             </div>
           </div>
@@ -336,14 +336,14 @@ function CommentRow({ n, c, onResolve, onDelete, onReply }: { n: number; c: PinC
   return (
     <div className={`border rounded-xl p-3 ${c.status === "resolved" ? "border-ir-border bg-ir-bg/60" : "border-ir-border bg-white"}`}>
       <div className="flex items-start gap-2.5">
-        <span className="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0" style={{ background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>{n}</span>
+        <span className="w-6 h-6 rounded-full text-[13px] font-bold flex items-center justify-center shrink-0" style={{ background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>{n}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] text-ir-t1">{c.text}</div>
-          {c.replies.map((r, i) => (<div key={i} className="text-[12px] text-ir-t2 mt-1 pl-2 border-l-2 border-ir-border">↳ {r}</div>))}
+          <div className="text-[15px] text-ir-t1">{c.text}</div>
+          {c.replies.map((r, i) => (<div key={i} className="text-[14px] text-ir-t2 mt-1 pl-2 border-l-2 border-ir-border">↳ {r}</div>))}
           <div className="flex items-center gap-2 mt-2">
-            <input value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && reply.trim()) { onReply(reply.trim()); setReply(""); } }} placeholder="ตอบกลับ..." className="flex-1 border border-ir-border rounded-md px-2 py-1 text-[12px] outline-none focus:border-ir-accent" />
-            <button onClick={onResolve} className="text-[11px] px-2 py-1 rounded-md border border-ir-border text-ir-t2 hover:border-ir-border-hi">{c.status === "open" ? "Resolve" : "Reopen"}</button>
-            <button onClick={onDelete} className="text-[11px] text-ir-t3 hover:text-ir-error">ลบ</button>
+            <input value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && reply.trim()) { onReply(reply.trim()); setReply(""); } }} placeholder="ตอบกลับ..." className="flex-1 border border-ir-border rounded-md px-2 py-1 text-[14px] outline-none focus:border-ir-accent" />
+            <button onClick={onResolve} className="text-[13px] px-2 py-1 rounded-md border border-ir-border text-ir-t2 hover:border-ir-border-hi">{c.status === "open" ? "Resolve" : "Reopen"}</button>
+            <button onClick={onDelete} className="text-[13px] text-ir-t3 hover:text-ir-error">ลบ</button>
           </div>
         </div>
         <span className={`text-[9px] px-1.5 py-0.5 rounded shrink-0 ${c.status === "resolved" ? "bg-ir-teal/15 text-ir-teal" : "bg-ir-accent/10 text-ir-accent-text"}`}>{c.status}</span>

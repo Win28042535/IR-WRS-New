@@ -1,16 +1,16 @@
 "use client";
 // ── Homepage: leave a message ─────────────────────────────────────────────────────
-// A quiet block under the FAQ, set apart by its own tinted panel; a secondary
-// (outline) button, so it never competes with the main CTAs. Saved via lib/contact.ts.
+// The form inside the "ยังมีคำถาม?" section (title + subtitle live on the page, same DNA as
+// the FAQ). A tinted panel, a secondary (outline) button, so it never competes with the main
+// CTAs. Saved via lib/contact.ts.
 import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { IconCheck } from "@/components/icons";
-import { CONTACT_TOPICS, saveContactMessage } from "@/lib/contact";
+import { saveContactMessage } from "@/lib/contact";
 import { emailError, phoneError } from "@/lib/validation";
 
 const balance = { textWrap: "balance" } as CSSProperties;
 
 export function HomeContact() {
-  const [topic, setTopic] = useState<string>(CONTACT_TOPICS[0]);
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
@@ -30,7 +30,7 @@ export function HomeContact() {
     if (sending) return;
     if (contactErr) { setTried(true); return; }
     setSending(true);
-    const saved = await saveContactMessage({ name: name.trim(), company: company.trim(), contact: c, topic, message: message.trim() });
+    const saved = await saveContactMessage({ name: name.trim(), company: company.trim(), contact: c, topic: "ทั่วไป", message: message.trim() });
     setSending(false);
     setSentId(saved.id);
   };
@@ -40,18 +40,8 @@ export function HomeContact() {
   const field = "h-11 w-full rounded-full border border-black/10 bg-white px-4 text-[15px] text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30";
   const label = "text-[13px] font-medium text-ir-t2";
 
-  // Its own tinted panel (not a white card like the FAQ above), intro left, form right.
   const shell = (children: ReactNode) => (
-    <div className="grid gap-5 rounded-[24px] border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10 lg:p-9">
-      <div>
-        <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-full bg-white text-ir-accent-text shadow-sm">
-          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L4 20l1.3-3.6C3.9 15.1 3 13.4 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5Z" /></svg>
-        </span>
-        <h3 className="mt-4 text-[clamp(1.4rem,2.2vw,1.8rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-ir-t1">ยังมี<span className="ir-grad-text px-[0.02em] py-[0.15em]">คำถาม?</span></h3>
-        <p className="mt-2 text-[15px] leading-relaxed text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ ไม่ต้องเริ่มกรอกแบบฟอร์มก่อน</p>
-      </div>
-      <div className="min-w-0">{children}</div>
-    </div>
+    <div className="rounded-[24px] border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 lg:p-8">{children}</div>
   );
 
   if (sentId) {
@@ -71,27 +61,7 @@ export function HomeContact() {
 
   return shell(
     <form onSubmit={submit} noValidate aria-label="ฝากเรื่องไว้ ทีมติดต่อกลับ">
-      <div role="group" aria-label="เรื่องที่อยากคุย" className="flex flex-wrap gap-1.5">
-        {CONTACT_TOPICS.map((t) => {
-          const on = t === topic;
-          return (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={on}
-              onClick={() => setTopic(t)}
-              className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 text-[13px] font-medium transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
-                on ? "border-ir-select bg-ir-accent-soft text-ir-t1" : "border-ir-border bg-white text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
-              }`}
-            >
-              {on && <IconCheck width={14} height={14} className="sel-check text-ir-accent-text" />}
-              {t}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block">
           <span className={label}>ชื่อ</span>
           <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="คุณสมชาย" className={`mt-1 ${field}`} />

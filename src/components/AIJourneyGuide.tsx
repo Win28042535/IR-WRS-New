@@ -3,10 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AIMascot } from "./AIMascot";
 
-// Fixed position for the floating card (top-left corner, below nav)
-const CARD_TOP  = 88;
-const CARD_LEFT = 16;
-const CARD_W    = 292;
+// Floating card position: top-left below the nav from md up; on phones it sits at the
+// bottom, above the sticky step nav, so it never covers the step indicator at the top.
+const CARD_POS = "fixed z-[9999] left-3 right-3 bottom-[calc(96px+env(safe-area-inset-bottom,0px))] md:left-4 md:right-auto md:bottom-auto md:top-[88px] md:w-[292px]";
 
 export type GuideMode   = "insight" | "recommend" | "tip" | "celebrate";
 export type GuideAction = "explain" | "compare" | "recommend" | "learn" | "summarize";
@@ -75,11 +74,11 @@ function ActionContent({ action, content, accentColor }: {
       <div className="grid grid-cols-2 gap-2">
         {dashParts.slice(0, 2).map((seg, i) => (
           <div key={i} className="rounded-lg bg-black/[0.035] px-2.5 py-2">
-            <p className="text-[12px] text-ir-t2 leading-snug">{seg}</p>
+            <p className="text-[14px] text-ir-t2 leading-snug">{seg}</p>
           </div>
         ))}
         {dashParts.length > 2 && (
-          <p className="col-span-2 text-[12px] text-ir-t3 leading-snug mt-0.5">
+          <p className="col-span-2 text-[14px] text-ir-t3 leading-snug mt-0.5">
             {dashParts.slice(2).join(" ")}
           </p>
         )}
@@ -92,8 +91,8 @@ function ActionContent({ action, content, accentColor }: {
     const rest     = dashParts.slice(1).join(" ");
     return (
       <div>
-        <p className="text-[12px] font-semibold leading-snug" style={{ color: accentColor }}>{headline}</p>
-        {rest && <p className="text-[12px] text-ir-t2 leading-snug mt-1">{rest}</p>}
+        <p className="text-[14px] font-semibold leading-snug" style={{ color: accentColor }}>{headline}</p>
+        {rest && <p className="text-[14px] text-ir-t2 leading-snug mt-1">{rest}</p>}
       </div>
     );
   }
@@ -109,7 +108,7 @@ function ActionContent({ action, content, accentColor }: {
               <path d="M1 4.5L3.5 7L8 1.5" stroke="currentColor" strokeWidth="1.5"
                 strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-[12px] text-ir-t2 leading-snug">{b}</span>
+            <span className="text-[14px] text-ir-t2 leading-snug">{b}</span>
           </li>
         ))}
       </ul>
@@ -125,7 +124,7 @@ function ActionContent({ action, content, accentColor }: {
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 rounded-full mt-[5px]"
                 style={{ width: 5, height: 5, background: accentColor, display: "block" }} />
-              <span className="text-[12px] text-ir-t2 leading-snug">{item}</span>
+              <span className="text-[14px] text-ir-t2 leading-snug">{item}</span>
             </li>
           ))}
         </ul>
@@ -133,7 +132,7 @@ function ActionContent({ action, content, accentColor }: {
     }
   }
 
-  return <p className="text-[12px] text-ir-t2 leading-relaxed">{content}</p>;
+  return <p className="text-[14px] text-ir-t2 leading-relaxed">{content}</p>;
 }
 
 // ── Floating card rendered via portal ───────────────────────────────
@@ -153,18 +152,9 @@ function FloatingCard({
   onClose:     () => void;
   exiting:     boolean;
 }) {
-  const posStyle: React.CSSProperties = {
-    position: "fixed",
-    top:  CARD_TOP,
-    left: CARD_LEFT,
-    width: CARD_W,
-    zIndex: 9999,
-  };
-
   return (
     <div
-      style={posStyle}
-      className={["rounded-2xl bg-white border border-ir-border/70 overflow-hidden ai-guide-card shadow-lg", exiting ? "ai-hint-out" : "ai-guide-popover-in"].join(" ")}
+      className={[CARD_POS, "rounded-2xl bg-white border border-ir-border/70 overflow-hidden ai-guide-card shadow-lg", exiting ? "ai-hint-out" : "ai-guide-popover-in"].join(" ")}
       data-mode={liveMode}
       onMouseDown={e => e.stopPropagation()}
     >
@@ -172,7 +162,7 @@ function FloatingCard({
       <div className="flex items-start gap-3 px-3.5 py-3">
         <AIMascot mood={liveMode} size={30} className="mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className={["text-[12.5px] text-ir-t1 leading-snug ai-hint-msg", fading ? "fading" : "visible"].join(" ")}>
+          <p className={["text-[14.5px] text-ir-t1 leading-snug ai-hint-msg [word-break:keep-all] [overflow-wrap:anywhere]", fading ? "fading" : "visible"].join(" ")}>
             {live}
           </p>
           {fading && (
@@ -190,7 +180,7 @@ function FloatingCard({
                   type="button"
                   onClick={() => onAction(key)}
                   className={[
-                    "text-[12px] px-2.5 py-1 rounded-full transition-colors duration-100 ai-guide-chip-in",
+                    "min-h-10 text-[14px] px-3 rounded-full transition-colors duration-100 ai-guide-chip-in",
                     active === key
                       ? "font-medium"
                       : "text-ir-t3 hover:text-ir-t2 hover:bg-black/[0.04]",
@@ -210,7 +200,7 @@ function FloatingCard({
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 mt-0.5 w-6 h-6 rounded-full flex items-center justify-center text-ir-t3 hover:text-ir-t1 hover:bg-black/[0.05] transition-colors"
+          className="shrink-0 -mr-2 -mt-2 w-11 h-11 rounded-full flex items-center justify-center text-ir-t3 hover:text-ir-t1 hover:bg-black/[0.05] transition-colors"
           aria-label="ปิด"
         >
           <svg width="18" height="18" viewBox="0 0 8 8" fill="none" aria-hidden>

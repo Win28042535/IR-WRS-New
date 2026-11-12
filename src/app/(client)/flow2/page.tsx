@@ -8,7 +8,6 @@ import { rankDirections, buildProfile, profileToDirection, rankProfileDirections
 import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
-import { DirectionPreview, DirectionPhonePreview } from "@/components/DirectionPreview";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -152,7 +151,7 @@ export default function Flow2() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
         <AIMascot mood="insight" size={44} />
-        <p className="text-[13px] text-ir-t2 mt-1">กำลังเตรียมระบบ...</p>
+        <p className="text-[15px] text-ir-t2 mt-1">กำลังเตรียมระบบ...</p>
       </div>
     );
   }
@@ -358,8 +357,8 @@ function Head({ n: _n, title, sub }: { n: number; title: string; sub?: string })
     // from the body below at a glance, so a border here was reinforcing something
     // typography had already established, not adding a distinction of its own.
     <div className="mb-4 pb-4 md:mb-5 md:pb-5">
-      <h2 className="text-[24px] font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>{title}</h2>
-      {sub && <p className="text-[16px] text-ir-t2 leading-relaxed mt-2">{sub}</p>}
+      <h2 className="text-[26px] font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>{title}</h2>
+      {sub && <p className="text-[18px] text-ir-t2 leading-relaxed mt-2">{sub}</p>}
     </div>
   );
 }
@@ -600,22 +599,22 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             value={draft.company}
             onChange={(e) => updateDraft({ company: e.target.value })}
             placeholder="เช่น บริษัท ABC จำกัด (มหาชน)"
-            className="w-full border border-ir-border rounded-xl px-4 py-3 text-[14px] outline-none focus:border-ir-accent mt-2 transition-colors"
+            className="w-full border border-ir-border rounded-xl px-4 py-3 text-[16px] outline-none focus:border-ir-accent mt-2 transition-colors"
           />
         </div>
         <div>
           <div className="flex items-baseline gap-2">
             <SectionLabel>เว็บไซต์ปัจจุบัน</SectionLabel>
-            <span className="text-[12px] text-ir-t3">(ไม่บังคับ)</span>
+            <span className="text-[14px] text-ir-t3">(ไม่บังคับ)</span>
           </div>
           <div className="relative mt-2">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3 text-base select-none">🌐</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3 text-[18px] select-none">🌐</span>
             <input
               aria-label="เว็บไซต์ปัจจุบัน"
               value={draft.website ?? ""}
               onChange={(e) => updateDraft({ website: e.target.value })}
               placeholder="https://www.irplus.in.th"
-              className="w-full border border-ir-border rounded-xl pl-10 pr-4 py-3 text-[14px] outline-none focus:border-ir-accent transition-colors"
+              className="w-full border border-ir-border rounded-xl pl-10 pr-4 py-3 text-[16px] outline-none focus:border-ir-accent transition-colors"
             />
           </div>
         </div>
@@ -627,7 +626,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           card behaves the same way so nothing has to be picked "first" */}
       <div>
         <SectionLabel>กลุ่มเป้าหมาย <span className="text-red-500 font-normal">*</span></SectionLabel>
-        <p className="text-[14px] text-ir-t3 mb-3 mt-1">เว็บไซต์ IR สื่อสารกับใครบ้าง? เลือกได้หลายกลุ่ม กลุ่มแรกที่เลือกคือกลุ่มเป้าหมายหลัก ซึ่ง AI จะใช้กำหนดโครงสร้าง เนื้อหา และการออกแบบเป็นอันดับแรก</p>
+        <p className="text-[16px] text-ir-t3 mb-3 mt-1">เว็บไซต์ IR สื่อสารกับใครบ้าง? เลือกได้หลายกลุ่ม กลุ่มแรกที่เลือกคือกลุ่มเป้าหมายหลัก ซึ่ง AI จะใช้กำหนดโครงสร้าง เนื้อหา และการออกแบบเป็นอันดับแรก</p>
         <div className="grid sm:grid-cols-2 gap-2.5">
           {IR_AUDIENCES.map((aud) => {
             const rank = selectedAudiences.indexOf(aud.id) + 1;
@@ -645,7 +644,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
                   <button
                     type="button"
                     onClick={() => makePrimary(aud.id)}
-                    className="min-h-11 md:min-h-8 text-[12px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
+                    className="min-h-11 md:min-h-8 text-[14px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
                   >
                     ตั้งเป็นกลุ่มหลัก
                   </button>
@@ -658,17 +657,19 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       <SectionDivider />
 
-      {/* Corporate identity — whether existing brand guidelines should anchor the design */}
+      {/* Corporate identity — keep the existing brand colours, or have the team propose new ones.
+          Stored as hasCorporateIdentity: "yes" = keep existing, "no" = propose new (unchanged
+          values, so earlier answers carry over). */}
       <div>
         <div className="flex items-baseline gap-2">
           <SectionLabel>Corporate Identity (CI)</SectionLabel>
-          <span className="text-[12px] text-ir-t3">(ไม่บังคับ)</span>
+          <span className="text-[14px] text-ir-t3">(ไม่บังคับ)</span>
         </div>
-        <p className="text-[14px] text-ir-t3 mb-3 mt-1">บริษัทมี CI เดิม (เว็บไซต์ โลโก้ หรือแนวทางแบรนด์) ที่ต้องการให้ AI ใช้อ้างอิงตอนออกแบบหรือไม่?</p>
+        <p className="text-[16px] text-ir-t3 mb-3 mt-1">สำหรับเว็บไซต์ใหม่ คุณต้องการให้เราใช้ชุดสีแบบใด?</p>
         <div className="grid sm:grid-cols-2 gap-2.5">
           {([
-            { id: "yes", label: "มี ต้องการใช้อ้างอิง", desc: "AI จะยึดสี โลโก้ และแนวทางแบรนด์เดิมเป็นฐานในการออกแบบ" },
-            { id: "no", label: "ไม่มี", desc: "AI จะแนะนำ Direction และโทนสีให้ใหม่ทั้งหมดตามข้อมูลที่กรอก" },
+            { id: "yes", label: "ใช้ชุดสีเดิม", desc: "โดยอ้างอิงจากเว็บไซต์ปัจจุบันหรือโลโก้บริษัท" },
+            { id: "no", label: "ให้ทีมออกแบบเสนอชุดสีใหม่", desc: "ทีมเสนอชุดสีที่เข้ากับแนวทางและกลุ่มผู้อ่านของเว็บไซต์" },
           ] as const).map((opt) => (
             <OptionCard
               key={opt.id}
@@ -680,6 +681,11 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             />
           ))}
         </div>
+        {/* Recommendation, under the choices */}
+        <p className="mt-3 flex items-start gap-2.5 rounded-[14px] border border-ir-select-soft/70 bg-ir-accent-soft/50 px-4 py-3 text-[15px] leading-relaxed text-ir-t2">
+          <svg aria-hidden="true" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0 text-ir-accent-text"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3Z" /></svg>
+          <span>หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</span>
+        </p>
       </div>
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
@@ -785,7 +791,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
         </div>
         {/* Max reached: say so where the dimmed cards are, not only in the n/4 badge. */}
         {goalsFull && (
-          <p className="ir-fade mt-3 text-[14px] text-ir-t2" role="status">
+          <p className="ir-fade mt-3 text-[16px] text-ir-t2" role="status">
             เลือกครบ {RULES.goals.max} ข้อแล้ว · กดข้อที่เลือกไว้เพื่อเอาออกก่อน ถ้าต้องการเปลี่ยน
           </p>
         )}
@@ -798,7 +804,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
             type="button"
             onClick={() => setShowAllGoals((v) => !v)}
             aria-expanded={goalsExpanded}
-            className="md:hidden mt-2.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-ir-border text-[13px] font-medium text-ir-t2 active:bg-ir-hover"
+            className="md:hidden mt-2.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-ir-border text-[15px] font-medium text-ir-t2 active:bg-ir-hover"
           >
             {goalsExpanded ? "ย่อรายการ" : `ดูเป้าหมายเพิ่มเติมอีก ${VISIBLE_GOALS.length - GOALS_COLLAPSE_AT} รายการ`}
             <svg
@@ -837,7 +843,7 @@ function QuizVisual({ mock }: { mock: string }) {
 }
 
 const LetterBadge = ({ letter }: { letter: string }) => (
-  <span className="grid place-items-center w-6 h-6 rounded-full bg-ir-dark text-white text-[12px] font-bold shrink-0" aria-hidden="true">{letter}</span>
+  <span className="grid place-items-center w-6 h-6 rounded-full bg-ir-dark text-white text-[14px] font-bold shrink-0" aria-hidden="true">{letter}</span>
 );
 
 // ── S2 Smart Discovery Quiz (A/B) ──
@@ -906,10 +912,10 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
             <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i < idx ? "bg-ir-accent" : i === idx ? "bg-ir-dark" : "bg-ir-border"}`} />
           ))}
         </div>
-        <span className="font-mono text-[12px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
+        <span className="font-mono text-[14px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-[13px] font-semibold text-ir-accent-text">{String(idx + 1).padStart(2, "0")} — {q.topic}</p>
-      <p className="text-center text-[20px] sm:text-[22px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
+      <p className="text-center text-[15px] font-semibold text-ir-accent-text">{String(idx + 1).padStart(2, "0")} — {q.topic}</p>
+      <p className="text-center text-[22px] sm:text-[24px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
@@ -929,17 +935,17 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
               <div className="flex items-center gap-2">
                 <LetterBadge letter={letter} />
-                <span className="flex-1 min-w-0 text-[14px] sm:text-[16px] font-semibold text-ir-t1 leading-snug">{o.label}</span>
+                <span className="flex-1 min-w-0 text-[16px] sm:text-[18px] font-semibold text-ir-t1 leading-snug">{o.label}</span>
                 <SelectDot on={pending === letter} className="hidden sm:grid" />
               </div>
-              <div className="text-[13px] sm:text-[14px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
+              <div className="text-[15px] sm:text-[16px] text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
           </button>
         ))}
       </div>
       <div className="sm:hidden mt-3">
         <button type="button" onClick={() => setBigView((v) => !v)} aria-expanded={bigView}
-          className="w-full min-h-11 rounded-full border border-ir-border text-[14px] font-semibold text-ir-t1 bg-ir-card">
+          className="w-full min-h-11 rounded-full border border-ir-border text-[16px] font-semibold text-ir-t1 bg-ir-card">
           {bigView ? "ย่อภาพ" : "ดูภาพใหญ่"}
         </button>
         {bigView && (
@@ -947,7 +953,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
             {opts.map(([o, letter]) => (
               <figure key={letter} className="m-0">
                 <QuizVisual mock={o.mock} />
-                <figcaption className="mt-1.5 flex items-center gap-2 text-[14px] font-semibold text-ir-t1">
+                <figcaption className="mt-1.5 flex items-center gap-2 text-[16px] font-semibold text-ir-t1">
                   <LetterBadge letter={letter} />{o.label}
                 </figcaption>
               </figure>
@@ -978,8 +984,8 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
   return (
     <>
       <div className="sc-rise text-center">
-        <span className="text-[14px] font-semibold text-ir-accent-text">ผลการสำรวจ</span>
-        <h2 className="mt-2 text-[24px] sm:text-[28px] font-semibold tracking-[-0.02em] text-ir-t1" style={{ textWrap: "balance" } as CSSProperties}>
+        <span className="text-[16px] font-semibold text-ir-accent-text">ผลการสำรวจ</span>
+        <h2 className="mt-2 text-[26px] sm:text-[30px] font-semibold tracking-[-0.02em] text-ir-t1" style={{ textWrap: "balance" } as CSSProperties}>
           {isTop ? "แนวทางที่ใกล้กับองค์กรคุณที่สุด" : "แนวทางที่คุณเลือก"}
         </h2>
       </div>
@@ -989,25 +995,25 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
       <div className="sc-show rounded-[24px] p-6 sm:p-8 text-white" style={{ background: d.bg }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[13px] font-semibold text-white/75">Design Direction</p>
-            <p className="mt-1 text-[30px] sm:text-[36px] font-semibold leading-tight tracking-[-0.03em] text-white">{d.label}</p>
-            <p className="mt-1 text-[16px] text-white/85">{d.tagline}</p>
+            <p className="text-[15px] font-semibold text-white/75">Design Direction</p>
+            <p className="mt-1 text-[32px] sm:text-[38px] font-semibold leading-tight tracking-[-0.03em] text-white">{d.label}</p>
+            <p className="mt-1 text-[18px] text-white/85">{d.tagline}</p>
           </div>
-          <span className="rounded-full bg-white/15 px-3.5 py-1.5 font-mono text-[14px] font-bold text-white backdrop-blur-sm">
+          <span className="rounded-full bg-white/15 px-3.5 py-1.5 font-mono text-[16px] font-bold text-white backdrop-blur-sm">
             {current.confidence}% match
           </span>
         </div>
-        <p className="mt-4 max-w-[60ch] text-[15px] leading-relaxed text-white/85">{d.desc}</p>
+        <p className="mt-4 max-w-[60ch] text-[17px] leading-relaxed text-white/85">{d.desc}</p>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex items-center gap-2">
             <div className="flex gap-1.5" aria-hidden="true">
               {d.colors.map((c: string) => <span key={c} className="w-7 h-7 rounded-full ring-1 ring-white/30" style={{ background: c }} />)}
             </div>
-            <span className="text-[14px] text-white/85">{d.palette}</span>
+            <span className="text-[16px] text-white/85">{d.palette}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {d.mood.map((m: string) => (
-              <span key={m} className="rounded-full border border-white/25 px-3 py-1 text-[13px] text-white/90">{m}</span>
+              <span key={m} className="rounded-full border border-white/25 px-3 py-1 text-[15px] text-white/90">{m}</span>
             ))}
           </div>
         </div>
@@ -1017,7 +1023,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
       {/* Why — the five picks, each with the photo that was chosen */}
       {picks.length > 0 && (
         <div className="sc-reveal mt-8">
-          <p className="text-[16px] font-semibold text-ir-t1">มาจากคำตอบของคุณ</p>
+          <p className="text-[18px] font-semibold text-ir-t1">มาจากคำตอบของคุณ</p>
           <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {picks.map((p, i) => {
               const q = QUIZ.find((x) => x.id === p.questionId);
@@ -1032,8 +1038,8 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                     </div>
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
-                    <p className="text-[12px] text-ir-t3 truncate">ข้อ {i + 1} · {q.topic}</p>
-                    <p className="text-[14px] font-semibold leading-snug text-ir-t1">{o.label}</p>
+                    <p className="text-[14px] text-ir-t3 truncate">ข้อ {i + 1} · {q.topic}</p>
+                    <p className="text-[16px] font-semibold leading-snug text-ir-t1">{o.label}</p>
                   </div>
                 </li>
               );
@@ -1044,8 +1050,8 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
 
       {/* Other Directions — ranked, switchable */}
       <div className="sc-reveal mt-8">
-        <p className="text-[16px] font-semibold text-ir-t1">แนวทางอื่นที่ใกล้เคียง</p>
-        <p className="mt-1 text-[14px] text-ir-t3">ถ้าแนวทางอื่นตรงกับองค์กรมากกว่า เลือกแทนได้เลย</p>
+        <p className="text-[18px] font-semibold text-ir-t1">แนวทางอื่นที่ใกล้เคียง</p>
+        <p className="mt-1 text-[16px] text-ir-t3">ถ้าแนวทางอื่นตรงกับองค์กรมากกว่า เลือกแทนได้เลย</p>
         <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
           {ranked.filter((r) => r.direction.id !== d.id).map((r) => (
             <OptionCard
@@ -1054,7 +1060,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
               desc={r.direction.tagline}
               selected={false}
               onSelect={() => onChoose(r.direction.id)}
-              aside={<span className="font-mono text-[13px] font-semibold text-ir-t2">{r.confidence}%</span>}
+              aside={<span className="font-mono text-[15px] font-semibold text-ir-t2">{r.confidence}%</span>}
               tag={
                 <>
                   <span className="mt-2 flex gap-1" aria-hidden="true">
@@ -1186,10 +1192,10 @@ function FloatingPreviewToast() {
           preview.leaving ? "wrs-floating-preview-out" : "wrs-floating-preview-in"
         }`}
       >
-        <span className="shrink-0 w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-white/10 text-[13px]">
+        <span className="shrink-0 w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-white/10 text-[15px]">
           {preview.swatch}
         </span>
-        <span className="text-[12.5px] font-medium leading-tight">
+        <span className="text-[14.5px] font-medium leading-tight">
           {preview.label}
           {preview.sub && <span className="text-white/50 font-normal"> · {preview.sub}</span>}
         </span>
@@ -1352,15 +1358,15 @@ function MobileWorkspaceSheet({
             <div className="min-w-0 text-left">
               {wsCollapsed ? (
                 <>
-                  <p className="text-[13px] font-semibold text-ir-t1 leading-tight tabular-nums">
+                  <p className="text-[15px] font-semibold text-ir-t1 leading-tight tabular-nums">
                     {optionalCount} Section
                   </p>
-                  <p className="text-[12px] text-ir-t3 leading-tight mt-0.5">
+                  <p className="text-[14px] text-ir-t3 leading-tight mt-0.5">
                     {remaining > 0 ? `เพิ่มได้อีก ${remaining}` : "ครบจำนวนสูงสุดแล้ว"}
                   </p>
                 </>
               ) : (
-                <p className="text-[12px] font-medium text-ir-t2 leading-tight">
+                <p className="text-[14px] font-medium text-ir-t2 leading-tight">
                   แตะเพื่อย่อหน้าต่างนี้
                 </p>
               )}
@@ -1536,7 +1542,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
       // sheet there, so without this, adding a section shows nothing about the structure
       // unless the user opens it. Ghost-flight/glow already cover it when the sheet is open.
       useFloatingPreview.getState().show(
-        <span className="text-[13px] leading-none">{s?.icon ?? "📄"}</span>,
+        <span className="text-[15px] leading-none">{s?.icon ?? "📄"}</span>,
         `เพิ่ม ${s?.name?.split(" / ")[0] ?? id} แล้ว`,
         `${selected.length + 1} Section`
       );
@@ -1565,7 +1571,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
 
         const removed = sectionById(id);
         useFloatingPreview.getState().show(
-          <span className="text-[13px] leading-none opacity-60">{removed?.icon ?? "📄"}</span>,
+          <span className="text-[15px] leading-none opacity-60">{removed?.icon ?? "📄"}</span>,
           `ลบ ${removed?.name?.split(" / ")[0] ?? id} แล้ว`,
           `${next.length} Section`
         );
@@ -1647,7 +1653,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
       reasoning: aud ? `สำหรับ ${aud.label} — ${aud.shapes}` : "เพิ่มตามคำแนะนำของ AI ตามกลุ่มเป้าหมายและ Direction ที่เลือก",
     });
     useFloatingPreview.getState().show(
-      <span className="text-[13px] leading-none">✨</span>,
+      <span className="text-[15px] leading-none">✨</span>,
       "เพิ่ม Section ที่ AI แนะนำแล้ว",
       `${selected.length + toAdd.length} Section`
     );
@@ -1663,8 +1669,8 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
       {/* Control bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <span className={`text-[13px] font-semibold text-ir-t1 tabular-nums ${countPulse ? "wrs-counter-pop" : ""}`}>{count}</span>
-          <span className="text-[12px] text-ir-t3">/ {RULES.sections.max} Section</span>
+          <span className={`text-[15px] font-semibold text-ir-t1 tabular-nums ${countPulse ? "wrs-counter-pop" : ""}`}>{count}</span>
+          <span className="text-[14px] text-ir-t3">/ {RULES.sections.max} Section</span>
         </div>
         <button
           onClick={() => {
@@ -1672,7 +1678,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
             setLastPickedId(null);
             setDismissedFor(null);
           }}
-          className="flex items-center gap-1.5 -my-3 min-h-11 text-[12px] font-medium text-ir-t3 hover:text-ir-t1 active:text-ir-t1 transition-colors"
+          className="flex items-center gap-1.5 -my-3 min-h-11 text-[14px] font-medium text-ir-t3 hover:text-ir-t1 active:text-ir-t1 transition-colors"
         >
           <IconReset width={20} height={20} />
           รีเซ็ต
@@ -1684,7 +1690,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
           panel — so surfacing it in the picker only added a "choice" that isn't one. This
           step now opens straight into the categories the user actually decides on. A single
           line still reassures them the base structure is handled, without listing it. */}
-      <p className="text-[12px] text-ir-t3 leading-relaxed mb-6 md:mb-7">
+      <p className="text-[14px] text-ir-t3 leading-relaxed mb-6 md:mb-7">
         เราเตรียมโครงสร้างพื้นฐานของเว็บไซต์ไว้ให้อัตโนมัติแล้ว เลือกเพิ่มเฉพาะ Section ที่ตรงกับธุรกิจของคุณด้านล่าง
       </p>
 
@@ -1695,17 +1701,17 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
           suggestion strip below for further nudges. */}
       {recommendedUnselected.length > 0 && (
         <div className="wrs-suggest-in flex items-center gap-3 mb-5 px-3.5 py-3 rounded-xl bg-ir-accent/[0.05] border border-ir-accent/20">
-          <span className="text-[15px] shrink-0">✨</span>
+          <span className="text-[17px] shrink-0">✨</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[12.5px] font-medium text-ir-t1 leading-snug">
+            <p className="text-[14.5px] font-medium text-ir-t1 leading-snug">
               AI แนะนำ {recommendedUnselected.length} Section ให้ตามกลุ่มเป้าหมายและ Direction ของคุณ
             </p>
-            <p className="text-[12px] text-ir-t3 mt-0.5">เพิ่มได้ในคลิกเดียว หรือเลือกเองด้านล่างก็ได้</p>
+            <p className="text-[14px] text-ir-t3 mt-0.5">เพิ่มได้ในคลิกเดียว หรือเลือกเองด้านล่างก็ได้</p>
           </div>
           <button
             type="button"
             onClick={acceptAllRecommended}
-            className="shrink-0 flex items-center gap-1.5 text-[12.5px] font-semibold text-ir-on-accent bg-ir-accent px-3.5 py-2 rounded-full hover:bg-ir-accent-hi active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-offset-2 transition-all"
+            className="shrink-0 flex items-center gap-1.5 text-[14.5px] font-semibold text-ir-on-accent bg-ir-accent px-3.5 py-2 rounded-full hover:bg-ir-accent-hi active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-offset-2 transition-all"
           >
             ใช้คำแนะนำ
             <IconCheck width={10} height={10} />
@@ -1717,9 +1723,9 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
           it's a nudge rather than another grid. One tap adds; dismissible per-suggestion-set. */}
       {suggestions.length > 0 && (
         <div key={suggestionSource} className="wrs-suggest-in flex items-start gap-2 mb-5 px-3 py-2.5 rounded-xl bg-ir-accent/[0.05] border border-ir-accent/20">
-          <span className="text-[13px] shrink-0 mt-0.5">✨</span>
+          <span className="text-[15px] shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] text-ir-t3 mb-1.5">
+            <p className="text-[14px] text-ir-t3 mb-1.5">
               AI แนะนำเพิ่มจาก <span className="font-medium text-ir-t2">{sectionById(suggestionSource!)?.name?.split(" / ")[0]}</span>
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -1730,9 +1736,9 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   <button
                     key={sid}
                     onClick={(e) => toggle(sid, e.currentTarget.getBoundingClientRect())}
-                    className="flex items-center gap-1 text-[12px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                    className="flex items-center gap-1 text-[14px] font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
                   >
-                    <span className="text-[12px] leading-none">{s.icon}</span>
+                    <span className="text-[14px] leading-none">{s.icon}</span>
                     {s.name.split(" / ")[0]}
                     <IconPlus width={8} height={8} className="text-ir-accent-text/70" />
                   </button>
@@ -1795,14 +1801,14 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   "md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:min-h-6 md:mb-3 md:active:bg-transparent md:cursor-default",
                 ].join(" ")}
               >
-                <span className="text-[12.5px] font-semibold text-ir-t1 md:text-[12px] md:text-ir-t2">{SECTION_CATEGORY_LABEL[cat]}</span>
+                <span className="text-[14.5px] font-semibold text-ir-t1 md:text-[14px] md:text-ir-t2">{SECTION_CATEGORY_LABEL[cat]}</span>
                 {selectedInCat > 0 && (
-                  <span className="text-[12px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none">{selectedInCat}</span>
+                  <span className="text-[14px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none">{selectedInCat}</span>
                 )}
                 {/* Item count — only useful while collapsed, so you know what's hidden
                     before tapping to reveal it. */}
                 {collapsedOnMobile && (
-                  <span className="md:hidden text-[12px] text-ir-t3">{items.length} รายการ</span>
+                  <span className="md:hidden text-[14px] text-ir-t3">{items.length} รายการ</span>
                 )}
                 {/* Desktop keeps the section-header divider rule; mobile just pushes the chevron right. */}
                 <div className="hidden md:block flex-1 h-px bg-ir-border" />
@@ -1850,19 +1856,19 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                       ].join(" ")}
                     >
                       <div className="flex items-start gap-3">
-                        <span className={`grid place-items-center w-10 h-10 shrink-0 rounded-full text-[18px] transition-colors ${sel ? "bg-ir-accent-soft" : "bg-ir-muted"}`}>{s.icon}</span>
+                        <span className={`grid place-items-center w-10 h-10 shrink-0 rounded-full text-[20px] transition-colors ${sel ? "bg-ir-accent-soft" : "bg-ir-muted"}`}>{s.icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                            <span className="text-[15px] font-semibold text-ir-t1 leading-snug">{s.name}</span>
+                            <span className="text-[17px] font-semibold text-ir-t1 leading-snug">{s.name}</span>
                             {isRec && !sel && !disabled && (
-                              <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full bg-ir-accent-soft text-ir-accent-text">
+                              <span className="text-[14px] font-semibold px-2 py-0.5 rounded-full bg-ir-accent-soft text-ir-accent-text">
                                 AI แนะนำ
                               </span>
                             )}
                           </div>
-                          <p className="text-[13px] text-ir-t3 leading-snug line-clamp-2">{s.businessPurpose}</p>
+                          <p className="text-[15px] text-ir-t3 leading-snug line-clamp-2">{s.businessPurpose}</p>
                           {isRec && !sel && !disabled && recReason[s.id] && (
-                            <p className="mt-1.5 text-[12px] font-medium text-ir-accent-text leading-snug">แนะนำเพราะ{recReason[s.id]}</p>
+                            <p className="mt-1.5 text-[14px] font-medium text-ir-accent-text leading-snug">แนะนำเพราะ{recReason[s.id]}</p>
                           )}
                         </div>
                         <SelectDot on={sel} />
@@ -1979,7 +1985,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
 
   return (
     <div>
-      <p className="text-[14px] text-ir-t3 mt-1 mb-4 leading-relaxed">
+      <p className="text-[16px] text-ir-t3 mt-1 mb-4 leading-relaxed">
         ทีม IR Plus คัดเว็บไซต์นักลงทุนสัมพันธ์จริงที่ใกล้เคียงกับแนวทาง <span className="text-ir-t2 font-medium">{dir?.label}</span> มาให้ดู
         เปิดดูเว็บจริงได้ แล้วเลือกเว็บที่ใช่ที่สุด 1 แบบ
       </p>
@@ -2009,14 +2015,14 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                 style={{ paddingTop: "56.42%", background: dir?.bg ?? "#141613" }}
               >
                 <span className="absolute inset-0 flex flex-col justify-between p-3 sm:p-4 text-white">
-                  <span className="text-[12px] font-medium text-white/75">{s.market} · {s.sector}</span>
-                  <span className="font-mono text-[22px] sm:text-[30px] font-bold leading-none tracking-tight">{s.symbol}</span>
+                  <span className="text-[14px] font-medium text-white/75">{s.market} · {s.sector}</span>
+                  <span className="font-mono text-[24px] sm:text-[32px] font-bold leading-none tracking-tight">{s.symbol}</span>
                 </span>
                 <SelectDot on={isSelected} className="absolute top-2 right-2" />
               </button>
               <div className="px-1.5 sm:px-2 pt-2.5 pb-1">
-                <p className="text-[14px] sm:text-[15px] font-semibold text-ir-t1 leading-snug truncate">{s.name}</p>
-                <p className="text-[12px] text-ir-t3 truncate">{s.domain}</p>
+                <p className="text-[16px] sm:text-[17px] font-semibold text-ir-t1 leading-snug truncate">{s.name}</p>
+                <p className="text-[14px] text-ir-t3 truncate">{s.domain}</p>
                 <div className="flex items-center gap-1.5 mt-2.5">
                   <a
                     href={s.url}
@@ -2024,7 +2030,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     rel="noopener noreferrer"
                     title={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
                     aria-label={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
-                    className="shrink-0 inline-flex items-center justify-center gap-1 h-11 sm:h-9 min-w-11 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-[13px] font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
+                    className="shrink-0 inline-flex items-center justify-center gap-1 h-11 sm:h-9 min-w-11 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-[15px] font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
                   >
                     <IconExternalLink width={24} height={24} className="-my-1" />
                     <span className="hidden sm:inline">เปิดเว็บ IR</span>
@@ -2033,7 +2039,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     type="button"
                     onClick={() => pick(s.domain)}
                     aria-pressed={isSelected}
-                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-[13px] font-semibold transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-[15px] font-semibold transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
                       isSelected ? "border-ir-select bg-ir-accent-soft text-ir-accent-text" : "border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >
@@ -2266,7 +2272,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={removed.src} alt="" className="w-full h-full object-cover block opacity-60" />
         ) : (
-          <span className="text-[13px] leading-none opacity-60">🖼️</span>
+          <span className="text-[15px] leading-none opacity-60">🖼️</span>
         ),
         "ลบรูปภาพแล้ว",
         removed?.name
@@ -2291,7 +2297,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
     <div>
       {/* ── AI-learning reassurance — one merged sentence (was two separate, overlapping
           descriptions split across this component and its parent section header) ── */}
-      <p className="text-[12.5px] text-ir-t3 mb-5 leading-relaxed">
+      <p className="text-[14.5px] text-ir-t3 mb-5 leading-relaxed">
         เพิ่มเว็บไซต์หรือรูปที่ชอบ ให้ AI วิเคราะห์ <span className="text-ir-t2 font-medium">"ความรู้สึก"</span> และปรับ Design Direction ให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
       </p>
 
@@ -2303,7 +2309,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       <div className="flex flex-col">
         {/* ── Website links — unified input+button as one control, no visual seam ── */}
         <div className="order-1 mb-4">
-          <p className="text-[12px] font-semibold text-ir-t2 mb-2">
+          <p className="text-[14px] font-semibold text-ir-t2 mb-2">
             เว็บไซต์ที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
           </p>
           <div
@@ -2317,7 +2323,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               }[urlValidation]
             }`}
           >
-            <span className="shrink-0 flex items-center pl-4 pr-2 text-[15px] text-ir-t3">🌐</span>
+            <span className="shrink-0 flex items-center pl-4 pr-2 text-[17px] text-ir-t3">🌐</span>
             <input
               type="url"
               placeholder={urlCapReached ? `เพิ่มได้สูงสุด ${MAX_REFERENCE_URLS} ลิงก์` : "วางลิงก์เว็บไซต์ที่ชอบ..."}
@@ -2326,13 +2332,13 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") commitUrl(); }}
-              className="flex-1 min-w-0 bg-transparent text-[13.5px] text-ir-t1 placeholder:text-ir-t3 outline-none py-3 disabled:cursor-not-allowed"
+              className="flex-1 min-w-0 bg-transparent text-[15.5px] text-ir-t1 placeholder:text-ir-t3 outline-none py-3 disabled:cursor-not-allowed"
             />
             <button
               onClick={commitUrl}
               disabled={urlValidation !== "valid" || urlCapReached}
               aria-busy={isCommittingUrl}
-              className="shrink-0 flex items-center gap-1.5 text-[13px] font-semibold text-ir-on-accent bg-ir-accent px-4 my-1.5 mr-1.5 rounded-xl hover:bg-ir-accent-hi active:scale-[0.97] transition-all disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="shrink-0 flex items-center gap-1.5 text-[15px] font-semibold text-ir-on-accent bg-ir-accent px-4 my-1.5 mr-1.5 rounded-xl hover:bg-ir-accent-hi active:scale-[0.97] transition-all disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
               {/* Icon swaps between four states — idle (+) / loading (spinner) / completed
                   (check) — each mount plays a short, non-bouncy fade+scale so the swap reads
@@ -2356,9 +2362,9 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           {/* Progressive validation — recomputed on every keystroke, no submit required to
               find out the link won't work. Falls back to the generic hint when empty. */}
           {urlValidation === "empty" ? (
-            <p className="text-[12px] text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" เพื่อใส่ลิงก์ถัดไป · {urls.length}/{MAX_REFERENCE_URLS}</p>
+            <p className="text-[14px] text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" เพื่อใส่ลิงก์ถัดไป · {urls.length}/{MAX_REFERENCE_URLS}</p>
           ) : (
-            <p role="status" className={`text-[12px] mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
+            <p role="status" className={`text-[14px] mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
               {URL_VALIDATION_COPY[urlValidation].label}
             </p>
@@ -2373,8 +2379,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           {total > 0 && (
             <div className="mb-6 md:mb-0">
               <div className="flex items-center gap-1.5 mb-2">
-                <span className="text-[12px] font-semibold text-ir-t2">เพิ่มแล้ว</span>
-                <span className={`text-[12px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
+                <span className="text-[14px] font-semibold text-ir-t2">เพิ่มแล้ว</span>
+                <span className={`text-[14px] font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {urls.map((u, i) => (
@@ -2487,7 +2493,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-md object-cover shrink-0" />
                       )}
-                      <span className="text-[12px] font-medium text-ir-t2 truncate flex-1">
+                      <span className="text-[14px] font-medium text-ir-t2 truncate flex-1">
                         {editingUrl ? domainOf(editingUrl.value) : editingImage!.name}
                       </span>
                       <button
@@ -2506,7 +2512,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         editingUrl ? updateUrlNote(editingUrl.id, e.target.value) : updateImageNote(editingImage!.id, e.target.value)
                       }
                       placeholder="โน้ตเพิ่มเติม เช่น ชอบสีพื้นหลัง, ชอบฟอนต์หัวข้อ..."
-                      className="w-full bg-ir-card border border-ir-border rounded-lg text-[12.5px] text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
+                      className="w-full bg-ir-card border border-ir-border rounded-lg text-[14.5px] text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
                     />
                   </div>
                 );
@@ -2517,7 +2523,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
 
         {/* ── Image upload — centered dropzone, standard upload-card pattern ── */}
         <div className="order-3 md:order-2">
-          <p className="text-[12px] font-semibold text-ir-t2 mb-2">
+          <p className="text-[14px] font-semibold text-ir-t2 mb-2">
             รูปภาพที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
           </p>
           <div
@@ -2529,10 +2535,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               isDragOver ? "border-ir-accent bg-ir-accent/[0.06]" : "border-ir-border bg-ir-card hover:border-ir-accent/40 hover:bg-ir-accent/[0.03] active:border-ir-accent/40 active:bg-ir-accent/[0.03]"
             }`}
           >
-            <span className="w-10 h-10 rounded-xl bg-ir-accent/10 flex items-center justify-center text-[18px] mb-1">🖼️</span>
-            <p className="text-[13.5px] font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
-            <p className="text-[12px] text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
-            <p className="text-[12px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
+            <span className="w-10 h-10 rounded-xl bg-ir-accent/10 flex items-center justify-center text-[20px] mb-1">🖼️</span>
+            <p className="text-[15.5px] font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
+            <p className="text-[14px] text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
+            <p className="text-[14px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
           </div>
         </div>
@@ -2552,7 +2558,7 @@ function ReferenceModePicker({ mode, setMode, hasCustom, hasCurated }: { mode: "
   ];
   return (
     <div className="mb-6">
-      {mode === null && <p className="text-[14px] text-ir-t3 mb-3">เลือกวิธีที่สะดวกสำหรับคุณ — สลับไปอีกแบบได้ทุกเมื่อ ไม่หายกัน</p>}
+      {mode === null && <p className="text-[16px] text-ir-t3 mb-3">เลือกวิธีที่สะดวกสำหรับคุณ — สลับไปอีกแบบได้ทุกเมื่อ ไม่หายกัน</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
         {OPTIONS.map((o) => (
           <OptionCard
@@ -2722,14 +2728,14 @@ function ConceptBoard({ draft }: { draft: any }) {
   const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
     .map((id) => ({ id, name: sectionById(id)?.name ?? id }));
 
-  const eyebrow = "text-[12px] font-semibold uppercase tracking-wider text-ir-t3";
+  const eyebrow = "text-[14px] font-semibold uppercase tracking-wider text-ir-t3";
   // Mobile gets a tighter vertical rhythm between subsections — this board is the
   // longest single scroll in the flow, and it previously carried the same rhythm at
   // every width (no `md:` overrides anywhere in this component).
   const sectionRule = "sc-reveal flex items-center gap-3 mt-5 md:mt-6 mb-2.5 md:mb-3 first:mt-0";
 
   const GoogleTag = () => (
-    <span className="inline-flex items-center gap-1.5 text-[12px] text-ir-t3">
+    <span className="inline-flex items-center gap-1.5 text-[14px] text-ir-t3">
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.4 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/><path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.4l3.8 3C6.5 6.7 9 4.8 12 4.8z"/></svg>
       Google · ฟรี
     </span>
@@ -2764,39 +2770,16 @@ function ConceptBoard({ draft }: { draft: any }) {
           <ConceptIcon directionId={draft.selectedDirection} color={primary} />
         </span>
         <div>
-          <span className="text-[12px] font-semibold uppercase tracking-wider text-ir-t3">ภาพรวมโปรเจกต์</span>
-          <p className="text-[19px] font-semibold text-ir-t1 leading-tight mt-0.5">{dir?.label ?? "Design Direction"}</p>
+          <span className="text-[14px] font-semibold uppercase tracking-wider text-ir-t3">ภาพรวมโปรเจกต์</span>
+          <p className="text-[21px] font-semibold text-ir-t1 leading-tight mt-0.5">{dir?.label ?? "Design Direction"}</p>
         </div>
       </div>
 
       <div className="p-4 md:p-5">
-        {/* ── Mood anchor — the emotional hero: real imagery paired with the personality
-            words set in the actual heading typeface, over the direction's own brand
-            gradient. One large visual the eye lands on first (bento anchor principle
-            from /design-bentogrids-com). ── */}
+        {/* ── Mood anchor — the personality words set in the actual heading typeface, over the
+            direction's own brand gradient. No website mock here (same as the homepage): the
+            client's own choices tell the story. ── */}
         <div className="sc-stage grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          {/* The customer's IR homepage, hi-fi: Direction colors + fonts + a Visual Style
-              photo + their sections, laid out by the 5 answers. Shown as a plain first
-              look at the site — no labels on what came from where. */}
-          {/* Phones: the same page large in a phone frame — the browser composition below is
-              ~300px wide on a phone and its text can't be read. */}
-          <div className="sc-show sm:hidden mx-auto w-full max-w-[340px] relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: `${(860 / 460) * 100}%` }}>
-            <div className="absolute inset-0">
-              <DirectionPhonePreview directionId={draft.selectedDirection} picks={picks} colors={dir?.colors ?? [primary, primary]} label={dir?.label ?? "Design Direction"} company={draft.company} />
-            </div>
-          </div>
-          <div className="sc-show hidden sm:block sm:col-span-5 relative overflow-hidden rounded-2xl ring-1 ring-black/[0.06]" style={{ paddingTop: "56.42%" }}>
-            <div className="absolute inset-0">
-              <DirectionPreview
-                directionId={draft.selectedDirection}
-                picks={picks}
-                colors={dir?.colors ?? [primary, primary]}
-                label={dir?.label ?? "Design Direction"}
-                sections={draft.selectedSections}
-                company={draft.company}
-              />
-            </div>
-          </div>
           {/* Mood panel — mood words in the heading font. Dark brand gradient when the
               customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}
@@ -2804,15 +2787,15 @@ function ConceptBoard({ draft }: { draft: any }) {
             className={`sm:col-span-5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
             style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
           >
-            <span className={`text-[12px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
+            <span className={`text-[14px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
               Mood · {prefersLight ? "Light" : "Dark"}
             </span>
             <div className="flex flex-col gap-0.5 my-2">
               {(dir?.mood ?? ["Professional & Clean"]).map((m) => (
-                <span key={m} className={`text-[21px] leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{m}</span>
+                <span key={m} className={`text-[23px] leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{m}</span>
               ))}
             </div>
-            {dir?.tagline && <span className={`text-[13px] leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
+            {dir?.tagline && <span className={`text-[15px] leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
             <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
               {swatches.map((s) => <span key={s.hex} className={`w-5 h-5 rounded-full ring-1 ${prefersLight ? "ring-black/10" : "ring-white/40"}`} style={{ background: s.hex }} />)}
             </div>
@@ -2820,12 +2803,12 @@ function ConceptBoard({ draft }: { draft: any }) {
         </div>
 
         {/* ── Colors — solid swatch + hex only, no ramp bar / name chips ── */}
-        <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
+        <div className={sectionRule}><span className="text-[17px] font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="sc-reveal grid grid-cols-3 sm:grid-cols-6 gap-2.5">
           {paletteSwatches.map((hex, i) => (
             <div key={`${hex}-${i}`} className="rounded-xl overflow-hidden ring-1 ring-black/[0.06]">
               <div style={{ background: hex, aspectRatio: "1/1" }} />
-              <p className="text-[12px] font-mono text-ir-t3 text-center py-1.5">{hex}</p>
+              <p className="text-[14px] font-mono text-ir-t3 text-center py-1.5">{hex}</p>
             </div>
           ))}
         </div>
@@ -2833,22 +2816,22 @@ function ConceptBoard({ draft }: { draft: any }) {
         {/* ── Typography — font pairing + description, then a real-content specimen
             (headline/body/CTA + numeral-heavy stat tiles) so the choice reads as how it
             will actually look, not just an isolated font-name label. ── */}
-        <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
+        <div className={sectionRule}><span className="text-[17px] font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="sc-reveal rounded-2xl border border-ir-border p-4 md:p-5">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <p className="text-[26px] sm:text-[30px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
+            <p className="text-[28px] sm:text-[32px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
               {pairing.heading}
             </p>
-            <span className="text-ir-t3 text-[13px]">+</span>
-            <p className="text-[22px] sm:text-[24px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700 }} title={pairing.thai}>
+            <span className="text-ir-t3 text-[15px]">+</span>
+            <p className="text-[24px] sm:text-[26px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700 }} title={pairing.thai}>
               {pairing.thai}
             </p>
-            <span className="text-ir-t3 text-[13px]">+</span>
-            <p className="text-[18px] text-ir-t2" style={{ fontFamily: fontStack(pairing.body), fontWeight: 500 }} title={pairing.body}>
+            <span className="text-ir-t3 text-[15px]">+</span>
+            <p className="text-[20px] text-ir-t2" style={{ fontFamily: fontStack(pairing.body), fontWeight: 500 }} title={pairing.body}>
               {pairing.body}
             </p>
           </div>
-          <p className="text-[13px] text-ir-t2 leading-relaxed mt-2 max-w-[560px]">
+          <p className="text-[15px] text-ir-t2 leading-relaxed mt-2 max-w-[560px]">
             {pairing.heading} สำหรับหัวข้อภาษาอังกฤษ คู่กับ {pairing.thai} สำหรับหัวข้อภาษาไทย และ {pairing.body} สำหรับเนื้อหา — {pairing.note}
           </p>
           <div className="mt-2"><GoogleTag /></div>
@@ -2861,12 +2844,12 @@ function ConceptBoard({ draft }: { draft: any }) {
               <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
                 นักลงทุนสัมพันธ์
               </p>
-              <p className="text-[13px] text-ir-t2 leading-relaxed mt-1.5">
+              <p className="text-[15px] text-ir-t2 leading-relaxed mt-1.5">
                 มุ่งมั่นสร้างการเติบโตอย่างยั่งยืน ด้วยข้อมูลที่โปร่งใสและเชื่อถือได้สำหรับผู้ถือหุ้นทุกท่าน
               </p>
               {/* A specimen of the button style, not a control — so not a <button>. */}
               <span
-                className="inline-block mt-3 text-[12.5px] font-semibold px-4 py-2 rounded-full"
+                className="inline-block mt-3 text-[14.5px] font-semibold px-4 py-2 rounded-full"
                 style={{ background: primary, color: isLightHex(primary) ? "#151823" : "#fff" }}
               >
                 รายละเอียดเพิ่มเติม
@@ -2875,8 +2858,8 @@ function ConceptBoard({ draft }: { draft: any }) {
             <div className="grid grid-cols-2 gap-2.5">
               {TYPE_SPECIMEN_STATS.map((s) => (
                 <div key={s.label} className="rounded-xl bg-ir-bg border border-ir-border px-3 py-2.5">
-                  <p className="text-[19px] text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
-                  <p className="text-[12px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
+                  <p className="text-[21px] text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
+                  <p className="text-[14px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -2886,39 +2869,39 @@ function ConceptBoard({ draft }: { draft: any }) {
         {/* ── IR Homepage Sections — the exact structure picked in "วางโครงสร้าง", in the
             order the client arranged it. ── */}
         <div className={sectionRule}>
-          <span className="text-[15px] font-semibold text-ir-t1">IR Homepage Sections</span>
-          {homepageSections.length > 0 && <span className="text-[12px] text-ir-t3 shrink-0">{homepageSections.length} sections</span>}
+          <span className="text-[17px] font-semibold text-ir-t1">IR Homepage Sections</span>
+          {homepageSections.length > 0 && <span className="text-[14px] text-ir-t3 shrink-0">{homepageSections.length} sections</span>}
           <div className="flex-1 h-px bg-ir-border" />
         </div>
         {homepageSections.length > 0 ? (
           <div className="sc-reveal grid grid-cols-1 sm:grid-cols-3 gap-2">
             {homepageSections.map((s, i) => (
               <div key={s.id} className="flex items-center gap-2.5 rounded-xl border border-ir-border px-3 py-2.5 min-w-0">
-                <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[12px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
-                <span className="text-[12.5px] text-ir-t1 leading-snug truncate" title={s.name}>{s.name}</span>
+                <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[14px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
+                <span className="text-[14.5px] text-ir-t1 leading-snug truncate" title={s.name}>{s.name}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[12.5px] text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;วางโครงสร้าง&quot; เพื่อเลือก</p>
+          <p className="text-[14.5px] text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;วางโครงสร้าง&quot; เพื่อเลือก</p>
         )}
 
         {/* ── Visual Style — the photo direction for this Direction: 4 curated examples
             and the mood they share. ── */}
         {visualStyle && (
           <>
-            <div className={sectionRule}><span className="text-[15px] font-semibold text-ir-t1">Visual Style</span><div className="flex-1 h-px bg-ir-border" /></div>
-            <p className="text-[13px] text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
+            <div className={sectionRule}><span className="text-[17px] font-semibold text-ir-t1">Visual Style</span><div className="flex-1 h-px bg-ir-border" /></div>
+            <p className="text-[15px] text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
             <div className="sc-reveal grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {visualStyle.shots.map((s) => (
                 <figure key={s.id} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-xl object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
-                  <figcaption className="mt-1 text-[12px] text-ir-t3 leading-snug">{s.cap}</figcaption>
+                  <figcaption className="mt-1 text-[14px] text-ir-t3 leading-snug">{s.cap}</figcaption>
                 </figure>
               ))}
             </div>
-            <p className="mt-2 text-[12px] text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
+            <p className="mt-2 text-[14px] text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
           </>
         )}
       </div>
@@ -3008,8 +2991,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           into its wide two-column layout right below. No divider line for the same reason
           `Head()` no longer has one — the heading is already visually distinct. */}
       <div className="mb-4 pb-4 md:mb-5 md:pb-5">
-        <h2 className="text-[24px] font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
-        <p className="text-[16px] text-ir-t2 leading-relaxed mt-2">ตรวจสอบภาพรวมโปรเจกต์ที่คุณและ AI ร่วมกันกำหนด แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
+        <h2 className="text-[26px] font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
+        <p className="text-[18px] text-ir-t2 leading-relaxed mt-2">ตรวจสอบภาพรวมโปรเจกต์ที่คุณและ AI ร่วมกันกำหนด แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
@@ -3022,8 +3005,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         <aside className="w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
           {/* Contact */}
           <div className="rounded-[20px] border border-ir-border bg-ir-card px-5 pt-5 pb-6 ir-shadow">
-            <p className="text-[15px] font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
-            <p className="text-[13px] text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน 1-2 วันทำการ</p>
+            <p className="text-[17px] font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
+            <p className="text-[15px] text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน 1-2 วันทำการ</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
@@ -3044,7 +3027,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 disabled={submitting}
                 // Same black pill + lime arrow disc as the landing CTA — this is the flow's
                 // final primary action. Disabled keeps a readable label on a gray fill.
-                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[15px] font-semibold transition-[background-color,color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[17px] font-semibold transition-[background-color,color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
                   !submitting
                     ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer"
                     : "bg-ir-dark/80 text-white cursor-wait"
@@ -3056,7 +3039,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 </span>
               </button>
             </div>
-            <p className="text-[13px] text-ir-t3 text-center leading-relaxed mt-3">
+            <p className="text-[15px] text-ir-t3 text-center leading-relaxed mt-3">
               ฉันตรวจสอบภาพรวมโปรเจกต์แล้ว และยืนยันส่งให้ทีม IR Plus
             </p>
 
@@ -3075,7 +3058,7 @@ function F({
 }: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: string; placeholder?: string; type?: string; autoComplete?: string }) {
   return (
     <div>
-      <label className="text-[13px] font-medium block mb-1.5">{label}</label>
+      <label className="text-[15px] font-medium block mb-1.5">{label}</label>
       <input
         type={type}
         autoComplete={autoComplete}
@@ -3084,9 +3067,9 @@ function F({
         onBlur={onBlur}
         placeholder={placeholder}
         aria-invalid={!!error}
-        className={`w-full border rounded-xl px-3 py-3 text-[14px] outline-none transition-colors ${error ? "border-red-400 focus:border-red-500" : "border-ir-border focus:border-ir-accent"}`}
+        className={`w-full border rounded-xl px-3 py-3 text-[16px] outline-none transition-colors ${error ? "border-red-400 focus:border-red-500" : "border-ir-border focus:border-ir-accent"}`}
       />
-      {error && <p className="text-[12px] text-red-600 mt-1">{error}</p>}
+      {error && <p className="text-[14px] text-red-600 mt-1">{error}</p>}
     </div>
   );
 }
