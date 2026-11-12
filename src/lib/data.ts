@@ -375,8 +375,8 @@ export const QUIZ: QuizQuestion[] = [
   },
   {
     id: "q5", topic: "การแสดงออกทางภาพ", question: "เว็บไซต์ควรแสดงตัวตนมากแค่ไหน?", axis: "energyBold",
-    optionA: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a" },
-    optionB: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b" },
+    optionA: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b" },
+    optionB: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a" },
   },
 ];
 

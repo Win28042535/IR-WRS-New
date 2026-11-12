@@ -64,7 +64,7 @@ export function HomeContact() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block">
           <span className={label}>ชื่อ</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="คุณสมชาย" className={`mt-1 ${field}`} />
+          <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="ชื่อและนามสกุลผู้ประสานงาน" className={`mt-1 ${field}`} />
         </label>
         <label className="block">
           <span className={label}>บริษัท</span>
@@ -76,7 +76,7 @@ export function HomeContact() {
             value={contact}
             onChange={(e) => setContact(e.target.value)}
             autoComplete="email"
-            placeholder="somchai@company.com หรือ 08X-XXX-XXXX"
+            placeholder="name@company.co.th หรือ 08X-XXX-XXXX"
             aria-invalid={tried && !!contactErr}
             aria-describedby={tried && contactErr ? "contact-msg-err" : undefined}
             className={`mt-1 ${field} ${tried && contactErr ? "border-red-400" : ""}`}

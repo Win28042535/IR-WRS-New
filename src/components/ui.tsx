@@ -3,10 +3,9 @@ import { createPortal } from "react-dom";
 import { IconArrowRight, IconArrowLeft, IconCheck } from "./icons";
 import { RULES } from "@/lib/data";
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
 
 // ── Step indicator (production WRS pattern) ──
-// One centered pill carries where you are — the step name plus "03/06" — and a segmented
+// One centered pill carries where you are — the step name plus "3/6" — and a segmented
 // bar underneath is the single progress readout (no % figure, no second dot row), so the
 // two can never disagree. Same layout at every width; the pill truncates the name on very
 // narrow screens. The draft persists to localStorage on every change, hence the static
@@ -24,7 +23,7 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
             <span className="w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0" aria-hidden="true" />
             <span className="text-[16px] font-medium text-ir-t1 truncate">{steps[current - 1]}</span>
             <span className="font-mono text-[14px] text-ir-t3 tabular-nums shrink-0" aria-hidden="true">
-              {pad2(current)}/{pad2(steps.length)}
+              {current}/{steps.length}
             </span>
           </div>
           <span className="absolute right-0 hidden sm:flex items-center gap-1.5 text-[14px] font-medium text-ir-t3">

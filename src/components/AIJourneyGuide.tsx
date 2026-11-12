@@ -220,7 +220,16 @@ function FloatingCard({
 }
 
 // ── Main component ───────────────────────────────────────────────────
-export default function AIJourneyGuide({
+// All AI guide messages (welcome back, hesitation nudges, step tips) are switched off for
+// now. Call sites still call g.show(); nothing renders. Flip to bring them back.
+const AI_GUIDE_ENABLED = false;
+
+export default function AIJourneyGuide(props: Props) {
+  if (!AI_GUIDE_ENABLED) return null;
+  return <AIJourneyGuideInner {...props} />;
+}
+
+function AIJourneyGuideInner({
   message,
   mode    = "insight",
   expert  = "analyst",

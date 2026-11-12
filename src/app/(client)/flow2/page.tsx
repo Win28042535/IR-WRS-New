@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, RuleBadge, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
+import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
+import { RankPicker } from "@/components/RankPicker";
+import { StructureBuilder, STRUCTURE_MIN_OPTIONAL } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -21,6 +23,13 @@ import { AIMascot } from "@/components/AIMascot";
 import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
+
+// Explore result screen is switched off for now: the last answer goes straight to Structure
+// (the Direction is still chosen from the answers). Flip to bring the screen back.
+const SHOW_QUIZ_RESULT = false;
+// Structure step: the #story-style builder (StructureBuilder). The older picker + live
+// workspace (S3) is kept; flip to bring it back.
+const LEGACY_STRUCTURE = false;
 
 const STEPS = FLOW_STEPS;
 const STEPS_EN = FLOW_STEPS_EN;
@@ -90,7 +99,14 @@ export default function Flow2() {
       setStep(resume);
     }
     // A finished quiz is kept in the draft, so returning to Explore shows its result.
-    if (st.draft.quizPicks?.length === QUIZ.length && st.draft.selectedDirection) setQuizDone(true);
+    if (st.draft.quizPicks?.length === QUIZ.length && st.draft.selectedDirection) {
+      if (SHOW_QUIZ_RESULT) setQuizDone(true);
+      else {
+        // No result screen: come back to the last question, with every earlier answer kept.
+        setAnswers(st.draft.quizPicks.map((p, i) => ({ axis: QUIZ[i].axis, option: p.letter === "A" ? QUIZ[i].optionA : QUIZ[i].optionB })));
+        setQuizIdx(QUIZ.length - 1);
+      }
+    }
   }, [startFlow, updateDraft]);
 
   // Persist panel width whenever it changes (but not while collapsed)
@@ -167,7 +183,7 @@ export default function Flow2() {
   // The shared workspace panel is only meaningful during Structure (step 4) — that's the
   // one step where a live preview of the picked sections helps. Every other step owns the
   // full width; step 6 (Deliver) builds its own right sidebar internally.
-  const showWorkspace = step === 4;
+  const showWorkspace = step === 4 && LEGACY_STRUCTURE;
 
   const answerQuiz = (option: QuizOption) => {
     const q = QUIZ[quizIdx];
@@ -199,7 +215,8 @@ export default function Flow2() {
           reasoning: `AI สังเคราะห์แนวทางจาก Design Profile ของคุณ ${chosen.tagline} (${ai?.confidence ?? ""}% match)`,
         });
       }
-      setQuizDone(true);
+      if (SHOW_QUIZ_RESULT) setQuizDone(true);
+      else go(4);
     }
   };
 
@@ -262,7 +279,8 @@ export default function Flow2() {
                   {step === 2 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 3 && quizDone && <QuizResult draft={draft} onContinue={() => go(4)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
                   {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} />}
-                  {step === 4 && <S3 go={go} draft={draft} updateDraft={updateDraft} enterDir={dir} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
+                  {step === 4 && !LEGACY_STRUCTURE && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 4 && LEGACY_STRUCTURE && <S3 go={go} draft={draft} updateDraft={updateDraft} enterDir={dir} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 5 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
                 </div>
               )}
@@ -400,29 +418,8 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // secondaryAudiences. Removing a card promotes the next selected one so
   // primaryAudience is only ever empty when nothing is selected at all.
   const selectedAudiences: string[] = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])].filter(Boolean);
-  // Read the live draft from the store, not this render's `draft` — taps that land before
-  // a re-render would otherwise each see the same stale state and overwrite one another.
-  const toggleAudience = (id: string) => {
-    const d = useStore.getState().draft ?? draft;
-    const cur = d.secondaryAudiences ?? [];
-    if (d.primaryAudience === id) {
-      const [next, ...rest] = cur;
-      updateDraft({ primaryAudience: next ?? "", secondaryAudiences: rest });
-    } else if (cur.includes(id)) {
-      updateDraft({ secondaryAudiences: cur.filter((a: string) => a !== id) });
-    } else if (!d.primaryAudience) {
-      updateDraft({ primaryAudience: id });
-    } else {
-      updateDraft({ secondaryAudiences: [...cur, id] });
-    }
-  };
-  // Promote an already-picked audience to primary; the old primary becomes the first
-  // secondary so nothing else in the order shifts.
-  const makePrimary = (id: string) => {
-    const d = useStore.getState().draft ?? draft;
-    const rest = (d.secondaryAudiences ?? []).filter((a: string) => a !== id);
-    updateDraft({ primaryAudience: id, secondaryAudiences: d.primaryAudience ? [d.primaryAudience, ...rest] : rest });
-  };
+  // RankPicker does the picking and re-ranking: first pick = primaryAudience, the rest =
+  // secondaryAudiences, in rank order.
   const ok = !!(draft.company.trim() && draft.projectType && draft.primaryAudience);
 
   // Auto-select IR as the only website type
@@ -626,33 +623,12 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           card behaves the same way so nothing has to be picked "first" */}
       <div>
         <SectionLabel>กลุ่มเป้าหมาย <span className="text-red-500 font-normal">*</span></SectionLabel>
-        <p className="text-[16px] text-ir-t3 mb-3 mt-1">เว็บไซต์ IR สื่อสารกับใครบ้าง? เลือกได้หลายกลุ่ม กลุ่มแรกที่เลือกคือกลุ่มเป้าหมายหลัก ซึ่ง AI จะใช้กำหนดโครงสร้าง เนื้อหา และการออกแบบเป็นอันดับแรก</p>
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          {IR_AUDIENCES.map((aud) => {
-            const rank = selectedAudiences.indexOf(aud.id) + 1;
-            return (
-              <OptionCard
-                key={aud.id}
-                icon={OPTION_ICONS[aud.id]}
-                title={aud.label}
-                desc={aud.desc}
-                selected={rank > 0}
-                rank={rank || undefined}
-                onSelect={() => toggleAudience(aud.id)}
-                tag={rank === 1 ? <OptionTag>กลุ่มเป้าหมายหลัก</OptionTag> : undefined}
-                aside={rank > 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => makePrimary(aud.id)}
-                    className="min-h-11 md:min-h-8 text-[14px] font-medium text-ir-accent-text px-2.5 py-1.5 rounded-full hover:bg-ir-accent-soft transition-colors whitespace-nowrap"
-                  >
-                    ตั้งเป็นกลุ่มหลัก
-                  </button>
-                ) : undefined}
-              />
-            );
-          })}
-        </div>
+        <p className="text-[16px] text-ir-t3 mb-4 mt-1">เลือกและเรียงกลุ่มนักลงทุนจากสำคัญมากไปน้อย ลำดับนี้กำหนดว่าข้อมูลไหนต้องอยู่ใกล้มือที่สุดบนเว็บไซต์</p>
+        <RankPicker
+          items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
+          selected={selectedAudiences}
+          onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
+        />
       </div>
 
       <SectionDivider />
@@ -682,10 +658,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           ))}
         </div>
         {/* Recommendation, under the choices */}
-        <p className="mt-3 flex items-start gap-2.5 rounded-[14px] border border-ir-select-soft/70 bg-ir-accent-soft/50 px-4 py-3 text-[15px] leading-relaxed text-ir-t2">
-          <svg aria-hidden="true" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0 text-ir-accent-text"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2V16h5v-.2c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3Z" /></svg>
-          <span>หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</span>
-        </p>
+        <p className="mt-3 text-[14px] leading-relaxed text-ir-t3">หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</p>
       </div>
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
@@ -707,7 +680,6 @@ const GOALS_COLLAPSE_AT = 6;
 
 function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any) {
   const g = useGuide("strategy");
-  const { memory } = useProjectContext();
   // Mobile-only progressive disclosure — 10 goal cards is a long stack on a single mobile
   // column. Show the first 6 and a "show more" affordance; if a previously-chosen goal
   // lives past that cutoff (e.g. returning to this step with a saved draft), reveal
@@ -718,15 +690,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   // Collapsing is only offered when it wouldn't hide a goal the user already picked.
   const canCollapseGoals = showAllGoals && !hasHiddenSelection;
 
-  // Live store read — see toggleAudience.
-  const toggleGoal = (id: string) => {
-    const goals: string[] = (useStore.getState().draft ?? draft).businessGoals;
-    if (goals.includes(id)) updateDraft({ businessGoals: goals.filter((x: string) => x !== id) });
-    else if (goals.length < RULES.goals.max)
-      updateDraft({ businessGoals: [...goals, id] });
-  };
   const ok = draft.businessGoals.length >= RULES.goals.min;
-  const goalsFull = draft.businessGoals.length >= RULES.goals.max;
 
   // Objectives → timeline
   useEffect(() => {
@@ -768,33 +732,16 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
       <div>
-        <SectionLabel badge={<RuleBadge ruleKey="goals" count={draft.businessGoals.length} />}>เป้าหมายหลัก</SectionLabel>
-        <div className="grid md:grid-cols-2 gap-2.5 mt-2">
-          {VISIBLE_GOALS.map((goal, i) => {
-            const sel = draft.businessGoals.includes(goal.id);
-            const memFreq = memory.frequentGoals.find((f) => f.value === goal.id);
-            const hiddenOnMobile = i >= GOALS_COLLAPSE_AT && !goalsExpanded;
-            return (
-              <OptionCard
-                key={goal.id}
-                className={hiddenOnMobile ? "hidden md:flex" : ""}
-                icon={OPTION_ICONS[goal.id]}
-                title={goal.label}
-                desc={goal.desc}
-                selected={sel}
-                onSelect={() => toggleGoal(goal.id)}
-                disabled={goalsFull && !sel}
-                tag={memFreq && !sel ? <OptionTag>เคยเลือกบ่อย</OptionTag> : undefined}
-              />
-            );
-          })}
-        </div>
-        {/* Max reached: say so where the dimmed cards are, not only in the n/4 badge. */}
-        {goalsFull && (
-          <p className="ir-fade mt-3 text-[16px] text-ir-t2" role="status">
-            เลือกครบ {RULES.goals.max} ข้อแล้ว · กดข้อที่เลือกไว้เพื่อเอาออกก่อน ถ้าต้องการเปลี่ยน
-          </p>
-        )}
+        <SectionLabel>เป้าหมายหลัก</SectionLabel>
+        <p className="text-[16px] text-ir-t3 mb-4 mt-1">เลือกสิ่งที่เว็บไซต์ต้องทำได้ แล้วเรียงจากสำคัญที่สุด</p>
+        <RankPicker
+          items={VISIBLE_GOALS.map((goal) => ({ id: goal.id, label: goal.label, desc: goal.desc, icon: OPTION_ICONS[goal.id] }))}
+          selected={draft.businessGoals}
+          max={RULES.goals.max}
+          cols="md:grid-cols-2"
+          onChange={(next) => updateDraft({ businessGoals: next })}
+          itemClassName={(_id, i) => (i >= GOALS_COLLAPSE_AT && !goalsExpanded ? "max-md:hidden" : "")}
+        />
         {/* Expand/collapse toggle — stays in place after expanding (rather than vanishing,
             which read as "something disappeared") so the disclosure is reversible. Hidden
             only when collapsing would hide an already-selected goal, since a selection must
@@ -914,7 +861,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         </div>
         <span className="font-mono text-[14px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-[15px] font-semibold text-ir-accent-text">{String(idx + 1).padStart(2, "0")} — {q.topic}</p>
+      <p className="text-center text-[15px] font-semibold text-ir-accent-text">{idx + 1} — {q.topic}</p>
       <p className="text-center text-[22px] sm:text-[24px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
@@ -1406,7 +1353,19 @@ function insertBeforeTrailing(list: string[], id: string) {
   return next;
 }
 
-// ── S3 Structure — section picker + reorderable page structure ──
+// ── S4 Structure (current) — StructureBuilder in the step frame ──
+function S4Structure({ go, draft, updateDraft }: any) {
+  const optional = (draft.selectedSections ?? []).filter((id: string) => !REQUIRED_SECTION_IDS.includes(id)).length;
+  return (
+    <>
+      <Head n={4} title="วางโครงสร้าง" sub="เลือกเนื้อหาที่ต้องการบนหน้าแรก แล้วเรียงลำดับจากสำคัญที่สุด" />
+      <StructureBuilder draft={draft} updateDraft={updateDraft} />
+      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} disabled={optional < STRUCTURE_MIN_OPTIONAL}>ถัดไป</NextButton>} />
+    </>
+  );
+}
+
+// ── S3 Structure (legacy) — section picker + reorderable page structure ──
 function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any) {
   // ── Auto-select direction silently (AI picks, not shown as UI) ──
   const ranked = rankDirections(draft.industry, draft.companyType, draft.businessGoals);
@@ -2751,7 +2710,7 @@ function ConceptBoard({ draft }: { draft: any }) {
         q2: (p?.contrastDark ?? 0) > 0 ? "B" : "A",
         q3: dataDriven > 0 ? "B" : "A",
         q4: dataDriven > 0 ? "B" : "A",
-        q5: (p?.energyBold ?? 0) > 0 ? "B" : "A",
+        q5: (p?.energyBold ?? 0) > 0 ? "A" : "B",
       };
   // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it.
   const prefersLight = picks.q2 !== "B"; // q2: A = สว่าง, B = เข้ม
@@ -3010,8 +2969,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
-              <F label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="คุณสมชาย ใจดี" autoComplete="name" />
-              <F label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="somchai@company.com" />
+              <F label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุลผู้ประสานงาน" autoComplete="name" />
+              <F label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.co.th" />
               <F label="โทรศัพท์" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
             </div>
             <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />

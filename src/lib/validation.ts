@@ -8,7 +8,7 @@ export const PHONE_RE = /^0\d[\d-]{7,10}\d$/;
 export function emailError(value: string): string {
   const v = value.trim();
   if (!v) return "กรุณากรอกอีเมล";
-  if (!EMAIL_RE.test(v)) return "รูปแบบอีเมลไม่ถูกต้อง เช่น somchai@company.com";
+  if (!EMAIL_RE.test(v)) return "รูปแบบอีเมลไม่ถูกต้อง เช่น name@company.co.th";
   return "";
 }
 

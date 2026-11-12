@@ -147,7 +147,7 @@ function Page({ id, k, picks, nav, head, num, photos, brand }: {
   const approachable = picks.q1 === "A";
   const story = picks.q3 === "A";
   const dense = picks.q4 === "B";
-  const expressive = picks.q5 === "B";
+  const expressive = picks.q5 === "A"; // q5: A = expressive, B = subtle
 
   let y = 0;
   const bar = dense ? 34 : 0;
@@ -351,7 +351,7 @@ function Page({ id, k, picks, nav, head, num, photos, brand }: {
 // ── the same page on a phone (390 wide) ─────────────────────────────────────
 function PhonePage({ id, k, picks, head, num, photos, brand }: { id: string; k: Look; picks: Picks; head: string; num: string; photos: string[]; brand: { name: string; initial: string } }) {
   const approachable = picks.q1 === "A";
-  const expressive = picks.q5 === "B";
+  const expressive = picks.q5 === "A"; // q5: A = expressive, B = subtle
   const story = picks.q3 === "A";
   return (
     <>

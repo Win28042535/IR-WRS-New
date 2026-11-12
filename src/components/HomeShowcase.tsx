@@ -12,7 +12,7 @@ import { BUSINESS_GOALS, DIRECTIONS, FLOW_STEPS, IR_AUDIENCES, QUIZ, VISUAL_STYL
 import { FONT_PAIRINGS, fontStack } from "@/lib/fonts";
 import { ExploreMock } from "@/components/ExploreMock";
 
-const SAMPLE = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "A" } as const };
+const SAMPLE: { dir: string; picks: Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B"> } = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "B" } };
 const SAMPLE_SECTIONS = ["Hero Section", "ข้อมูลสำคัญทางการเงิน", "ราคาหลักทรัพย์", "เอกสารนักลงทุน"];
 
 // Motion (globals.css .mb-*): tiles assemble on a diagonal (--d), each plays its content
@@ -20,11 +20,13 @@ const SAMPLE_SECTIONS = ["Hero Section", "ข้อมูลสำคัญท�
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
 const v = (vars: Record<string, number>): Vars => Object.fromEntries(Object.entries(vars).map(([k, n]) => [`--${k}`, n])) as Vars;
 
-const Tile = ({ label, step, d, dark, className = "", children }: { label: string; step: number; d: number; dark?: boolean; className?: string; children: ReactNode }) => (
+// dark tiles take their background on the card itself (bg), so the rounded corners are one
+// painted surface: no separate layer underneath that could peek out at an edge.
+const Tile = ({ label, step, d, dark, bg, className = "", children }: { label: string; step: number; d: number; dark?: boolean; bg?: string; className?: string; children: ReactNode }) => (
   <div className={`mb-tile flex min-w-0 ${className}`} style={v({ d })}>
     <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-[20px] border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-12px_rgba(20,22,19,0.22)] ${
-      dark ? "isolate border-white/10 text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
-    }`}>
+      dark ? "border-transparent text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
+    }`} style={bg ? { background: bg } : undefined}>
       <p className={`text-[12px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
       {/* Sits on the top edge so it never takes layout space. */}
       <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[11px] font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
@@ -66,9 +68,7 @@ export function Moodboard({ company }: { company: string }) {
     <figure ref={ref} data-mb="wait" className="mbw relative m-0">
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
         {/* Direction — the lead tile, in the Direction's own colours and heading font */}
-        <Tile label="แนวทางการออกแบบ" step={3} d={0} dark className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
-          <div aria-hidden="true" className="absolute inset-0 -z-10 rounded-[20px]" style={{ background: d.bg }} />
-          <div aria-hidden="true" className="absolute inset-x-5 bottom-0 -z-10 h-1 rounded-t-full" style={{ background: d.colors[1] }} />
+        <Tile label="แนวทางการออกแบบ" step={3} d={0} dark bg={d.bg} className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
           <p className="mb-item text-[13px] text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
           <p className="mb-item mt-auto pt-8 text-[clamp(2.1rem,4vw,3.4rem)] font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
           <p className="mb-item mt-3 text-[16px] text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
@@ -574,13 +574,16 @@ export function BriefFlow() {
 }
 
 // ── Hero fragments ─────────────────────────────────────────────────────────────
-// Pieces of the deliverable floating around the headline (upper half of the hero only,
-// never beside the form or CTA), on three depth planes so the field reads as real space:
-//   near — edges of the screen, slightly larger, crisper, more opaque, moves most
+// Eight pieces of the deliverable, four per side, spread from the top of the hero down to
+// the "เริ่มจากชื่อบริษัทของคุณ" line (measured from the page, so it follows the headline's
+// wrapping), staggered so the two sides never line up. Three depth planes make it read as
+// real space:
+//   near — at the screen edges, a touch larger, crisp, more opaque, moves most
 //   mid  — normal size and opacity
-//   far  — closer to the headline, smaller, softly blurred, faint, barely moves
-// Background texture, not content: aria-hidden, no pointer events, behind everything.
-// lg shows six (one per row per side), xl all twelve; smaller screens none.
+//   far  — nearer the headline, smaller, softly blurred, faint, barely moves
+// Background texture, not content: aria-hidden, no pointer events, behind everything,
+// kept clear of the headline, description and form. xl: all eight; lg: the four at the
+// edges (top and bottom of each side); smaller screens: none (no room beside the content).
 // Motion: globals.css .hf-*; reduced motion = still.
 type Plane = "near" | "mid" | "far";
 const PLANE: Record<Plane, { depth: number; dur: number }> = { near: { depth: 16, dur: 9 }, mid: { depth: 8, dur: 11.5 }, far: { depth: 3, dur: 14 } };
@@ -595,7 +598,24 @@ export function HeroFragments() {
   const pair = FONT_PAIRINGS[SAMPLE.dir];
   const photo = VISUAL_STYLES[SAMPLE.dir].shots[0];
   const picks = Object.values(SAMPLE.picks);
-  const goal = BUSINESS_GOALS.filter((g) => !g.hidden)[0];
+
+  // The field ends at the first line of the form ("เริ่มจากชื่อบริษัทของคุณ"), or at the top
+  // of the resume card when the visitor has a draft in progress.
+  useEffect(() => {
+    const el = ref.current;
+    const host = el?.parentElement;
+    if (!el || !host) return;
+    const fit = () => {
+      const stop = host.querySelector("label[for='company-input']") ?? host.querySelector(":scope > div.mx-auto");
+      if (!stop) return;
+      const h = stop.getBoundingClientRect().bottom - host.getBoundingClientRect().top;
+      if (h > 0) el.style.height = `${Math.round(h)}px`;
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
@@ -617,75 +637,50 @@ export function HeroFragments() {
   }, []);
 
   return (
-    <div ref={ref} aria-hidden="true" className="hf-layer pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[60%] lg:block">
-      {/* ── left ── */}
-      <F i={0} plane="near" r={-6} className="left-[1%] top-[5%]">
+    <div ref={ref} aria-hidden="true" className="hf-layer pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[65%] lg:block">
+      {/* ── left: 4 / 30 / 58 / 86 % ── */}
+      <F i={0} plane="near" r={-6} className="left-[1%] top-[4%]">
         <div className={`${glass} px-2.5 py-2`}>
           <div className="flex gap-1">{d.colors.map((c) => <span key={c} className="h-6 w-6 rounded-[7px] ring-1 ring-inset ring-black/10" style={{ background: c }} />)}</div>
           <p className="mt-1 text-[10px] font-medium text-ir-t3">{d.palette}</p>
         </div>
       </F>
-      <F i={1} plane="far" r={-3} className="left-[13%] top-[3%] hidden xl:block">
+      <F i={1} plane="far" r={-3} className="left-[9%] top-[30%] hidden xl:block">
         <div className={`${glass} flex gap-0.5 rounded-full p-1`}>
           {picks.map((p, j) => <span key={j} className="grid h-4 w-4 place-items-center rounded-full bg-white/80 font-mono text-[9px] font-bold text-ir-t3">{p}</span>)}
         </div>
       </F>
-      <F i={2} plane="mid" r={4} className="left-[5%] top-[31%]">
+      <F i={2} plane="mid" r={4} className="left-[3%] top-[58%] hidden xl:block">
         <div className={`${glass} flex items-center gap-1 rounded-full py-1 pl-1 pr-2.5`}>
           <span className="grid h-4 w-4 place-items-center rounded-full bg-ir-accent/80 text-ir-on-accent"><Tick className="h-2.5 w-2.5" /></span>
           <span className="text-[11px] font-semibold text-ir-t2">นักลงทุนสถาบัน</span>
         </div>
       </F>
-      <F i={3} plane="far" r={3} className="left-[12%] top-[50%] hidden xl:block">
-        <div className={`${glass} w-[62px] p-1.5`}>
-          <span className="block h-2 rounded-[3px] bg-ir-dark/70" />
-          <span className="mt-1 grid grid-cols-3 gap-0.5">{[0, 1, 2].map((j) => <span key={j} className="h-2 rounded-[2px] bg-ir-accent/50" />)}</span>
-        </div>
-      </F>
-      <F i={4} plane="near" r={5} className="left-[0.5%] top-[60%] hidden xl:block">
+      <F i={3} plane="near" r={5} className="left-[2%] top-[84%]">
         <div className={`${glass} p-1`}>
-          <img src={unsplashUrl(photo.id, 200)} alt="" loading="lazy" className="h-[54px] w-[74px] rounded-[8px] object-cover" />
-        </div>
-      </F>
-      <F i={5} plane="mid" r={-4} className="left-[6%] top-[84%]">
-        <div className={`${glass} rounded-full px-2.5 py-1`}>
-          <span className="text-[11px] font-semibold text-ir-t2" style={{ fontFamily: fontStack(pair.heading) }}>{d.mood[0]}</span>
+          <img src={unsplashUrl(photo.id, 200)} alt="" loading="lazy" className="h-[50px] w-[70px] rounded-[8px] object-cover" />
         </div>
       </F>
 
-      {/* ── right ── */}
-      <F i={6} plane="mid" r={5} className="right-[2%] top-[4%]">
+      {/* ── right: 10 / 36 / 62 / 88 % (offset from the left) ── */}
+      <F i={4} plane="mid" r={5} className="right-[2%] top-[10%]">
         <div className={`${glass} px-2.5 py-1.5`}>
           <span className="text-[22px] leading-none text-ir-t2" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span></span>
         </div>
       </F>
-      <F i={7} plane="far" r={-2} className="right-[14%] top-[2%] hidden xl:block">
-        <div className={`${glass} px-2 py-0.5`}>
-          <span className="text-[11px] font-semibold text-ir-t3" style={{ fontFamily: fontStack(pair.heading) }}>{d.label}</span>
-        </div>
-      </F>
-      <F i={8} plane="near" r={-5} className="right-[4%] top-[28%]">
+      <F i={5} plane="near" r={-5} className="right-[7%] top-[36%] hidden xl:block">
         <span className={`${glass} inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-3 text-[12px] font-semibold text-ir-t2`}>
           <span className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark/80 text-ir-accent"><Tick className="h-3 w-3" /></span>พร้อมส่ง
         </span>
       </F>
-      <F i={9} plane="far" r={3} className="right-[12%] top-[48%] hidden xl:block">
-        <div className={`${glass} flex items-center gap-1 rounded-full py-0.5 pl-0.5 pr-2`}>
-          <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-ir-accent/70 text-ir-on-accent"><Tick className="h-2 w-2" /></span>
-          <span className="text-[10px] font-medium text-ir-t3">{goal.label}</span>
+      <F i={6} plane="far" r={4} className="right-[10%] top-[62%] hidden xl:block">
+        <div className={`${glass} w-[84px] p-1.5`}>
+          <span className="block h-2.5 rounded-[3px] bg-ir-dark/70" />
+          <span className="mt-1 grid grid-cols-3 gap-0.5">{[0, 1, 2].map((j) => <span key={j} className="h-2 rounded-[2px] bg-ir-accent/50" />)}</span>
+          <span className="mt-1 block h-1.5 rounded-[2px] bg-ir-muted" />
         </div>
       </F>
-      <F i={10} plane="mid" r={4} className="right-[1%] top-[60%] hidden xl:block">
-        <div className={`${glass} w-[96px] p-2`}>
-          <p className="text-[9px] font-semibold text-ir-t3">โครงหน้าแรก</p>
-          <div className="mt-1 grid gap-0.5">
-            <span className="h-3 rounded-[3px] bg-ir-dark/80" />
-            <span className="h-2 rounded-[3px] bg-ir-muted" />
-            <span className="h-2 rounded-[3px] bg-ir-muted" />
-          </div>
-        </div>
-      </F>
-      <F i={11} plane="near" r={-3} className="right-[1%] top-[86%] xl:right-[7%] xl:top-[84%]">
+      <F i={7} plane="near" r={-3} className="right-[2%] top-[88%]">
         <div className={`${glass} flex gap-1 rounded-full px-2 py-1.5`}>
           {[0, 1, 2, 3, 4, 5].map((j) => <span key={j} className={`h-1.5 w-4 rounded-full ${j < 4 ? "ir-grad-fill" : "bg-ir-border"}`} />)}
         </div>
