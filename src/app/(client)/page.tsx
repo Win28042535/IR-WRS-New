@@ -5,6 +5,7 @@ import { FLOW_STEPS } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
 import { BriefFlow, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
+import { HomeContact } from "@/components/HomeContact";
 
 const balance = { textWrap: "balance" } as CSSProperties;
 
@@ -58,45 +59,57 @@ export default function Landing() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-[30%] top-[-280px] h-[680px] w-[1100px] -translate-x-1/2 rounded-full"
+        className="pointer-events-none absolute left-1/2 top-[-300px] h-[720px] w-[1200px] -translate-x-1/2 rounded-full"
         style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.38), rgba(215,224,39,0) 70%)" }}
       />
 
-      {/* ── Hero: the outcome, the first question, the live preview ── */}
-      <section className="relative mx-auto grid max-w-[1320px] items-center gap-10 px-5 sm:px-8 pt-8 sm:pt-14 lg:grid-cols-[1fr_1.12fr] lg:gap-12 ir-fade-up">
-        <div>
-          {/* Narrow phones wrap after "สำหรับลูกค้า ·", so the pill softens to a rounded box. */}
-          <span className="inline-flex items-center gap-2 rounded-[18px] min-[440px]:rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-[13px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
-            <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
-            <span>
-              สำหรับลูกค้า ·{" "}
-              <span className="whitespace-nowrap">บริษัทจดทะเบียนในตลาดหลักทรัพย์</span>
-            </span>
+      {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
+      <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 text-center ir-fade-up">
+        {/* Narrow phones wrap after "สำหรับลูกค้า ·", so the pill softens to a rounded box. */}
+        <span className="inline-flex items-center gap-2 rounded-[18px] min-[440px]:rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[13px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
+          <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
+          <span>
+            สำหรับลูกค้า ·{" "}
+            <span className="whitespace-nowrap">บริษัทจดทะเบียนในตลาดหลักทรัพย์</span>
           </span>
-          <h1 className="mt-6 text-[clamp(2.2rem,4.6vw,3.9rem)] font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
-            <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
-            <span className="whitespace-nowrap">เริ่มจาก</span>{" "}
-            <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">คำตอบของคุณ</span>
-          </h1>
-          <p className="mt-5 max-w-[34rem] text-[16px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
-            ตอบคำถามสั้นๆ เลือกสไตล์จากภาพ แล้วรับ Moodboard และ Requirement ที่พร้อมส่งให้ทีมออกแบบ
-          </p>
+        </span>
+        <h1 className="mx-auto mt-6 max-w-[900px] text-[clamp(2.4rem,6vw,4.75rem)] font-semibold leading-[1.12] tracking-[-0.04em]" style={balance}>
+          <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
+          <span className="whitespace-nowrap">เริ่มจาก</span>{" "}
+          <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">คำตอบของคุณ</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-[36rem] text-[16px] sm:text-[19px] leading-relaxed text-ir-t2" style={balance}>
+          ตอบคำถามสั้นๆ เลือกสไตล์จากภาพ แล้วรับ Moodboard และ Requirement ที่พร้อมส่งให้ทีมออกแบบ
+        </p>
 
-          <div className="mt-8 max-w-[34rem]">
-            {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
-          </div>
-
-          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[14px] text-ir-t2">
-            {REASSURE.map((t) => (
-              <li key={t} className="inline-flex items-center gap-1.5">
-                <IconCheck width={20} height={20} className="text-ir-accent-text" />
-                {t}
-              </li>
-            ))}
-          </ul>
+        <div className="mx-auto mt-9 max-w-[36rem] text-left">
+          {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
         </div>
 
-        <Moodboard company={shown} />
+        <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[14px] text-ir-t2">
+          {REASSURE.map((t) => (
+            <li key={t} className="inline-flex items-center gap-1.5">
+              <IconCheck width={20} height={20} className="text-ir-accent-text" />
+              {t}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ── The deliverable, revealed on scroll: centred and large, away from the CTA ── */}
+      <section id="example" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-28">
+        <div className="sc-reveal text-center">
+          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <span className="whitespace-nowrap">ตัวอย่าง</span><span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">สิ่งที่คุณจะได้</span>
+          </h2>
+          <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
+            Moodboard ที่ระบบสรุปจากคำตอบ: หน้าเว็บ แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
+            {shown.trim() && <> · แสดงด้วยชื่อ <span className="font-semibold text-ir-t1">{shown.trim()}</span></>}
+          </p>
+        </div>
+        <div className="sc-stage mt-10">
+          <div className="sc-show"><Moodboard company={shown} /></div>
+        </div>
       </section>
 
       {/* ── Each step, previewed ── */}
@@ -111,7 +124,7 @@ export default function Landing() {
       </section>
 
       {/* ── What the team receives — each answer becomes a heading of the Requirement ── */}
-      <section id="brief" className="relative mx-auto max-w-[1100px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
+      <section id="brief" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
           <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
@@ -124,11 +137,16 @@ export default function Landing() {
       </section>
 
       {/* ── More detail, folded — for those who want to read first ── */}
-      <section className="relative mx-auto max-w-[920px] px-5 sm:px-8 pt-16 sm:pt-20">
+      <section id="faq" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <h2 className="mt-5 text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
+          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <span className="whitespace-nowrap">อยากรู้<span className="ir-grad-text px-[0.02em] py-[0.15em]">รายละเอียด</span></span>{" "}<span className="whitespace-nowrap">ก่อนเริ่ม</span>
+          </h2>
+          <p className="mt-3 text-[16px] text-ir-t2" style={balance}>คำตอบสั้นๆ ของคำถามที่ลูกค้าถามบ่อย</p>
         </div>
-        <div className="sc-reveal mt-6 divide-y divide-ir-border rounded-[24px] border border-black/[0.06] bg-ir-card">
+        {/* One card per question, two columns from lg, so the full width reads as a grid
+            rather than one very long accordion. */}
+        <div className="sc-reveal mt-10 grid items-start gap-3 lg:grid-cols-2">
           <Fold title="ต้องเตรียมอะไรบ้าง">
             <p className="text-[15px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
             <ul className="mt-3 grid gap-2 pb-5">
@@ -146,6 +164,11 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      {/* ── Leave a message — the tail of the FAQ, its own tinted panel at the same width ── */}
+      <div id="contact" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-10 sm:pt-12">
+        <div className="sc-reveal"><HomeContact /></div>
+      </div>
 
       {/* ── Closing banner — start (or resume) right here, no scrolling back up ── */}
       <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-16 sm:pt-20 pb-16">
@@ -302,7 +325,7 @@ function PrimaryCta({ children, onClick, type = "button", onDark }: { children: 
 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="group px-6 py-1">
+    <details className="group rounded-[20px] border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-200 open:border-ir-select-soft open:shadow-[0_14px_32px_-18px_rgba(20,22,19,0.18)]">
       <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-[14px] px-3 text-[16px] font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
         {title}
         <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-[18px] text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>

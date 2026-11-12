@@ -2932,13 +2932,16 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [attempted, setAttempted] = useState(false);
   const contactErrors = {
-    name: draft.name.trim() ? "" : "กรุณากรอกชื่อ-นามสกุล",
-    email: emailError(draft.email),
+    // Optional fields: only a malformed value is an error; empty is fine.
+    name: "",
+    email: draft.email.trim() ? emailError(draft.email) : "",
     phone: phoneError(draft.phone),
   };
   const showError = (field: keyof typeof contactErrors) => (touched[field] || attempted) ? contactErrors[field] : "";
   const markTouched = (field: string) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
-  const canSubmit = !contactErrors.name && !contactErrors.email && !contactErrors.phone && draft.company;
+  // Always sendable: the team can follow up for anything missing. Completeness only drives
+  // the gentle nudges below (and the field hints once a field is touched).
+  const contactComplete = !!draft.name.trim() && !!draft.email.trim() && !contactErrors.email && !contactErrors.phone && !!draft.company;
   const s6GapFired = useRef(false);
   useEffect(() => {
     if (s6GapFired.current) return;
@@ -2967,7 +2970,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   }, []);
 
   const doSubmit = () => {
-    if (!canSubmit || submitting) return;
+    if (submitting) return;
+    if (!contactComplete) { setAttempted(true); setTouched({ name: true, email: true, phone: true }); }
     setSubmitting(true);
     addTimelineEntry?.({
       step: 5, type: "submitted",
@@ -2991,21 +2995,11 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   // Long hesitation nudge if contact fields still empty after 15 s
   const shownHesitation = useRef(false);
   useHesitation(15000, () => {
-    if (shownHesitation.current || canSubmit) return;
+    if (shownHesitation.current || contactComplete) return;
     shownHesitation.current = true;
     const missing = !draft.name ? "ชื่อ-นามสกุล" : !draft.email ? "Email" : "ข้อมูลติดต่อ";
-    g.show(`ใกล้เสร็จแล้วครับ ใส่ ${missing} เพิ่มก็ Submit ได้เลย`, { mode: "tip", expert: "analyst", autohide: 10000 });
+    g.show(`ใกล้เสร็จแล้วครับ ใส่ ${missing} ไว้ด้วย ทีมจะติดต่อกลับได้ทันที`, { mode: "tip", expert: "analyst", autohide: 10000 });
   });
-
-  const onBlockedSubmit = () => {
-    if (canSubmit) return;
-    setAttempted(true);
-    setTouched({ name: true, email: true, phone: true });
-    if (contactErrors.name) g.show("ใส่ชื่อ-นามสกุลด้วยนะครับ เพื่อให้ทีมออกแบบรู้ว่าจะติดต่อใครครับ", { mode: "tip", expert: "analyst" });
-    else if (contactErrors.email) g.show(!draft.email.trim() ? "ใส่ Email ด้วยนะครับ เราจะส่ง Blueprint สรุปและ Next Steps ไปให้ทางนี้ครับ" : "รูปแบบ Email ไม่ถูกต้องครับ ลองเช็คอีกทีนะครับ", { mode: "tip", expert: "analyst" });
-    else if (contactErrors.phone) g.show("รูปแบบเบอร์โทรไม่ถูกต้องครับ ลองเช็คอีกทีนะครับ", { mode: "tip", expert: "analyst" });
-    else g.show("ใส่ชื่อบริษัทด้วยนะครับ", { mode: "tip", expert: "analyst" });
-  };
 
   return (
     <div>
@@ -3033,8 +3027,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
-              <F label="ชื่อ-นามสกุล *" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="คุณสมชาย ใจดี" autoComplete="name" />
-              <F label="Email *" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="somchai@company.com" />
+              <F label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="คุณสมชาย ใจดี" autoComplete="name" />
+              <F label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="somchai@company.com" />
               <F label="โทรศัพท์" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
             </div>
             <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />
@@ -3044,20 +3038,20 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
               same thing to the customer. The confirm copy now lives as a caption below
               the button instead of its own separate checkbox card. */}
           <div className="rounded-[20px] border border-ir-border bg-ir-card p-5 ir-shadow">
-            <div onClick={onBlockedSubmit}>
+            <div>
               <button
                 onClick={doSubmit}
-                disabled={!canSubmit || submitting}
+                disabled={submitting}
                 // Same black pill + lime arrow disc as the landing CTA — this is the flow's
                 // final primary action. Disabled keeps a readable label on a gray fill.
                 className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-[15px] font-semibold transition-[background-color,color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
-                  canSubmit && !submitting
+                  !submitting
                     ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer"
-                    : "bg-ir-border text-ir-t3 cursor-not-allowed"
+                    : "bg-ir-dark/80 text-white cursor-wait"
                 }`}
               >
                 {submitting ? "กำลังส่ง..." : "ยืนยันและส่งให้ทีม IR Plus"}
-                <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-200 ${canSubmit && !submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-muted text-ir-t3"}`}>
+                <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-200 ${!submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-accent/70 text-ir-on-accent"}`}>
                   <IconArrowRight width={24} height={24} />
                 </span>
               </button>

@@ -6,6 +6,7 @@
 // and hydrate via listRequirements()/subscribeRequirements() on app mount.
 import { supabase, isSupabaseConfigured } from "./supabase";
 import type { Requirement } from "./types";
+import type { ContactMessage } from "./contact";
 
 const TABLE = "requirements";
 
@@ -27,6 +28,21 @@ export async function upsertRequirement(req: Requirement): Promise<void> {
     updated_at: new Date(req.updatedAt || Date.now()).toISOString(),
   });
   if (error) console.error("[supabase] upsert", error);
+}
+
+/** Homepage "ฝากเรื่อง" form → public.contact_messages (see supabase/schema.sql). */
+export async function insertContactMessage(msg: ContactMessage): Promise<void> {
+  if (!supabase) return;
+  const { error } = await supabase.from("contact_messages").insert({
+    id: msg.id,
+    name: msg.name,
+    company: msg.company,
+    contact: msg.contact,
+    topic: msg.topic,
+    message: msg.message,
+    created_at: new Date(msg.createdAt).toISOString(),
+  });
+  if (error) console.error("[supabase] contact insert", error);
 }
 
 export async function deleteRequirement(id: string): Promise<void> {

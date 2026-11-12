@@ -285,6 +285,8 @@ input:focus, textarea:focus, select:focus {
 .mb-swatch { animation-name: mb-swatch-in; transform-origin: left center; }
 .mb-photo  { animation-name: mb-photo-in; animation-duration: 0.7s; }
 .mb-num    { animation-name: mb-num-in; animation-duration: 0.45s; }
+/* The figure sits below the fold: hold its assembly until it scrolls into view. */
+.mbw[data-mb="wait"] :is(.mb-tile, .mb-item, .mb-swatch, .mb-photo, .mb-num) { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .mb-tile, .mb-item, .mb-swatch, .mb-photo, .mb-num { animation: none; }
   .mb-card { transition: none !important; transform: none !important; }
@@ -926,34 +928,80 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* ── Homepage "ทีมได้รับอะไร" (BriefFlow) ─────────────────────────────────────
-   Per row: the answer slides in, the link draws toward the Requirement, the Requirement
-   card pops; then a CI spark keeps travelling along each link (staggered by --i) so the
-   panel reads as being compiled. Links run down on phones, across from lg (1024px). */
-.bf-dot {
-  position: absolute; left: 50%; top: 0; width: 8px; height: 8px; border-radius: 999px;
-  translate: -50% -50%; opacity: 0; pointer-events: none;
-  background: #EEF46A; box-shadow: 0 0 12px 3px rgba(215,224,39,0.7);
+/* ── Homepage "ทีมได้รับอะไร" — the transformation machine (BriefFlow) ──────────────
+   State comes from React: [data-busy] while answers are processed, [data-phase] in|proc|out,
+   input cards [data-state] idle|active|done, output blocks / ready pill [data-on].
+   Without JS, or with reduced motion, the component renders its finished state. */
+.bm-glow { background: radial-gradient(closest-side, rgba(215,224,39,0.16), rgba(215,224,39,0) 70%); transition: opacity 0.6s; opacity: 0.6; }
+.bm[data-busy] .bm-glow { opacity: 1; }
+
+/* ① inputs */
+.bm-in { transition: opacity 0.45s, scale 0.45s cubic-bezier(0.16,1,0.3,1), border-color 0.3s, box-shadow 0.3s, filter 0.45s; }
+.bm-in[data-state="active"] { border-color: rgba(215,224,39,0.7); box-shadow: 0 0 0 3px rgba(215,224,39,0.15), 0 0 30px -6px rgba(215,224,39,0.5); scale: 1.02; }
+/* used: the content dims, the card keeps a lime edge and its tick stays at full strength */
+.bm-in-body { transition: opacity 0.45s, filter 0.45s; }
+.bm-in[data-state="done"] { border-color: rgba(215,224,39,0.35); }
+.bm-in[data-state="done"] .bm-in-body { opacity: 0.45; filter: grayscale(0.6); }
+.bm-used { opacity: 0; scale: 0.4; box-shadow: 0 0 0 3px rgba(215,224,39,0.18); transition: opacity 0.3s, scale 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.bm-in[data-state="done"] .bm-used { opacity: 1; scale: 1; }
+
+/* ② the chamber */
+.bm-ring { background: conic-gradient(from 0deg, rgba(215,224,39,0) 0deg, #D7E027 90deg, rgba(238,244,106,0.2) 180deg, rgba(215,224,39,0) 270deg, #EEF46A 340deg); -webkit-mask: radial-gradient(closest-side, transparent 84%, #000 86%); mask: radial-gradient(closest-side, transparent 84%, #000 86%); opacity: 0.55; }
+.bm-core { box-shadow: 0 0 0 4px rgba(215,224,39,0.25); transition: box-shadow 0.4s, scale 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.bm[data-phase="proc"] .bm-core { box-shadow: 0 0 0 6px rgba(215,224,39,0.45), 0 0 48px 8px rgba(215,224,39,0.55); scale: 1.08; }
+.bm-scan { background: linear-gradient(90deg, transparent, rgba(238,244,106,0.8), transparent); opacity: 0; }
+.bm-spark { left: 0; top: 0; width: 0; height: 0; }
+.bm-spark > span { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 999px; background: #EEF46A; box-shadow: 0 0 8px 2px rgba(215,224,39,0.7); opacity: 0; }
+.bm-token {
+  position: absolute; left: 0; top: 0; z-index: 30; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none;
+  border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600; line-height: 1.4;
+  border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12); color: #fff; opacity: 0;
 }
-.bf-line { transform-origin: top; }
-@media (min-width: 1024px) {
-  .bf-dot { top: 50%; left: 12px; }
-  .bf-line { transform-origin: left; }
+.bm-out {
+  position: absolute; left: 0; top: 0; z-index: 30; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 4px; rotate: 45deg; pointer-events: none;
+  background: linear-gradient(135deg, #F3F78F, #D7E027 60%, #BCC416); box-shadow: 0 0 18px 4px rgba(215,224,39,0.7); opacity: 0;
 }
-@keyframes bf-a-in { from { opacity: 0; translate: 0 10px; } }
-@keyframes bf-r-in { from { opacity: 0; scale: 0.96; } }
-@keyframes bf-line-in { from { scale: 1 0; } }
-@keyframes bf-line-in-x { from { scale: 0 1; } }
-@keyframes bf-travel-y { 0% { top: 0; opacity: 0; } 15%, 80% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-@keyframes bf-travel-x { 0% { left: 12px; opacity: 0; } 15%, 80% { opacity: 1; } 100% { left: calc(100% - 12px); opacity: 0; } }
+
+/* ③ the page */
+.bm-skel { opacity: 0; transition: opacity 0.3s; }
+.bm-content { transition: opacity 0.5s, translate 0.5s cubic-bezier(0.16,1,0.3,1), filter 0.5s; }
+.bm-blk[data-on="false"] .bm-skel { opacity: 1; }
+.bm-blk[data-on="false"] .bm-content { opacity: 0; translate: 0 8px; filter: blur(6px); }
+.bm-blk[data-on="false"] .bm-bar { scale: 0 1; }
+.bm-bar { transform-origin: left; transition: scale 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s; }
+.bm-blk[data-on="true"] { animation: bm-flash 0.9s ease-out; }
+/* ready pill: waiting (muted, dashed disc) → ready (CI fill, dark tick); upright, same slot */
+.bm-ready { background: var(--color-ir-muted); color: var(--color-ir-t3); transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; }
+.bm-ready-dot { border: 1.5px dashed var(--color-ir-border-hi); color: transparent; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+.bm-ready[data-on="true"] { background-image: var(--ir-grad); color: var(--color-ir-on-accent); box-shadow: 0 6px 18px -6px rgba(188,196,22,0.7); animation: bm-pop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.bm-ready[data-on="true"] .bm-ready-dot { border-color: transparent; background: var(--color-ir-dark); color: var(--color-ir-accent); }
+@keyframes bm-pop { 0% { scale: 0.85; } 60% { scale: 1.08; } 100% { scale: 1; } }
+
+@keyframes bm-flash { 0% { background-color: rgba(215,224,39,0.35); } 100% { background-color: transparent; } }
+@keyframes bm-spin { to { rotate: 360deg; } }
+@keyframes bm-scan { 0% { top: 6%; opacity: 0; } 15%, 85% { opacity: 1; } 100% { top: 94%; opacity: 0; } }
+@keyframes bm-in-fly {
+  0%   { translate: var(--sx) var(--sy); scale: 1; opacity: 0; }
+  12%  { opacity: 1; }
+  70%  { scale: 0.7; opacity: 1; background-color: rgba(215,224,39,0.9); color: #171A15; border-color: #D7E027; }
+  100% { translate: 0 0; scale: 0.15; opacity: 0; background-color: #D7E027; color: #171A15; }
+}
+@keyframes bm-out-fly {
+  0%   { translate: 0 0; scale: 0.3; opacity: 0; }
+  20%  { scale: 1.2; opacity: 1; }
+  85%  { opacity: 1; }
+  100% { translate: var(--ex) var(--ey); scale: 0.6; opacity: 0; }
+}
+@keyframes bm-spark { 0% { translate: 0 0; opacity: 1; scale: 1; } 100% { translate: 0 -78px; opacity: 0; scale: 0.4; } }
+
 @media (prefers-reduced-motion: no-preference) {
-  .bf[data-bf="idle"] :is(.bf-a, .bf-r, .bf-line) { opacity: 0; }
-  .bf[data-bf="on"] .bf-a { animation: bf-a-in 0.5s cubic-bezier(0.16,1,0.3,1) calc(var(--i) * 140ms) both; }
-  .bf[data-bf="on"] .bf-line { animation: bf-line-in 0.45s cubic-bezier(0.16,1,0.3,1) calc(260ms + var(--i) * 140ms) both; }
-  .bf[data-bf="on"] .bf-r { animation: bf-r-in 0.55s cubic-bezier(0.34,1.56,0.64,1) calc(480ms + var(--i) * 140ms) both; }
-  .bf[data-bf="on"] .bf-dot { animation: bf-travel-y 2.6s cubic-bezier(0.45,0,0.55,1) calc(900ms + var(--i) * 420ms) infinite; }
-  @media (min-width: 1024px) {
-    .bf[data-bf="on"] .bf-line { animation-name: bf-line-in-x; }
-    .bf[data-bf="on"] .bf-dot { animation-name: bf-travel-x; }
-  }
+  .bm-ring { animation: bm-spin 8s linear infinite; }
+  .bm[data-busy] .bm-ring { animation-duration: 1.6s; opacity: 0.95; }
+  .bm[data-busy] .bm-scan { animation: bm-scan 1.4s ease-in-out infinite; }
+  .bm-token { animation: bm-in-fly 0.7s cubic-bezier(0.55,0,0.75,0.3) both; }
+  .bm-out { animation: bm-out-fly 0.65s cubic-bezier(0.25,0.6,0.3,1) both; }
+  .bm-spark > span { animation: bm-spark 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bm *, .bm *::before { transition: none !important; animation: none !important; }
 }

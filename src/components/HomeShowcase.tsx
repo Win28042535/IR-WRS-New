@@ -40,6 +40,19 @@ export function Moodboard({ company }: { company: string }) {
   const pair = FONT_PAIRINGS[SAMPLE.dir];
   const photos = VISUAL_STYLES[SAMPLE.dir].shots.slice(0, 3);
   const swatches = d.colors.slice(0, 3);
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") { el.dataset.mb = "go"; return; }
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      el.dataset.mb = "go";
+      io.disconnect();
+    }, { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const direction = (
     <Tile label="แนวทางการออกแบบ" step={3} d={1}>
@@ -93,10 +106,8 @@ export function Moodboard({ company }: { company: string }) {
   );
 
   return (
-    <figure className="relative m-0">
-      <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-ir-dark px-3 py-1 text-[12px] font-semibold text-white">
-        ตัวอย่างสิ่งที่คุณจะได้
-      </span>
+    // data-mb="wait" holds the assembly until the figure is on screen (it sits below the fold).
+    <figure ref={ref} data-mb="wait" className="mbw relative m-0">
       <div className="rounded-[26px] sm:rounded-[30px] border border-black/[0.06] bg-ir-bg/90 p-2.5 sm:p-3 shadow-[0_30px_80px_rgba(20,22,19,0.12)] backdrop-blur">
         {/* Phones: phone mock beside a stack of tiles */}
         <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] gap-2.5 sm:hidden">
@@ -118,11 +129,8 @@ export function Moodboard({ company }: { company: string }) {
           <div className="col-span-3">{sections}</div>
         </div>
       </div>
-      <figcaption className="mt-3 text-center text-[14px] text-ir-t3" style={{ textWrap: "balance" }}>
-        สรุปจากคำตอบของคุณ: หน้าเว็บ แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
-        <span className="mt-1 block text-[13px]">
-          หมายเหตุ: ไม่ใช่แบบเว็บไซต์จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
-        </span>
+      <figcaption className="mt-4 text-center text-[13px] text-ir-t3" style={{ textWrap: "balance" }}>
+        หมายเหตุ: ไม่ใช่แบบเว็บไซต์จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
       </figcaption>
     </figure>
   );
@@ -308,123 +316,241 @@ export function StepGallery() {
   );
 }
 
-// ── What the team receives ─────────────────────────────────────────────────────
-// Row by row: an answer as the client gives it (dark, left) becomes one heading of the
-// Requirement the designer reads (light, right). A CI-coloured spark keeps travelling
-// along each link, so the panel reads as "being compiled". Same sample as the Moodboard.
-// Motion (globals.css .bf-*): rows enter when scrolled into view; reduced motion = static.
+// ── What the team receives: the transformation machine ──────────────────────────
+// Raw answers go in on the left (↑ on phones), IR Plus processes them in the chamber, and
+// something of a different kind comes out on the right (↓): a designed Requirement page.
+//   ranked audiences (text)  → a persona block with weighted bars
+//   ticked goals (chips)     → a checklist of what the site must do
+//   A/B answers (letters)    → a palette, a type specimen and a named Direction (visual)
+//   section list (names)     → a homepage wireframe
+// One answer at a time: it is sucked into the core (in), the core spins and sparks (proc),
+// a spark flies out and the matching block is written into the page (out). When all four
+// are in, the page is marked ready; then it loops while in
+// view. Token paths are measured from the real layout, so they work in both directions.
+// Reduced motion / no JS: the finished page, static. Motion: globals.css (.bm-*).
 const DarkChip = ({ n, on, children }: { n?: number; on?: boolean; children: ReactNode }) => (
-  <span className={`inline-flex items-center gap-1.5 rounded-full border py-1 text-[12px] font-medium ${n ? "pl-1 pr-2.5" : "px-2.5"} ${
+  <span className={`inline-flex items-center gap-1 rounded-full border py-0.5 text-[12px] font-medium ${n ? "pl-0.5 pr-2" : "px-2"} ${
     on === false ? "border-white/10 text-white/40" : on ? "border-ir-accent/50 bg-ir-accent/10 text-white" : "border-white/12 bg-white/[0.05] text-white/85"
   }`}>
-    {n !== undefined && <span className="ir-grad-fill grid h-5 w-5 place-items-center rounded-full font-mono text-[11px] font-bold text-ir-on-accent">{n}</span>}
-    {on && <IconCheck width={14} height={14} className="text-ir-accent" />}
+    {n !== undefined && <span className="ir-grad-fill grid h-[18px] w-[18px] place-items-center rounded-full font-mono text-[10px] font-bold text-ir-on-accent">{n}</span>}
+    {on && <Tick className="h-3 w-3 text-ir-accent" />}
     {children}
   </span>
 );
 
+const Tick = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+);
+// One header style for all three columns, so they line up on one baseline.
+const ColHead = ({ n, title, sub, tone = "light" }: { n: string; title: string; sub: string; tone?: "light" | "lime" }) => (
+  <div className="flex items-center gap-2.5">
+    <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[12px] font-bold ${tone === "lime" ? "ir-grad-fill text-ir-on-accent" : "bg-white/10 text-white"}`}>{n}</span>
+    <p className="min-w-0 text-[14px] leading-tight"><span className={`font-semibold ${tone === "lime" ? "text-ir-accent" : "text-white"}`}>{title}</span><span className="text-white/55"> · {sub}</span></p>
+  </div>
+);
+
+const T = { in: 700, proc: 650, out: 650, gap: 300, hold: 4800, reset: 700 };
+type Phase = "in" | "proc" | "out" | "rest";
+type Geo = { s: { x: number; y: number }[]; e: { x: number; y: number }[] };
+
 export function BriefFlow() {
-  const ref = useRef<HTMLDivElement>(null);
   const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
   const pair = FONT_PAIRINGS[SAMPLE.dir];
   const audiences = ["institutional", "analyst", "retail"].map((id) => IR_AUDIENCES.find((a) => a.id === id)!);
   const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 3);
   const picks = Object.values(SAMPLE.picks);
 
+  // step: 0 = nothing processed yet, 1..4 = processing answer k, 5 = page finished
+  const [step, setStep] = useState(5);
+  const [phase, setPhase] = useState<Phase>("rest");
+  const [geo, setGeo] = useState<Geo | null>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const core = useRef<HTMLDivElement>(null);
+  const ins = useRef<(HTMLLIElement | null)[]>([]);
+  const outs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Where each token starts (edge of its answer card) and where each spark lands (its block),
+  // relative to the core's centre. Horizontal on wide layouts, vertical when stacked.
   useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    el.dataset.bf = "idle";
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
-      el.dataset.bf = "on";
-      io.disconnect();
-    }, { threshold: 0.2 });
-    io.observe(el);
-    return () => io.disconnect();
+    const el = root.current;
+    if (!el) return;
+    const measure = () => {
+      const c = core.current?.getBoundingClientRect();
+      if (!c) return;
+      const cx = c.left + c.width / 2, cy = c.top + c.height / 2;
+      const s = ins.current.map((n) => {
+        const r = n!.getBoundingClientRect();
+        return r.right < c.left ? { x: r.right - 12 - cx, y: r.top + r.height / 2 - cy } : { x: r.left + r.width / 2 - cx, y: r.bottom - 8 - cy };
+      });
+      const e = outs.current.map((n) => {
+        const r = n!.getBoundingClientRect();
+        return r.left > c.right ? { x: r.left + 18 - cx, y: r.top + r.height / 2 - cy } : { x: r.left + r.width / 2 - cx, y: r.top + 10 - cy };
+      });
+      setGeo({ s, e });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
-  const rows: { step: number; q: string; answer: ReactNode; label: string; head: ReactNode; body: ReactNode }[] = [
-    {
-      step: 1, q: "ใครคือผู้อ่านหลัก",
-      answer: <div className="flex flex-wrap gap-1.5">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div>,
-      label: "กลุ่มเป้าหมาย",
-      head: <>ผู้อ่านหลักคือ{audiences[0].label}</>,
-      body: audiences[0].shapes,
-    },
-    {
-      step: 2, q: "เว็บไซต์ต้องทำอะไรได้",
-      answer: <div className="flex flex-wrap gap-1.5">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div>,
-      label: "เป้าหมาย · 2 ข้อหลัก",
-      head: <>{goals[0].label}</>,
-      body: <>รองลงมา: {goals[1].label}</>,
-    },
-    {
-      step: 3, q: "ตอบ 5 ข้อจากภาพ",
-      answer: (
-        <div className="grid max-w-[260px] grid-cols-5 gap-1.5">
-          {picks.map((p, j) => (
-            <span key={j} className="grid aspect-square place-items-center rounded-[8px] border border-white/12 bg-white/[0.05] text-[12px] font-semibold text-white/85">
-              <span className="text-[10px] font-medium text-white/45">ข้อ {j + 1}</span>{p}
-            </span>
-          ))}
-        </div>
-      ),
-      label: "แนวทางดีไซน์ · สรุปจาก 5 ข้อ",
-      head: <span style={{ fontFamily: fontStack(pair.heading) }}>{d.label}</span>,
-      body: <>{d.tagline} · ฟอนต์ {pair.heading} + {pair.thai}</>,
-    },
-    {
-      step: 4, q: "เรียงเนื้อหาบนหน้าแรก",
-      answer: <div className="flex flex-wrap gap-1.5">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div>,
-      label: `โครงหน้าแรก · ${SAMPLE_SECTIONS.length} Section`,
-      head: <>{SAMPLE_SECTIONS.slice(0, 3).join(" → ")}</>,
-      body: <>เรียงตามผู้อ่านหลัก {audiences[0].label}มองหาตัวเลขก่อน · Header และ Footer ระบบจัดให้</>,
-    },
+  // The loop: runs only while the panel is on screen; reduced motion keeps the finished page.
+  useEffect(() => {
+    const el = root.current;
+    if (!el || typeof IntersectionObserver === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
+    const stop = () => { timers.forEach(clearTimeout); timers = []; };
+    const run = () => {
+      stop();
+      setStep(0); setPhase("rest");
+      let t = T.reset;
+      for (let k = 1; k <= 4; k++) {
+        at(t, () => { setStep(k); setPhase("in"); });
+        at(t + T.in, () => setPhase("proc"));
+        at(t + T.in + T.proc, () => setPhase("out"));
+        t += T.in + T.proc + T.out + T.gap;
+      }
+      at(t, () => { setStep(5); setPhase("rest"); });
+      at(t + T.hold, run);
+    };
+    setStep(0);
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? run() : stop()), { threshold: 0.3 });
+    io.observe(el);
+    return () => { io.disconnect(); stop(); };
+  }, []);
+
+  const inputs: { name: string; q: string; body: ReactNode; token: string }[] = [
+    { name: FLOW_STEPS[0], q: "ใครคือผู้อ่านหลัก", token: audiences[0].label,
+      body: <div className="flex flex-wrap gap-1">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div> },
+    { name: FLOW_STEPS[1], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
+      body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
+    { name: FLOW_STEPS[2], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
+      body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-[7px] border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
+    { name: FLOW_STEPS[3], q: "เรียงเนื้อหาบนหน้าแรก", token: `${SAMPLE_SECTIONS.length} Section`,
+      body: <div className="flex flex-wrap gap-1">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div> },
   ];
 
-  return (
-    <div ref={ref} className="bf relative overflow-clip rounded-[28px] sm:rounded-[32px] bg-ir-dark p-3 sm:p-6 lg:p-8">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.16), rgba(215,224,39,0) 70%)" }} />
-
-      <div className="relative hidden lg:grid grid-cols-[1fr_96px_1fr] items-center px-1 pb-4 text-[14px] font-semibold">
-        <p className="text-white/70">สิ่งที่คุณตอบในแบบฟอร์ม</p>
-        <span />
-        <p className="text-ir-accent">สิ่งที่นักออกแบบเปิดอ่าน</p>
+  const blocks: { label: string; body: ReactNode }[] = [
+    { label: "ผู้อ่านหลัก", body: (
+      <div>
+        <p className="text-[15px] font-semibold text-ir-t1">{audiences[0].label}</p>
+        <div className="mt-2 grid gap-1.5">
+          {audiences.map((a, j) => (
+            <div key={a.id} className="grid grid-cols-[88px_1fr] items-center gap-2 text-[11px] text-ir-t2">
+              <span className="truncate">{a.label}</span>
+              <span className="h-1.5 overflow-hidden rounded-full bg-ir-muted"><span className="bm-bar ir-grad-fill block h-full rounded-full" style={{ width: `${[100, 66, 40][j]}%` }} /></span>
+            </div>
+          ))}
+        </div>
       </div>
-
-      <ol className="relative grid gap-6 lg:gap-4">
-        {rows.map((r, i) => (
-          <li key={r.step} className="grid lg:grid-cols-[1fr_96px_1fr]" style={v({ i })}>
-            <div className="bf-a min-w-0 rounded-[18px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
-              <p className="text-[12px] text-white/55">ขั้นที่ {r.step} · {FLOW_STEPS[r.step - 1]}</p>
-              <p className="mt-1 text-[15px] font-semibold text-white">{r.q}</p>
-              <div className="mt-3">{r.answer}</div>
-            </div>
-            <div aria-hidden="true" className="relative h-9 lg:h-auto">
-              <span className="bf-line absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-white/20 to-ir-accent lg:inset-y-auto lg:inset-x-3 lg:top-1/2 lg:left-auto lg:h-px lg:w-auto lg:translate-x-0 lg:-translate-y-1/2 lg:bg-gradient-to-r" />
-              <span className="bf-dot" />
-            </div>
-            <div className="bf-r group relative min-w-0 overflow-hidden rounded-[18px] bg-white p-4 pl-5 transition-[translate,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-16px_rgba(215,224,39,0.45)]">
-              <span aria-hidden="true" className="ir-grad-fill absolute inset-y-3 left-0 w-1 rounded-r-full" />
-              <p className="text-[12px] font-semibold text-ir-accent-text">{r.label}</p>
-              <p className="mt-1 text-[17px] font-semibold leading-snug text-ir-t1">{r.head}</p>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-ir-t2">{r.body}</p>
-            </div>
+    ) },
+    { label: "สิ่งที่เว็บต้องทำได้", body: (
+      <ul className="grid gap-1">
+        {goals.slice(0, 2).map((g) => (
+          <li key={g.id} className="flex items-center gap-1.5 text-[13px] font-medium text-ir-t1">
+            <span className="ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>{g.label}
           </li>
         ))}
-      </ol>
+      </ul>
+    ) },
+    { label: "แนวทางดีไซน์", body: (
+      <div className="flex items-center gap-3">
+        <div className="flex -space-x-1.5">{d.colors.slice(0, 3).map((c) => <span key={c} className="h-8 w-8 rounded-full ring-2 ring-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]" style={{ background: c }} />)}</div>
+        <span className="text-[24px] leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa<span style={{ fontFamily: fontStack(pair.thai) }}> กข</span></span>
+        <span className="min-w-0 truncate text-[13px] font-semibold text-ir-t1">{d.label}</span>
+      </div>
+    ) },
+    { label: "โครงหน้าแรก", body: (
+      <div className="grid gap-1">
+        <span className="h-1.5 w-full rounded-full bg-ir-border" />
+        <span className="grid h-9 place-items-center rounded-[6px] bg-ir-dark text-[10px] font-semibold text-ir-accent">{SAMPLE_SECTIONS[0]}</span>
+        <span className="grid grid-cols-3 gap-1">{[0, 1, 2].map((j) => <span key={j} className="h-5 rounded-[5px] bg-ir-accent-soft" />)}</span>
+        <span className="grid grid-cols-2 gap-1"><span className="h-4 rounded-[5px] bg-ir-muted" /><span className="h-4 rounded-[5px] bg-ir-muted" /></span>
+      </div>
+    ) },
+  ];
 
-      <div className="relative mt-6 flex justify-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-1.5 pr-4 text-[14px] text-white/80 backdrop-blur">
-          <span className="ir-grad-fill grid h-7 w-7 place-items-center rounded-full text-ir-on-accent"><IconCheck width={16} height={16} /></span>
-          <span><b className="font-semibold text-white">IR Plus</b> เรียบเรียงเป็น Requirement + Moodboard</span>
-        </span>
+  const busy = step >= 1 && step <= 4;
+  const status = step === 0 ? "รอคำตอบ" : step === 5 ? "เรียบเรียงเสร็จ" : `กำลังแปลงคำตอบ ${step}/4`;
+
+  return (
+    <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-[28px] sm:rounded-[32px] bg-ir-dark p-4 sm:p-6 lg:p-8">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      <div aria-hidden="true" className="bm-glow pointer-events-none absolute left-1/2 top-1/2 h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
+
+      <div className="relative grid gap-3 lg:grid-cols-[minmax(0,1fr)_190px_minmax(0,1.1fr)] lg:grid-rows-[auto_1fr] lg:gap-x-7 lg:gap-y-4">
+        {/* ① raw input */}
+        <div className="lg:col-start-1 lg:row-start-1"><ColHead n="01" title="วัตถุดิบ" sub="สิ่งที่คุณตอบ" /></div>
+        <div className="lg:col-start-1 lg:row-start-2">
+          <ol className="grid gap-2">
+            {inputs.map((x, i) => (
+              <li key={x.q} ref={(n) => { ins.current[i] = n; }} data-state={step === i + 1 && phase === "in" ? "active" : step > i + 1 || (step === i + 1 && phase !== "in") ? "done" : "idle"}
+                className="bm-in flex items-start gap-3 rounded-[16px] border border-white/10 bg-white/[0.04] px-3.5 py-3">
+                <div className="bm-in-body min-w-0 flex-1">
+                  <p className="text-[11px] text-white/50">ขั้นที่ {i + 1} · {x.name}</p>
+                  <p className="mt-0.5 text-[14px] font-semibold text-white">{x.q}</p>
+                  <div className="mt-2">{x.body}</div>
+                </div>
+                {/* reserved slot: the tick appears in place, nothing shifts */}
+                <span aria-hidden="true" className="bm-used ir-grad-fill grid h-6 w-6 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick /></span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* ② the machine */}
+        <div className="bm-chamber relative mt-1 lg:mt-0 h-[210px] rounded-[26px] border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] lg:col-start-2 lg:row-start-2 lg:h-auto lg:min-h-[440px]">
+          <span aria-hidden="true" className="bm-scan pointer-events-none absolute inset-x-3 top-0 h-px" />
+          <div ref={core} className="absolute left-1/2 top-1/2 h-0 w-0">
+            <div aria-hidden="true" className="bm-ring absolute h-[132px] w-[132px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
+            <div aria-hidden="true" className="absolute h-[104px] w-[104px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-ir-dark" />
+            <div className="bm-core absolute grid h-[72px] w-[72px] -translate-x-1/2 -translate-y-1/2 place-items-center overflow-hidden rounded-full bg-white">
+              <img src="/irplus-logo.jpg" alt="IR Plus" width={56} height={56} className="h-14 w-14 object-contain" />
+            </div>
+            {phase === "proc" && Array.from({ length: 10 }, (_, j) => (
+              <span key={`${step}-${j}`} aria-hidden="true" className="bm-spark absolute" style={{ rotate: `${j * 36}deg` }}><span /></span>
+            ))}
+            {geo && busy && phase === "in" && (
+              <span key={`in-${step}`} aria-hidden="true" className="bm-token" style={{ "--sx": `${geo.s[step - 1].x}px`, "--sy": `${geo.s[step - 1].y}px` } as Vars}>{inputs[step - 1].token}</span>
+            )}
+            {geo && busy && phase === "out" && (
+              <span key={`out-${step}`} aria-hidden="true" className="bm-out" style={{ "--ex": `${geo.e[step - 1].x}px`, "--ey": `${geo.e[step - 1].y}px` } as Vars} />
+            )}
+          </div>
+          <p role="status" className="absolute inset-x-2 bottom-3 text-center text-[12px] font-medium text-white/70">{status}</p>
+        </div>
+
+        {/* ③ what comes out */}
+        <div className="mt-3 lg:col-start-3 lg:row-start-1 lg:mt-0"><ColHead n="02" title="ผลลัพธ์" sub="สิ่งที่นักออกแบบได้รับ" tone="lime" /></div>
+        <div className="lg:col-start-3 lg:row-start-2">
+          <div className="relative">
+            <div className="relative rounded-[20px] bg-white p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] sm:p-5">
+              <div className="flex items-center justify-between gap-3 border-b border-ir-border pb-3">
+                <div>
+                  <p className="font-mono text-[11px] font-semibold tracking-[0.12em] text-ir-t3">REQUIREMENT</p>
+                  <p className="text-[16px] font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
+                </div>
+                <span data-on={step === 5} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-[13px] font-semibold">
+                  <span className="bm-ready-dot grid h-6 w-6 place-items-center rounded-full"><Tick /></span>
+                  {step === 5 ? "พร้อมส่ง" : "รอเรียบเรียง"}
+                </span>
+              </div>
+              <div className="divide-y divide-ir-border">
+                {blocks.map((b, i) => (
+                  <div key={b.label} ref={(n) => { outs.current[i] = n; }} data-on={step > i + 1 || (step === i + 1 && phase === "out")} className="bm-blk relative py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-ir-accent-text">{b.label}</p>
+                    <div aria-hidden="true" className="bm-skel absolute inset-x-0 bottom-3 top-8 grid content-start gap-1.5">
+                      <span className="h-2.5 w-2/3 rounded-full bg-ir-muted" /><span className="h-2.5 w-1/2 rounded-full bg-ir-muted" />
+                    </div>
+                    <div className="bm-content mt-1.5">{b.body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -94,3 +94,19 @@ create policy "proj_read"  on public.projects for select using (auth.role() = 'a
 create policy "proj_write" on public.projects for all
   using (public.current_role() in ('admin','sales'))
   with check (public.current_role() in ('admin','sales'));
+
+-- contact_messages: homepage "ฝากเรื่อง" form. Anyone may leave a message (insert only);
+-- internal roles read and manage them.
+create table if not exists public.contact_messages (
+  id text primary key,
+  name text, company text, contact text, topic text, message text,
+  created_at timestamptz default now()
+);
+alter table public.contact_messages enable row level security;
+create policy "msg_insert" on public.contact_messages for insert with check (true);
+create policy "msg_read" on public.contact_messages for select using (
+  public.current_role() in ('admin','sales','pm','executive')
+);
+create policy "msg_delete" on public.contact_messages for delete using (
+  public.current_role() in ('admin','sales')
+);
