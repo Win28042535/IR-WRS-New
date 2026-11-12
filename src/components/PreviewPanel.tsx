@@ -112,8 +112,8 @@ const DARK: PanelTheme = {
   text3: "text-white/25",
   dragIcon: "text-white/20",
   progressBg: "bg-white/[0.06]",
-  progressFill: "rgba(170,204,0,0.7)",
-  emptyBg: "rgba(170,204,0,0.08)",
+  progressFill: "rgba(188,196,22,0.7)",
+  emptyBg: "rgba(188,196,22,0.08)",
   libBg: "#151823",
   libBorder: "border-white/[0.07]",
   libTabActive: "bg-white/[0.1] text-white",
@@ -145,8 +145,8 @@ const LIGHT: PanelTheme = {
   text3: "text-ir-t3",
   dragIcon: "text-ir-t3/50",
   progressBg: "bg-ir-border",
-  progressFill: "rgba(170,204,0,0.8)",
-  emptyBg: "rgba(170,204,0,0.08)",
+  progressFill: "rgba(188,196,22,0.8)",
+  emptyBg: "rgba(188,196,22,0.08)",
   libBg: "#FFFFFF",
   libBorder: "border-ir-border",
   libTabActive: "bg-ir-dark text-white",
@@ -578,9 +578,9 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
               style={{ background: theme.emptyBg }}
             >
               <svg width="24" height="24" viewBox="0 0 18 18" fill="none">
-                <rect x="2" y="3" width="14" height="2.5" rx="1.25" fill="rgba(170,204,0,0.45)" />
-                <rect x="2" y="7.5" width="10" height="2.5" rx="1.25" fill="rgba(170,204,0,0.25)" />
-                <rect x="2" y="12" width="12" height="2.5" rx="1.25" fill="rgba(170,204,0,0.25)" />
+                <rect x="2" y="3" width="14" height="2.5" rx="1.25" fill="rgba(188,196,22,0.45)" />
+                <rect x="2" y="7.5" width="10" height="2.5" rx="1.25" fill="rgba(188,196,22,0.25)" />
+                <rect x="2" y="12" width="12" height="2.5" rx="1.25" fill="rgba(188,196,22,0.25)" />
               </svg>
             </div>
             <p className={`text-[12px] leading-relaxed ${theme.text3}`}>
@@ -679,7 +679,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                       className="absolute left-1 right-1 h-[2.5px] rounded-full bg-ir-accent pointer-events-none"
                       style={{
                         [insertAtTop ? "top" : "bottom"]: "-3px",
-                        boxShadow: "0 0 6px rgba(170,204,0,0.65)",
+                        boxShadow: "0 0 6px rgba(188,196,22,0.65)",
                       }}
                     />
                   )}

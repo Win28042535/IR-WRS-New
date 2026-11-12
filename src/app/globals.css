@@ -3,24 +3,24 @@
 /* ═══════════════════════════════════════════════════════════════════
    IR PLUS · WRS Design System — single source of truth (see design-system.md)
    Design DNA follows the production WRS (ir-requirement.intern-studio.com):
-   lime primary #B9E604 on a warm, olive-tinted neutral scale, black pill CTAs,
+   IR Plus yellow-green #D7E027 (CI) on a warm, olive-tinted neutral scale, black pill CTAs,
    IBM Plex Sans Thai throughout. Text tokens are tuned to clear WCAG AA (4.5:1)
    on both white cards and the page background.
    Token NAMES (ir-*) are kept so existing markup re-skins; values follow the system.
    ═══════════════════════════════════════════════════════════════════ */
 @theme {
   /* ── Primary scale (brand / interactive) ── */
-  --color-primary-50:  #F8FCE6;
-  --color-primary-100: #EFF8CB;   /* accent surface (selected card, soft highlight) */
-  --color-primary-200: #DCEF8F;
-  --color-primary-300: #CBEB4A;
-  --color-primary-400: #C2EA1F;
-  --color-primary-500: #B9E604;   /* main brand */
-  --color-primary-600: #A5CD03;
-  --color-primary-700: #8FAB00;   /* focus ring */
-  --color-primary-800: #5F7000;
-  --color-primary-900: #4D5E00;   /* green text on light — 6.8:1 */
-  --color-primary-950: #2E3800;
+  --color-primary-50:  #FAFBE8;
+  --color-primary-100: #EEF4C2;   /* accent surface (selected card, soft highlight) */
+  --color-primary-200: #F3F78F;
+  --color-primary-300: #EEF46A;
+  --color-primary-400: #E3EB3C;
+  --color-primary-500: #D7E027;   /* main brand — IR Plus CI yellow-green */
+  --color-primary-600: #BCC416;
+  --color-primary-700: #8F9705;   /* focus ring */
+  --color-primary-800: #6E7800;
+  --color-primary-900: #5F6A00;   /* green text on light — 5.5:1 on page bg */
+  --color-primary-950: #2E3300;
 
   /* ── Neutral scale (text / surface / border) — olive-tinted ── */
   --color-neutral-50:  #F7F8F3;   /* page background */
@@ -39,15 +39,15 @@
   --color-ir-dark: #141613;        /* dark surface / primary CTA fill (Neutral 950) */
   --color-ir-nav: #141613;         /* deepest dark (Neutral 950) */
   --color-ir-card-dark: #272B23;   /* dark section (Neutral 800) */
-  --color-ir-forest: #B9E604;      /* (legacy name) → primary */
-  --color-ir-accent: #B9E604;      /* Primary 500 — brand / interactive fills */
-  --color-ir-accent-hi: #C2EA1F;   /* hover (Primary 400) */
-  --color-ir-accent-lo: #A5CD03;   /* active/pressed (Primary 600) */
-  --color-ir-accent-soft: #EFF8CB; /* selected / highlighted surface (Primary 100) */
-  --color-ir-select: #A7BE42;      /* border of a selected option card */
-  --color-ir-select-soft: #C8D58E; /* border of a hovered option card */
-  --color-ir-accent-text: #4D5E00; /* readable green text on light (Primary 900) */
-  --color-ir-ring: #8FAB00;        /* focus ring (Primary 700) */
+  --color-ir-forest: #D7E027;      /* (legacy name) → primary */
+  --color-ir-accent: #D7E027;      /* Primary 500 — brand / interactive fills */
+  --color-ir-accent-hi: #E3EB3C;   /* hover (Primary 400) */
+  --color-ir-accent-lo: #BCC416;   /* active/pressed (Primary 600) */
+  --color-ir-accent-soft: #EEF4C2; /* selected / highlighted surface (Primary 100) */
+  --color-ir-select: #A9B11A;      /* border of a selected option card */
+  --color-ir-select-soft: #D3D98A; /* border of a hovered option card */
+  --color-ir-accent-text: #5F6A00; /* readable green text on light (Primary 900) */
+  --color-ir-ring: #8F9705;        /* focus ring (Primary 700) */
   --color-ir-on-accent: #171A15;   /* text/icon on a Primary fill */
   --color-ir-bg: #F7F8F3;          /* page background (Neutral 50) */
   --color-ir-muted: #ECEEE7;       /* muted surface (Neutral 100) */
@@ -74,7 +74,24 @@
 :root {
   --background: #F7F8F3;     /* Neutral 50 */
   --foreground: #1C1F19;     /* Neutral 900 (body) */
+  /* IR Plus CI as a lit surface: highlight → CI → shade. Fills only (buttons, dots, icons, bars). */
+  --ir-grad: linear-gradient(135deg, #F3F78F 0%, #E3EB3C 40%, #D7E027 70%, #BCC416 100%);
 }
+
+/* Gradient fill for brand surfaces; text/icons on it use ir-on-accent. */
+.ir-grad-fill { background-image: var(--ir-grad); }
+/* Gradient headline word. On light it runs deep olive → Primary 700 so every glyph keeps
+   ≥3:1 (large-text AA) on the page background; on dark it runs CI → highlight. */
+.ir-grad-text, .ir-grad-text-dark {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.ir-grad-text { background-image: linear-gradient(100deg, #4D5700 0%, #6E7800 45%, #8F9705 100%); }
+.ir-grad-text-dark { background-image: linear-gradient(100deg, #D7E027 0%, #EEF46A 55%, #F3F78F 100%); }
+@media (forced-colors: active) { .ir-grad-text, .ir-grad-text-dark { color: CanvasText; background: none; } }
 
 /* ── Dark theme (toggle by adding class `dark` to <html>) — Dark Theme Ready ── */
 .dark {
@@ -88,7 +105,7 @@
   --color-ir-t1: #F4F4F5;
   --color-ir-t2: #A0A3AB;
   --color-ir-t3: #6F727C;
-  --color-ir-accent-text: #CCFB1A;   /* brighter green reads better on dark */
+  --color-ir-accent-text: #EEF46A;   /* brighter green reads better on dark */
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -160,7 +177,7 @@ body {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--color-ir-ring);
-  box-shadow: 0 0 0 3px rgba(185, 230, 4, 0.28);
+  box-shadow: 0 0 0 3px rgba(215,224,39, 0.28);
 }
 
 /* Keyboard focus on anything interactive — visible on every surface. In @layer base so a
@@ -400,9 +417,9 @@ input:focus, textarea:focus, select:focus {
 
 /* Workspace row — brief landing highlight right after the ghost arrives */
 @keyframes wrs-row-landed {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
-  35%  { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
-  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(215,224,39,0); }
+  35%  { transform: scale(1.02); box-shadow: 0 0 0 3px rgba(215,224,39,0.35); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(215,224,39,0); }
 }
 .wrs-row-landed { animation: wrs-row-landed 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; border-color: var(--color-ir-accent) !important; }
 
@@ -426,15 +443,15 @@ input:focus, textarea:focus, select:focus {
    pulse or the native :active press) right when a ghost lands here — either a fresh
    selection settling in, or a removed section's ghost returning home. */
 @keyframes wrs-card-glow {
-  0%   { box-shadow: 0 0 0 0 rgba(185,230,4,0); }
-  35%  { box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
-  100% { box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(215,224,39,0); }
+  35%  { box-shadow: 0 0 0 3px rgba(215,224,39,0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(215,224,39,0); }
 }
 .wrs-card-glow { animation: wrs-card-glow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* Workspace list — soft, transient accent wash while a ghost is inbound from the picker,
    so the destination reads as "about to receive something" ahead of the item landing. */
-.wrs-list-inbound { background-color: rgba(185,230,4,0.05); }
+.wrs-list-inbound { background-color: rgba(215,224,39,0.05); }
 
 /* Structure step — contextual "AI recommends" chip strip. Re-plays (via a changing React
    `key`) every time the suggestion set refreshes to a newly-picked section, so each new
@@ -459,9 +476,9 @@ input:focus, textarea:focus, select:focus {
    highlight, then back to normal. No scale overshoot/bounce — a plain settle-and-highlight,
    professional rather than playful. ~300ms, inside the 250-350ms target. */
 @keyframes reference-card-insert {
-  0%   { opacity: 0; transform: translateY(6px); border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
-  40%  { opacity: 1; transform: translateY(0); border-color: var(--color-ir-accent); box-shadow: 0 0 0 3px rgba(185,230,4,0.35); }
-  100% { border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(185,230,4,0); }
+  0%   { opacity: 0; transform: translateY(6px); border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(215,224,39,0); }
+  40%  { opacity: 1; transform: translateY(0); border-color: var(--color-ir-accent); box-shadow: 0 0 0 3px rgba(215,224,39,0.35); }
+  100% { border-color: var(--color-ir-border); box-shadow: 0 0 0 0 rgba(215,224,39,0); }
 }
 .reference-card-insert { animation: reference-card-insert 0.3s cubic-bezier(0.4, 0, 0.2, 1) both; }
 
@@ -634,7 +651,7 @@ input:focus, textarea:focus, select:focus {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #B9E604;
+  background: #D7E027;
   animation: luma-dot-bounce 0.8s ease-in-out infinite;
 }
 
@@ -653,7 +670,7 @@ input:focus, textarea:focus, select:focus {
   transition: background 0.5s ease;
   pointer-events: none;
 }
-.ai-guide-card[data-mode="insight"]   { --guide-stripe: #B9E604; }
+.ai-guide-card[data-mode="insight"]   { --guide-stripe: #D7E027; }
 .ai-guide-card[data-mode="recommend"] { --guide-stripe: rgba(13,110,253,0.55); }
 .ai-guide-card[data-mode="tip"]       { --guide-stripe: rgba(160,163,171,0.28); }
 .ai-guide-card[data-mode="celebrate"] {
@@ -672,9 +689,9 @@ input:focus, textarea:focus, select:focus {
 
 /* ── Quiz selection flash — card brightens briefly before advancing ── */
 @keyframes wrs-quiz-select {
-  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, #B9E604 0%,  transparent); }
-  40%  { box-shadow: 0 0 0 4px color-mix(in srgb, #B9E604 30%, transparent); }
-  100% { box-shadow: 0 0 0 4px color-mix(in srgb, #B9E604 0%,  transparent); }
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, #D7E027 0%,  transparent); }
+  40%  { box-shadow: 0 0 0 4px color-mix(in srgb, #D7E027 30%, transparent); }
+  100% { box-shadow: 0 0 0 4px color-mix(in srgb, #D7E027 0%,  transparent); }
 }
 .wrs-quiz-selected {
   animation: wrs-quiz-select 0.22s ease-out both;

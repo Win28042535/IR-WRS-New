@@ -10,9 +10,9 @@ import { directionById } from "./data";
 // ── IR PLUS corporate identity (WRS Design System tokens) ──
 export const IRPLUS = {
   name: "IR PLUS",
-  green: "#AACC00",   // Primary 600 brand
+  green: "#BCC416",   // Primary 600 brand
   dark: "#151823",    // Neutral 900
-  blue: "#AACC00",    // (legacy field) → primary
+  blue: "#BCC416",    // (legacy field) → primary
 } as const;
 
 export interface PreviewBrand {
@@ -56,7 +56,7 @@ export function previewBrand(directionId: string): PreviewBrand {
 
 // Mood-specific palette seeds used before a Direction is chosen.
 const MOOD_BRAND: Record<string, { primary: string; accent: string; gradient: string }> = {
-  professional: { primary: "#0D1B4B", accent: "#AACC00", gradient: "linear-gradient(135deg,#0D1B4B,#050B1F)" },
+  professional: { primary: "#0D1B4B", accent: "#BCC416", gradient: "linear-gradient(135deg,#0D1B4B,#050B1F)" },
   luxury:       { primary: "#1A1208", accent: "#C8A855", gradient: "linear-gradient(135deg,#1A1208,#0D0905)" },
   modern:       { primary: "#03041C", accent: "#E5E7EB", gradient: "linear-gradient(135deg,#03041C,#000)" },
   esg:          { primary: "#1A3320", accent: "#5CB85C", gradient: "linear-gradient(135deg,#1A3320,#0D1A0D)" },

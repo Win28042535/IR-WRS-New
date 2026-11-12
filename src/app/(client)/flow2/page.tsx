@@ -1837,7 +1837,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                         // (not OptionCard) because the ghost-flight animation needs its ref.
                         "group/sel text-left rounded-[18px] border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-200 active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
                         sel
-                          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
+                          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)]"
                           : disabled
                             ? "border-ir-border bg-ir-card opacity-40 cursor-not-allowed"
                             // AI-recommended cards use the same neutral border as any other
@@ -1994,7 +1994,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
               // Once one is picked, the others recede (sel-recede) and come back on hover.
               className={`group/sel rounded-[16px] sm:rounded-[20px] border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-200 ${
                 isSelected
-                  ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)]"
+                  ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)]"
                   : `border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 ${activeDomain ? "sel-recede" : ""}`
               }`}
             >
@@ -2633,7 +2633,7 @@ function isLightHex(hex: string) {
 
 // Map the direction's palette into named swatches (name from the "X & Y" palette label).
 function namedPalette(dir: any): { hex: string; name: string; main: boolean }[] {
-  const colors: string[] = dir?.colors ?? ["#151823", "#AACC00", "#FFFFFF"];
+  const colors: string[] = dir?.colors ?? ["#151823", "#BCC416", "#FFFFFF"];
   const parts = String(dir?.palette ?? "").split(/\s*&\s*/);
   const fallback = ["Primary", "Accent", "Surface"];
   return colors.slice(0, 3).map((hex, i) => ({

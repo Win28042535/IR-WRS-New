@@ -34,7 +34,7 @@ export const EXPERTS: Record<ExpertId, Expert> = {
   design:   { id:"design",   name:"Design Guide",   initials:"DG", color:"#4C1D95", onColor:"#DDD6FE", tagline:"Visual direction & aesthetics" },
   content:  { id:"content",  name:"Content Guide",  initials:"CG", color:"#065F46", onColor:"#6EE7B7", tagline:"Content structure & messaging" },
   ir:       { id:"ir",       name:"IR Guide",       initials:"IR", color:"#78350F", onColor:"#FDE68A", tagline:"Investor relations best practices" },
-  analyst:  { id:"analyst",  name:"AI Analyst",     initials:"AI", color:"#AACC00", onColor:"#151823", tagline:"Data-driven insights" },
+  analyst:  { id:"analyst",  name:"AI Analyst",     initials:"AI", color:"#BCC416", onColor:"#151823", tagline:"Data-driven insights" },
 };
 
 const ACTION_META: { key: GuideAction; label: string }[] = [
@@ -46,7 +46,7 @@ const ACTION_META: { key: GuideAction; label: string }[] = [
 ];
 
 const MODE_DOT: Record<GuideMode, string> = {
-  insight:   "#AACC00",
+  insight:   "#BCC416",
   recommend: "#0D6EFD",
   tip:       "#A0A3AB",
   celebrate: "#34C759",

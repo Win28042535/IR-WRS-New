@@ -225,7 +225,7 @@ export function DevicePreview({
           <span className="text-white/40 text-[8px]">© 2026 {name}. All rights reserved.</span>
         </div>
         <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5 text-[7px] text-white/35">
-          <span className="inline-flex items-center justify-center w-3 h-3 rounded-sm" style={{ background: "#AACC00", color: "#151823" }}>✦</span>
+          <span className="inline-flex items-center justify-center w-3 h-3 rounded-sm" style={{ background: "#BCC416", color: "#151823" }}>✦</span>
           Powered by IR PLUS · Website Requirement System
         </div>
       </div>
@@ -257,7 +257,7 @@ export function DevicePreview({
       {comments.map((c, i) => (
         <button key={c.id} onClick={(e) => { e.stopPropagation(); setDraftPin(null); }}
           className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center ring-2 ring-white shadow-md z-10"
-          style={{ left: `${c.x}%`, top: `${c.y}%`, background: c.status === "resolved" ? "#34C759" : "#AACC00", color: c.status === "resolved" ? "#fff" : "#151823" }}>
+          style={{ left: `${c.x}%`, top: `${c.y}%`, background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>
           {i + 1}
         </button>
       ))}
@@ -336,7 +336,7 @@ function CommentRow({ n, c, onResolve, onDelete, onReply }: { n: number; c: PinC
   return (
     <div className={`border rounded-xl p-3 ${c.status === "resolved" ? "border-ir-border bg-ir-bg/60" : "border-ir-border bg-white"}`}>
       <div className="flex items-start gap-2.5">
-        <span className="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0" style={{ background: c.status === "resolved" ? "#34C759" : "#AACC00", color: c.status === "resolved" ? "#fff" : "#151823" }}>{n}</span>
+        <span className="w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0" style={{ background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>{n}</span>
         <div className="flex-1 min-w-0">
           <div className="text-[13px] text-ir-t1">{c.text}</div>
           {c.replies.map((r, i) => (<div key={i} className="text-[12px] text-ir-t2 mt-1 pl-2 border-l-2 border-ir-border">↳ {r}</div>))}

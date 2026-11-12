@@ -76,7 +76,7 @@ function Mouth({ kind, dx = 0 }: { kind: FaceSpec["mouth"]; dx?: number }) {
 export type LumaType = "insight" | "recommendation" | "reasoning" | "gap" | "tip" | "celebrate";
 
 const LUMA_COLOR: Record<LumaType, string> = {
-  insight:        "#AACC00",
+  insight:        "#BCC416",
   recommendation: "#0D6EFD",
   reasoning:      "#6366F1",
   gap:            "#F59E0B",
@@ -114,7 +114,7 @@ export function LumaLoader({ label = "กำลังเตรียมข้อ
             <stop offset="100%" stopColor="white" stopOpacity="0"    />
           </radialGradient>
         </defs>
-        <rect x="2" y="2" width="32" height="32" rx="7.4" fill="#AACC00" />
+        <rect x="2" y="2" width="32" height="32" rx="7.4" fill="#BCC416" />
         <rect x="2" y="2" width="32" height="32" rx="7.4" fill="url(#luma-loader-grad)" />
       </svg>
       <p className="text-[12px] text-ir-t3" aria-hidden>{label}</p>
@@ -197,14 +197,14 @@ export function AIMascot({
         </defs>
 
         {/* ── Body: squircle (rounded square) the LUMA signature ── */}
-        <rect x="1.5" y="1.5" width="25" height="25" rx="6.5" fill="#AACC00" />
+        <rect x="1.5" y="1.5" width="25" height="25" rx="6.5" fill="#BCC416" />
         <rect x="1.5" y="1.5" width="25" height="25" rx="6.5" fill={`url(#${gradId})`} />
 
         {/* ── Celebrate ring halo expands and fades on repeat ── */}
         {isCel && (
           <rect
             x="1.5" y="1.5" width="25" height="25" rx="6.5"
-            fill="none" stroke="#AACC00" strokeWidth="1.5"
+            fill="none" stroke="#BCC416" strokeWidth="1.5"
             className="mascot-halo"
           />
         )}

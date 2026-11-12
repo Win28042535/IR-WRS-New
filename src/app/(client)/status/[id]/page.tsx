@@ -48,7 +48,7 @@ export default function SubmittedPage() {
               staying a fixed 80px, which read as oversized relative to the card on mobile */}
           <div className="relative w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5">
             <div className="absolute inset-0 rounded-[14px] sm:rounded-[19px] bg-ir-accent/20 animate-ping" style={{ animationDuration: "2s" }} />
-            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-[14px] sm:rounded-[19px] bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(185,230,4,0.15)" }}>
+            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-[14px] sm:rounded-[19px] bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(215,224,39,0.15)" }}>
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
           </div>

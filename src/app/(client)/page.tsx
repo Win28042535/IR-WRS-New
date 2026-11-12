@@ -19,6 +19,12 @@ const balance = { textWrap: "balance" } as CSSProperties;
 
 const REASSURE = ["ไม่เกิน 20 นาที", "บันทึกอัตโนมัติ", "แก้ไขได้ก่อนเริ่มออกแบบ", "ไม่ต้องสมัครสมาชิก"];
 
+const STATS = [
+  { pre: "ไม่เกิน", n: "20", post: "นาที" },
+  { n: String(FLOW_STEPS.length), post: "ขั้นตอน" },
+  { n: "1–2", post: "วันทำการ ทีมติดต่อกลับ" },
+];
+
 const PREP = [
   "ชื่อบริษัท และเว็บไซต์ปัจจุบัน (ถ้ามี)",
   "กลุ่มนักลงทุนที่สำคัญ เช่น รายย่อย สถาบัน นักวิเคราะห์",
@@ -53,7 +59,7 @@ export default function Landing() {
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-[30%] top-[-280px] h-[680px] w-[1100px] -translate-x-1/2 rounded-full"
-        style={{ background: "radial-gradient(closest-side, rgba(185,230,4,0.38), rgba(185,230,4,0) 70%)" }}
+        style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.38), rgba(215,224,39,0) 70%)" }}
       />
 
       {/* ── Hero: the outcome, the first question, the live preview ── */}
@@ -70,10 +76,7 @@ export default function Landing() {
           <h1 className="mt-6 text-[clamp(2.2rem,4.6vw,3.9rem)] font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
             <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
             <span className="whitespace-nowrap">เริ่มจาก</span>{" "}
-            <span className="relative isolate inline-block whitespace-nowrap">
-              <span aria-hidden="true" className="absolute inset-x-[-0.12em] bottom-[0.08em] top-[0.42em] -z-10 rounded-[0.18em] bg-ir-accent" />
-              คำตอบของคุณ
-            </span>
+            <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">คำตอบของคุณ</span>
           </h1>
           <p className="mt-5 max-w-[34rem] text-[16px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
             ตอบคำถามสั้นๆ เลือกสไตล์จากภาพ แล้วรับ Moodboard และ Requirement ที่พร้อมส่งให้ทีมออกแบบ
@@ -99,8 +102,9 @@ export default function Landing() {
       {/* ── Each step, previewed ── */}
       <section id="steps" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
-            <span className="whitespace-nowrap">6 ขั้นตอน</span>{" "}<span className="whitespace-nowrap">แต่ละขั้นทำอะไร</span>
+          <Eyebrow n="01">ขั้นตอนทั้งหมด</Eyebrow>
+          <h2 className="mx-auto mt-5 max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <span className="whitespace-nowrap">{FLOW_STEPS.length} ขั้นตอน</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">แต่ละขั้นทำอะไร</span>
           </h2>
           <p className="mt-3 text-[16px] text-ir-t2">หน้าตาจริงของแต่ละขั้น ชื่อตรงกับแถบด้านบนตอนกรอก</p>
         </div>
@@ -109,7 +113,10 @@ export default function Landing() {
 
       {/* ── More detail, folded — for those who want to read first ── */}
       <section className="relative mx-auto max-w-[920px] px-5 sm:px-8 pt-16 sm:pt-20">
-        <h2 className="sc-reveal text-center text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
+        <div className="sc-reveal text-center">
+          <Eyebrow n="02">ก่อนเริ่ม</Eyebrow>
+          <h2 className="mt-5 text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
+        </div>
         <div className="sc-reveal mt-6 divide-y divide-ir-border rounded-[24px] border border-black/[0.06] bg-ir-card">
           <Fold title="ต้องเตรียมอะไรบ้าง">
             <p className="text-[15px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
@@ -135,13 +142,14 @@ export default function Landing() {
           <div
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-[-220px] h-[440px] w-[760px] -translate-x-1/2 rounded-full"
-            style={{ background: "radial-gradient(closest-side, rgba(185,230,4,0.24), rgba(185,230,4,0) 70%)" }}
+            style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.24), rgba(215,224,39,0) 70%)" }}
           />
           <div className="relative mx-auto max-w-[640px] text-center">
-            <h2 className="text-[clamp(1.9rem,3.8vw,3rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
-              <span className="whitespace-nowrap">พร้อมเริ่มเว็บไซต์ IR</span>{" "}<span className="whitespace-nowrap">ใหม่ขององค์กรคุณ</span>
+            <Eyebrow n="03" dark>พร้อมเริ่มแล้ว</Eyebrow>
+            <h2 className="mt-5 text-[clamp(1.9rem,3.8vw,3rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
+              <span className="whitespace-nowrap">พร้อมเริ่มเว็บไซต์ IR</span>{" "}<span className="ir-grad-text-dark whitespace-nowrap px-[0.02em] py-[0.15em]">ใหม่ขององค์กรคุณ</span>
             </h2>
-            <p className="mt-4 text-[16px] text-white/75">ไม่เกิน 20 นาที · ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+            <p className="mt-4 text-[16px] text-white/75">คำตอบบันทึกอัตโนมัติ ปิดแล้วกลับมาทำต่อจากจุดเดิมได้</p>
             <div className="mx-auto mt-8 max-w-[34rem] text-left">
               {flow.inProgress ? (
                 <div className="flex flex-col items-center gap-2">
@@ -152,6 +160,15 @@ export default function Landing() {
                 <StartForm value={company} onChange={setCompany} onStart={flow.startWith} inputId="company-input-bottom" dark />
               )}
             </div>
+            <ul className="mt-10 flex flex-wrap items-baseline justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-[14px] text-white/70">
+              {STATS.map((st) => (
+                <li key={st.post} className="inline-flex items-baseline gap-1.5">
+                  {st.pre && <span>{st.pre}</span>}
+                  <span className="ir-grad-text-dark text-[20px] font-semibold tabular-nums">{st.n}</span>
+                  <span>{st.post}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
         <p className="mt-10 text-center text-[13px] text-ir-t3">IR Plus by efin · Website Requirement System</p>
@@ -227,14 +244,15 @@ function StartForm({ value, onChange, onStart, inputId = "company-input", dark }
 // Work in progress: resume where they left off; starting over takes a second tap.
 function ResumeCard({ flow }: { flow: ReturnType<typeof useStartFlow> }) {
   const [confirmNew, setConfirmNew] = useState(false);
-  const pct = Math.round(((flow.step - 1) / FLOW_STEPS.length) * 100);
   return (
     <div className="rounded-[24px] border border-black/[0.06] bg-white/85 p-5 shadow-sm backdrop-blur">
       <p className="text-[14px] text-ir-t3">คุณทำค้างไว้</p>
       <p className="mt-0.5 text-[18px] font-semibold text-ir-t1">{flow.company || "เว็บไซต์ IR ของคุณ"}</p>
       <div className="mt-3 flex items-center gap-3">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ir-border" aria-hidden="true">
-          <div className="h-full rounded-full bg-ir-accent" style={{ width: `${Math.max(pct, 6)}%` }} />
+        <div className="flex flex-1 gap-1" aria-hidden="true">
+          {FLOW_STEPS.map((name, i) => (
+            <span key={name} className={`h-1.5 flex-1 rounded-full transition-colors ${i < flow.step ? "ir-grad-fill" : "bg-ir-border"}`} />
+          ))}
         </div>
         <span className="shrink-0 text-[13px] text-ir-t2">ขั้นที่ {flow.step}/{FLOW_STEPS.length} · {flow.stepName}</span>
       </div>
@@ -261,14 +279,26 @@ function PrimaryCta({ children, onClick, type = "button", onDark }: { children: 
       type={type}
       onClick={onClick}
       className={`group inline-flex h-[56px] shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 text-[16px] font-semibold transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
-        onDark ? "bg-ir-accent text-ir-on-accent hover:bg-ir-accent-hi" : "bg-ir-dark text-white shadow-[0_10px_30px_rgba(20,22,19,0.18)] hover:bg-neutral-800"
+        onDark ? "ir-grad-fill text-ir-on-accent shadow-[0_10px_40px_rgba(215,224,39,0.25)] hover:brightness-105" : "bg-ir-dark text-white shadow-[0_10px_30px_rgba(20,22,19,0.18)] hover:bg-neutral-800"
       }`}
     >
       {children}
-      <span className={`grid w-10 h-10 place-items-center rounded-full transition-transform duration-200 group-hover:translate-x-1 ${onDark ? "bg-ir-dark text-ir-accent" : "bg-ir-accent text-ir-on-accent"}`}>
+      <span className={`grid w-10 h-10 place-items-center rounded-full transition-transform duration-200 group-hover:translate-x-1 ${onDark ? "bg-ir-dark text-ir-accent" : "ir-grad-fill text-ir-on-accent"}`}>
         <IconArrowRight width={24} height={24} />
       </span>
     </button>
+  );
+}
+
+// Numbered section label (production WRS): CI-gradient number disc in a soft pill.
+function Eyebrow({ n, children, dark }: { n: string; children: ReactNode; dark?: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-2 rounded-full border py-1 pl-1 pr-3.5 text-[14px] font-medium ${
+      dark ? "border-white/15 bg-white/[0.06] text-white/85" : "border-black/[0.06] bg-white/80 text-ir-t2 shadow-sm backdrop-blur"
+    }`}>
+      <span className="ir-grad-fill grid h-7 min-w-7 place-items-center rounded-full px-1.5 text-[12px] font-semibold tabular-nums text-ir-on-accent">{n}</span>
+      {children}
+    </span>
   );
 }
 

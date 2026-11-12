@@ -8,7 +8,7 @@ function Bar({ w, c = "rgba(0,0,0,0.16)", h = 4 }: { w: string; c?: string; h?: 
 
 export function MiniMock({ colors, layout = "", className = "" }: { colors: string[]; layout?: string; className?: string }) {
   const primary = colors[0] || "#151823";
-  const accent = colors[1] || "#AACC00";
+  const accent = colors[1] || "#BCC416";
   const light = colors[2] || "#FFFFFF";
   const L = layout.toLowerCase();
   const kind = /data|dashboard|metric/.test(L) ? "data"

@@ -98,7 +98,7 @@ export function OptionCard({
     <div
       className={`group/sel relative flex items-center gap-3 rounded-[18px] border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
         selected
-          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(185,230,4,0.12)] active:scale-[0.98]"
+          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)] active:scale-[0.98]"
           : disabled
             ? "border-ir-border bg-ir-card opacity-40"
             : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 active:scale-[0.98]"
@@ -354,7 +354,7 @@ export function WorkspaceDividerToggle({
           className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-xl transition-all duration-500 active:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 z-30 animate-[wsdock-in_320ms_cubic-bezier(0.4,0,0.2,1)] ${
             empty
               ? "bg-ir-card border border-r-0 border-ir-border text-ir-t3 hover:text-ir-t2 hover:border-ir-border-hi hover:scale-[1.06] active:scale-[0.98]"
-              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(170,204,0,0.35)] active:scale-[0.98] active:shadow-none"
+              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(188,196,22,0.35)] active:scale-[0.98] active:shadow-none"
           }`}
           style={{ width: 36, height: 44, right: 0 }}
         >
