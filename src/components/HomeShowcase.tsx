@@ -118,7 +118,12 @@ export function Moodboard({ company }: { company: string }) {
           <div className="col-span-3">{sections}</div>
         </div>
       </div>
-      <figcaption className="mt-3 text-center text-[14px] text-ir-t3">สรุปจากคำตอบของคุณ: หน้าเว็บ แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก</figcaption>
+      <figcaption className="mt-3 text-center text-[14px] text-ir-t3" style={{ textWrap: "balance" }}>
+        สรุปจากคำตอบของคุณ: หน้าเว็บ แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
+        <span className="mt-1 block text-[13px]">
+          หมายเหตุ: ไม่ใช่แบบเว็บไซต์จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
+        </span>
+      </figcaption>
     </figure>
   );
 }
@@ -300,5 +305,127 @@ export function StepGallery() {
     <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {FLOW_STEPS.map((name, i) => <StepCard key={name} i={i} name={name} />)}
     </ol>
+  );
+}
+
+// ── What the team receives ─────────────────────────────────────────────────────
+// Row by row: an answer as the client gives it (dark, left) becomes one heading of the
+// Requirement the designer reads (light, right). A CI-coloured spark keeps travelling
+// along each link, so the panel reads as "being compiled". Same sample as the Moodboard.
+// Motion (globals.css .bf-*): rows enter when scrolled into view; reduced motion = static.
+const DarkChip = ({ n, on, children }: { n?: number; on?: boolean; children: ReactNode }) => (
+  <span className={`inline-flex items-center gap-1.5 rounded-full border py-1 text-[12px] font-medium ${n ? "pl-1 pr-2.5" : "px-2.5"} ${
+    on === false ? "border-white/10 text-white/40" : on ? "border-ir-accent/50 bg-ir-accent/10 text-white" : "border-white/12 bg-white/[0.05] text-white/85"
+  }`}>
+    {n !== undefined && <span className="ir-grad-fill grid h-5 w-5 place-items-center rounded-full font-mono text-[11px] font-bold text-ir-on-accent">{n}</span>}
+    {on && <IconCheck width={14} height={14} className="text-ir-accent" />}
+    {children}
+  </span>
+);
+
+export function BriefFlow() {
+  const ref = useRef<HTMLDivElement>(null);
+  const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
+  const pair = FONT_PAIRINGS[SAMPLE.dir];
+  const audiences = ["institutional", "analyst", "retail"].map((id) => IR_AUDIENCES.find((a) => a.id === id)!);
+  const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 3);
+  const picks = Object.values(SAMPLE.picks);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    el.dataset.bf = "idle";
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      el.dataset.bf = "on";
+      io.disconnect();
+    }, { threshold: 0.2 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const rows: { step: number; q: string; answer: ReactNode; label: string; head: ReactNode; body: ReactNode }[] = [
+    {
+      step: 1, q: "ใครคือผู้อ่านหลัก",
+      answer: <div className="flex flex-wrap gap-1.5">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div>,
+      label: "กลุ่มเป้าหมาย",
+      head: <>ผู้อ่านหลักคือ{audiences[0].label}</>,
+      body: audiences[0].shapes,
+    },
+    {
+      step: 2, q: "เว็บไซต์ต้องทำอะไรได้",
+      answer: <div className="flex flex-wrap gap-1.5">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div>,
+      label: "เป้าหมาย · 2 ข้อหลัก",
+      head: <>{goals[0].label}</>,
+      body: <>รองลงมา: {goals[1].label}</>,
+    },
+    {
+      step: 3, q: "ตอบ 5 ข้อจากภาพ",
+      answer: (
+        <div className="grid max-w-[260px] grid-cols-5 gap-1.5">
+          {picks.map((p, j) => (
+            <span key={j} className="grid aspect-square place-items-center rounded-[8px] border border-white/12 bg-white/[0.05] text-[12px] font-semibold text-white/85">
+              <span className="text-[10px] font-medium text-white/45">ข้อ {j + 1}</span>{p}
+            </span>
+          ))}
+        </div>
+      ),
+      label: "แนวทางดีไซน์ · สรุปจาก 5 ข้อ",
+      head: <span style={{ fontFamily: fontStack(pair.heading) }}>{d.label}</span>,
+      body: <>{d.tagline} · ฟอนต์ {pair.heading} + {pair.thai}</>,
+    },
+    {
+      step: 4, q: "เรียงเนื้อหาบนหน้าแรก",
+      answer: <div className="flex flex-wrap gap-1.5">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div>,
+      label: `โครงหน้าแรก · ${SAMPLE_SECTIONS.length} Section`,
+      head: <>{SAMPLE_SECTIONS.slice(0, 3).join(" → ")}</>,
+      body: <>เรียงตามผู้อ่านหลัก {audiences[0].label}มองหาตัวเลขก่อน · Header และ Footer ระบบจัดให้</>,
+    },
+  ];
+
+  return (
+    <div ref={ref} className="bf relative overflow-clip rounded-[28px] sm:rounded-[32px] bg-ir-dark p-3 sm:p-6 lg:p-8">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.16), rgba(215,224,39,0) 70%)" }} />
+
+      <div className="relative hidden lg:grid grid-cols-[1fr_96px_1fr] items-center px-1 pb-4 text-[14px] font-semibold">
+        <p className="text-white/70">สิ่งที่คุณตอบในแบบฟอร์ม</p>
+        <span />
+        <p className="text-ir-accent">สิ่งที่นักออกแบบเปิดอ่าน</p>
+      </div>
+
+      <ol className="relative grid gap-6 lg:gap-4">
+        {rows.map((r, i) => (
+          <li key={r.step} className="grid lg:grid-cols-[1fr_96px_1fr]" style={v({ i })}>
+            <div className="bf-a min-w-0 rounded-[18px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm">
+              <p className="text-[12px] text-white/55">ขั้นที่ {r.step} · {FLOW_STEPS[r.step - 1]}</p>
+              <p className="mt-1 text-[15px] font-semibold text-white">{r.q}</p>
+              <div className="mt-3">{r.answer}</div>
+            </div>
+            <div aria-hidden="true" className="relative h-9 lg:h-auto">
+              <span className="bf-line absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-white/20 to-ir-accent lg:inset-y-auto lg:inset-x-3 lg:top-1/2 lg:left-auto lg:h-px lg:w-auto lg:translate-x-0 lg:-translate-y-1/2 lg:bg-gradient-to-r" />
+              <span className="bf-dot" />
+            </div>
+            <div className="bf-r group relative min-w-0 overflow-hidden rounded-[18px] bg-white p-4 pl-5 transition-[translate,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-16px_rgba(215,224,39,0.45)]">
+              <span aria-hidden="true" className="ir-grad-fill absolute inset-y-3 left-0 w-1 rounded-r-full" />
+              <p className="text-[12px] font-semibold text-ir-accent-text">{r.label}</p>
+              <p className="mt-1 text-[17px] font-semibold leading-snug text-ir-t1">{r.head}</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ir-t2">{r.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="relative mt-6 flex justify-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-1.5 pr-4 text-[14px] text-white/80 backdrop-blur">
+          <span className="ir-grad-fill grid h-7 w-7 place-items-center rounded-full text-ir-on-accent"><IconCheck width={16} height={16} /></span>
+          <span><b className="font-semibold text-white">IR Plus</b> เรียบเรียงเป็น Requirement + Moodboard</span>
+        </span>
+      </div>
+    </div>
   );
 }

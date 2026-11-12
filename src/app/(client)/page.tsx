@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { FLOW_STEPS } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
-import { Moodboard, StepGallery } from "@/components/HomeShowcase";
+import { BriefFlow, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
 
 const balance = { textWrap: "balance" } as CSSProperties;
@@ -102,8 +102,7 @@ export default function Landing() {
       {/* ── Each step, previewed ── */}
       <section id="steps" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <Eyebrow n="01">ขั้นตอนทั้งหมด</Eyebrow>
-          <h2 className="mx-auto mt-5 max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">{FLOW_STEPS.length} ขั้นตอน</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">แต่ละขั้นทำอะไร</span>
           </h2>
           <p className="mt-3 text-[16px] text-ir-t2">หน้าตาจริงของแต่ละขั้น ชื่อตรงกับแถบด้านบนตอนกรอก</p>
@@ -111,10 +110,22 @@ export default function Landing() {
         <div className="mt-10"><StepGallery /></div>
       </section>
 
+      {/* ── What the team receives — each answer becomes a heading of the Requirement ── */}
+      <section id="brief" className="relative mx-auto max-w-[1100px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
+        <div className="sc-reveal text-center">
+          <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
+          </h2>
+          <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
+            ทีม IR Plus ได้รับ Requirement ที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
+          </p>
+        </div>
+        <div className="sc-reveal mt-10"><BriefFlow /></div>
+      </section>
+
       {/* ── More detail, folded — for those who want to read first ── */}
       <section className="relative mx-auto max-w-[920px] px-5 sm:px-8 pt-16 sm:pt-20">
         <div className="sc-reveal text-center">
-          <Eyebrow n="02">ก่อนเริ่ม</Eyebrow>
           <h2 className="mt-5 text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.03em]">อยากรู้รายละเอียดก่อนเริ่ม</h2>
         </div>
         <div className="sc-reveal mt-6 divide-y divide-ir-border rounded-[24px] border border-black/[0.06] bg-ir-card">
@@ -145,7 +156,6 @@ export default function Landing() {
             style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.24), rgba(215,224,39,0) 70%)" }}
           />
           <div className="relative mx-auto max-w-[640px] text-center">
-            <Eyebrow n="03" dark>พร้อมเริ่มแล้ว</Eyebrow>
             <h2 className="mt-5 text-[clamp(1.9rem,3.8vw,3rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
               <span className="whitespace-nowrap">พร้อมเริ่มเว็บไซต์ IR</span>{" "}<span className="ir-grad-text-dark whitespace-nowrap px-[0.02em] py-[0.15em]">ใหม่ขององค์กรคุณ</span>
             </h2>
@@ -287,18 +297,6 @@ function PrimaryCta({ children, onClick, type = "button", onDark }: { children: 
         <IconArrowRight width={24} height={24} />
       </span>
     </button>
-  );
-}
-
-// Numbered section label (production WRS): CI-gradient number disc in a soft pill.
-function Eyebrow({ n, children, dark }: { n: string; children: ReactNode; dark?: boolean }) {
-  return (
-    <span className={`inline-flex items-center gap-2 rounded-full border py-1 pl-1 pr-3.5 text-[14px] font-medium ${
-      dark ? "border-white/15 bg-white/[0.06] text-white/85" : "border-black/[0.06] bg-white/80 text-ir-t2 shadow-sm backdrop-blur"
-    }`}>
-      <span className="ir-grad-fill grid h-7 min-w-7 place-items-center rounded-full px-1.5 text-[12px] font-semibold tabular-nums text-ir-on-accent">{n}</span>
-      {children}
-    </span>
   );
 }
 
