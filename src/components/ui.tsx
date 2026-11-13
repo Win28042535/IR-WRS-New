@@ -16,7 +16,7 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
       <div className="max-w-[1000px] mx-auto px-5 lg:px-7 pt-3 pb-3">
         <div className="relative flex items-center justify-center min-h-9">
           <div
-            className="flex items-center gap-2 max-w-[calc(100%-7rem)] rounded-full border border-ir-border bg-ir-card px-4 py-2 shadow-[0_5px_16px_rgba(20,22,19,0.04)]"
+            className="flex items-center gap-2 max-w-[calc(100%-7rem)] rounded-full border border-ir-border bg-ir-card px-4 py-2 shadow-e1"
             aria-label={`ขั้นตอนที่ ${current} จาก ${steps.length}: ${steps[current - 1]}`}
             title={stepsEn?.[current - 1]}
           >
@@ -95,9 +95,9 @@ export function OptionCard({
 }) {
   return (
     <div
-      className={`group/sel relative flex items-center gap-3 rounded-[18px] border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
+      className={`group/sel relative flex items-center gap-3 rounded-xl border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
         selected
-          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)] active:scale-[0.98]"
+          ? "border-ir-select bg-primary-50 shadow-selected active:scale-[0.98]"
           : disabled
             ? "border-ir-border bg-ir-card opacity-40"
             : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 active:scale-[0.98]"
@@ -108,7 +108,7 @@ export function OptionCard({
         onClick={onSelect}
         aria-pressed={selected}
         disabled={disabled}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-[18px] after:content-['']"
+        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']"
       >
         {rank ? (
           <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-[16px] font-bold">
@@ -205,7 +205,7 @@ export function SectionDivider() {
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`bg-ir-card border border-ir-border rounded-xl ir-shadow ${className}`}>{children}</div>
+    <div className={`bg-ir-card border border-ir-border rounded-md shadow-e1 ${className}`}>{children}</div>
   );
 }
 
@@ -334,7 +334,7 @@ export function WorkspaceDividerToggle({
           onMouseDown={(e) => e.stopPropagation()}
           onClick={toggleWsCollapsed}
           title="ซ่อน Living Workspace"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-sm text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 transition-all duration-150 z-20"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-e1 text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 transition-all duration-150 z-20"
           style={{ width: 24, height: 36 }}
         >
           <WorkspaceDockIcon direction="close" />
@@ -350,10 +350,10 @@ export function WorkspaceDividerToggle({
           onClick={toggleWsCollapsed}
           title={empty ? "Living Workspace" : "เปิด Living Workspace"}
           aria-label={empty ? "Living Workspace (ยังไม่มีข้อมูล)" : "เปิด Living Workspace"}
-          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-xl transition-all duration-500 active:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 z-30 animate-[wsdock-in_320ms_cubic-bezier(0.4,0,0.2,1)] ${
+          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-md transition-all duration-500 active:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 z-30 animate-[wsdock-in_320ms_cubic-bezier(0.4,0,0.2,1)] ${
             empty
               ? "bg-ir-card border border-r-0 border-ir-border text-ir-t3 hover:text-ir-t2 hover:border-ir-border-hi hover:scale-[1.06] active:scale-[0.98]"
-              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-[0_0_20px_rgba(188,196,22,0.35)] active:scale-[0.98] active:shadow-none"
+              : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-glow active:scale-[0.98] active:shadow-none"
           }`}
           style={{ width: 36, height: 44, right: 0 }}
         >

@@ -197,7 +197,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
       {/* recommendation bar */}
       <div className={`sb-rec grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${showRec ? "mb-5 grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"}`} aria-hidden={!showRec}>
         <div className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 rounded-[18px] bg-[#F4F5F1] p-3 sm:flex-nowrap">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl bg-ir-sunken p-3 sm:flex-nowrap">
             <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-[16px] text-ir-on-accent">✦</span>
             <div className="min-w-0 flex-1 text-[14px] leading-snug">
               <p className="font-semibold text-ir-t1">มีชุดเนื้อหาที่แนะนำจากคำตอบก่อนหน้า</p>
@@ -231,12 +231,12 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 disabled={dim}
                 aria-pressed={used}
                 title={sectionById(id)?.desc}
-                className={`flex min-h-[52px] items-center gap-2.5 rounded-[14px] border px-3.5 py-2.5 text-left text-[15px] transition-[background-color,border-color,opacity,transform] duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
-                  used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-[#ECECEA] bg-[#FCFCFB] opacity-45" : "border-[#ECECEA] bg-[#FCFCFB] hover:border-ir-select-soft hover:bg-white"
+                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-[15px] transition-[background-color,border-color,opacity,transform] duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                  used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
                 }`}
               >
                 <span className="min-w-0 flex-1 truncate font-semibold text-ir-t1">{shortName(id)}</span>
-                {recSet.has(id) && <span className="shrink-0 rounded-full bg-[#EEF4C2] px-2 py-0.5 text-[13px] font-semibold text-ir-accent-text">แนะนำ</span>}
+                {recSet.has(id) && <span className="shrink-0 rounded-full bg-ir-accent-soft px-2 py-0.5 text-[13px] font-semibold text-ir-accent-text">แนะนำ</span>}
                 <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[13px] font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-[16px] font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
               </button>
             );
@@ -244,7 +244,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
         </div>
 
         {/* outline */}
-        <div className="rounded-[22px] bg-[#F3F4F0] p-2.5 lg:sticky lg:top-24">
+        <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-24">
           <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
             <p className="text-[15px] font-semibold text-ir-t1">ลำดับเนื้อหาบนเว็บไซต์</p>
             <span className="rounded-full bg-white px-2 py-0.5 font-mono text-[13px] text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
@@ -255,8 +255,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               const id = optional[i];
               if (!id) {
                 return (
-                  <li key={`empty-${i}`} ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-[10px] border border-dashed border-[#DCDFD6] px-2 text-[14px] text-[#B4B8AE]">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-[#CFD2C9] font-mono text-[13px]">{i + 1}</span>
+                  <li key={`empty-${i}`} ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-[14px] text-ir-disabled">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi font-mono text-[13px]">{i + 1}</span>
                     ว่าง
                   </li>
                 );
@@ -286,8 +286,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     ...(delay !== undefined ? { animationDelay: `${delay}ms` } : null),
                   }}
                   className={[
-                    "relative flex min-h-11 select-none items-center gap-2 rounded-[10px] bg-white pl-2 pr-1 text-[14.5px] font-bold text-ir-t1 outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
-                    dragging ? "z-10 cursor-grabbing shadow-[0_18px_36px_rgba(23,25,22,0.22)] ring-2 ring-ir-select" : "cursor-grab",
+                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-[14.5px] font-bold text-ir-t1 outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+                    dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "cursor-grab",
                     drag && !dragging ? "transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
@@ -299,7 +299,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   <span
                     aria-hidden="true"
                     onPointerDown={(e) => { e.stopPropagation(); rowDown(e, id, true); }}
-                    className="grid h-11 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-[10px] text-ir-t2 hover:bg-black/[0.05] active:bg-black/[0.07]"
+                    className="grid h-11 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-sm text-ir-t2 hover:bg-black/[0.05] active:bg-black/[0.07]"
                   >
                     <svg width={12} height={18} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                   </span>
@@ -307,7 +307,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     type="button"
                     onClick={() => remove(id)}
                     aria-label={`เอา ${shortName(id)} ออก`}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#A3A79F] transition-colors hover:bg-[#FFF0EE] hover:text-ir-error focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ir-disabled transition-colors hover:bg-ir-error-soft hover:text-ir-error focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
                   >
                     <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" /></svg>
                   </button>
@@ -337,7 +337,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 }
 
 const FixedRow = ({ label }: { label: string }) => (
-  <div className="flex min-h-10 items-center gap-2 rounded-[10px] bg-white/55 px-2 text-[13.5px] font-medium text-ir-t3">
+  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 text-[13.5px] font-medium text-ir-t3">
     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-[13px]" aria-hidden="true">
       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
     </span>
@@ -370,9 +370,9 @@ function FlightPill({ f, delay, onDone }: { f: Flight; delay: number; onDone: (k
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div ref={ref} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center gap-2 whitespace-nowrap rounded-full border border-[#E3E5DF] bg-white py-1.5 pl-1.5 pr-3.5 opacity-0 shadow-[0_14px_30px_rgba(23,25,22,0.16)]">
+    <div ref={ref} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center gap-2 whitespace-nowrap rounded-full border border-ir-border-soft bg-white py-1.5 pl-1.5 pr-3.5 opacity-0 shadow-e3">
       <span className="grid h-6 w-6 place-items-center rounded-full bg-ir-accent font-mono text-[13px] font-semibold text-ir-on-accent">{f.n}</span>
-      <span className="text-[13px] font-semibold text-[#252823]">{f.title}</span>
+      <span className="text-[13px] font-semibold text-ir-t1">{f.title}</span>
     </div>
   );
 }

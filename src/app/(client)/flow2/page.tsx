@@ -273,7 +273,7 @@ export default function Flow2() {
                 <div
                   ref={stepCardRef}
                   tabIndex={-1}
-                  className={`outline-none bg-ir-card border border-ir-border rounded-[20px] ir-shadow p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
+                  className={`outline-none bg-ir-card border border-ir-border rounded-xl shadow-e1 p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
                   key={`${step}-${quizIdx}-${quizDone}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
@@ -597,7 +597,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             value={draft.company}
             onChange={(e) => updateDraft({ company: e.target.value })}
             placeholder="เช่น บริษัท ABC จำกัด (มหาชน)"
-            className="w-full border border-ir-border rounded-xl px-4 py-3 text-[16px] outline-none focus:border-ir-accent mt-2 transition-colors"
+            className="w-full border border-ir-border rounded-md px-4 py-3 text-[16px] outline-none focus:border-ir-accent mt-2 transition-colors"
           />
         </div>
         <div>
@@ -612,7 +612,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
               value={draft.website ?? ""}
               onChange={(e) => updateDraft({ website: e.target.value })}
               placeholder="https://www.irplus.in.th"
-              className="w-full border border-ir-border rounded-xl pl-10 pr-4 py-3 text-[16px] outline-none focus:border-ir-accent transition-colors"
+              className="w-full border border-ir-border rounded-md pl-10 pr-4 py-3 text-[16px] outline-none focus:border-ir-accent transition-colors"
             />
           </div>
         </div>
@@ -752,7 +752,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
             type="button"
             onClick={() => setShowAllGoals((v) => !v)}
             aria-expanded={goalsExpanded}
-            className="md:hidden mt-2.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-ir-border text-[15px] font-medium text-ir-t2 active:bg-ir-hover"
+            className="md:hidden mt-2.5 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-md border border-dashed border-ir-border text-[15px] font-medium text-ir-t2 active:bg-ir-hover"
           >
             {goalsExpanded ? "ย่อรายการ" : `ดูเป้าหมายเพิ่มเติมอีก ${VISIBLE_GOALS.length - GOALS_COLLAPSE_AT} รายการ`}
             <svg
@@ -784,7 +784,7 @@ function QuizVisual({ mock }: { mock: string }) {
     // 16:9 inset frame. Height comes from the padding-box ratio (56.42% = 677/1200) rather
     // than `aspect-ratio`, which some mobile WebViews don't lock in. Nothing sits on top of
     // the mock — on a phone it's only ~150px wide and every pixel of it is the comparison.
-    <div className="relative overflow-hidden rounded-[10px] sm:rounded-[14px] border border-ir-border select-none" style={{ paddingTop: "56.42%" }}>
+    <div className="relative overflow-hidden rounded-sm sm:rounded-md border border-ir-border select-none" style={{ paddingTop: "56.42%" }}>
       <div className="absolute inset-0"><ExploreMock id={mock} /></div>
     </div>
   );
@@ -871,13 +871,13 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
             aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
-              "group/sel relative rounded-[14px] sm:rounded-[20px] border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+              "group/sel relative rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
               pending === letter
                 ? "wrs-quiz-selected border-ir-select bg-primary-50"
                 : pending
                 // The other option recedes (desaturated) while the pick settles.
                 ? "border-ir-border bg-ir-card opacity-60 grayscale-[0.5] cursor-default"
-                : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-[0_8px_24px_rgba(20,22,19,0.06)] active:scale-[0.98]",
+                : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-e2 active:scale-[0.98]",
             ].join(" ")}>
             <QuizVisual mock={o.mock} />
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
@@ -949,7 +949,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
 
       {/* Matched Direction — drenched in its own gradient. Scroll-motion tier A (globals.css). */}
       <div className="sc-stage mt-6">
-      <div className="sc-show rounded-[24px] p-6 sm:p-8 text-white" style={{ background: d.bg }}>
+      <div className="sc-show rounded-2xl p-6 sm:p-8 text-white" style={{ background: d.bg }}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[15px] font-semibold text-white/75">Design Direction</p>
@@ -987,10 +987,10 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
               if (!q) return null;
               const o = p.letter === "A" ? q.optionA : q.optionB;
               return (
-                <li key={p.questionId} className="flex lg:flex-col gap-3 rounded-[16px] border border-ir-border bg-ir-card p-2">
+                <li key={p.questionId} className="flex lg:flex-col gap-3 rounded-lg border border-ir-border bg-ir-card p-2">
                   {/* Outer box fixes the width; the inner padding ratio is a % of that width */}
                   <div className="w-24 lg:w-full shrink-0">
-                    <div className="relative overflow-hidden rounded-[10px] border border-ir-border" style={{ paddingTop: "56.42%" }}>
+                    <div className="relative overflow-hidden rounded-sm border border-ir-border" style={{ paddingTop: "56.42%" }}>
                       <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
                     </div>
                   </div>
@@ -1145,7 +1145,7 @@ function FloatingPreviewToast() {
   return (
     <div className="wrs-floating-preview-pos fixed inset-x-0 z-[10002] flex justify-center pointer-events-none">
       <div
-        className={`pointer-events-auto flex items-center gap-2 pl-2 pr-3.5 py-2 rounded-full bg-ir-dark text-white shadow-[0_8px_24px_rgba(6,7,15,0.35)] ${
+        className={`pointer-events-auto flex items-center gap-2 pl-2 pr-3.5 py-2 rounded-full bg-ir-dark text-white shadow-e3 ${
           preview.leaving ? "wrs-floating-preview-out" : "wrs-floating-preview-in"
         }`}
       >
@@ -1268,7 +1268,7 @@ function MobileWorkspaceSheet({
       // rest of the app already uses; (2) the handle row sits on its own soft brand-tinted
       // band (below) rather than flush with the white body — a two-tier "toolbar cap +
       // content" structure a generic sheet never has.
-      className="md:hidden fixed inset-x-0 bottom-0 z-[10001] bg-ir-card rounded-t-[22px] border border-ir-accent/40 shadow-[0_-16px_46px_-12px_rgba(6,7,15,0.22),0_-2px_10px_rgba(6,7,15,0.06)] flex flex-col overflow-hidden"
+      className="md:hidden fixed inset-x-0 bottom-0 z-[10001] bg-ir-card rounded-t-2xl border border-ir-accent/40 shadow-e3-up flex flex-col overflow-hidden"
       style={{
         height: currentHeight,
         paddingBottom: wsCollapsed ? "env(safe-area-inset-bottom, 0px)" : undefined,
@@ -1280,7 +1280,7 @@ function MobileWorkspaceSheet({
       {/* Handle band — the outer accent border + shadow already mark this as a distinct WRS
           surface, so this stays plain white rather than adding its own colored wash on top
           (a gradient here read as hazy, not "depth"). Drag to resize, tap to open/close. */}
-      <div className="shrink-0 rounded-t-[22px]">
+      <div className="shrink-0 rounded-t-2xl">
         <div
           role="button"
           tabIndex={0}
@@ -1669,7 +1669,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
           user picks anything (via this button or manually), handing off to the reactive
           suggestion strip below for further nudges. */}
       {recommendedUnselected.length > 0 && (
-        <div className="wrs-suggest-in flex items-center gap-3 mb-5 px-3.5 py-3 rounded-xl bg-ir-accent/[0.05] border border-ir-accent/20">
+        <div className="wrs-suggest-in flex items-center gap-3 mb-5 px-3.5 py-3 rounded-md bg-ir-accent/[0.05] border border-ir-accent/20">
           <span className="text-[17px] shrink-0">✨</span>
           <div className="flex-1 min-w-0">
             <p className="text-[14.5px] font-medium text-ir-t1 leading-snug">
@@ -1691,7 +1691,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
       {/* AI recommends — contextual chips keyed to whatever was just picked, capped at 3 so
           it's a nudge rather than another grid. One tap adds; dismissible per-suggestion-set. */}
       {suggestions.length > 0 && (
-        <div key={suggestionSource} className="wrs-suggest-in flex items-start gap-2 mb-5 px-3 py-2.5 rounded-xl bg-ir-accent/[0.05] border border-ir-accent/20">
+        <div key={suggestionSource} className="wrs-suggest-in flex items-start gap-2 mb-5 px-3 py-2.5 rounded-md bg-ir-accent/[0.05] border border-ir-accent/20">
           <span className="text-[15px] shrink-0 mt-0.5">✨</span>
           <div className="flex-1 min-w-0">
             <p className="text-[14px] text-ir-t3 mb-1.5">
@@ -1749,7 +1749,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
               // around more cards — the individual section cards still carry their own
               // border, popping against the tray rather than nesting inside another one.
               // Collapsed / desktop: no wash, nothing to visually unify.
-              className={`sc-reveal ${!collapsedOnMobile ? "rounded-2xl bg-ir-t1/[0.03] md:bg-transparent md:rounded-none" : ""}`}
+              className={`sc-reveal ${!collapsedOnMobile ? "rounded-lg bg-ir-t1/[0.03] md:bg-transparent md:rounded-none" : ""}`}
             >
               {/* Category header. On mobile it's a self-evident accordion control: a chevron
                   in its own circular affordance makes it obvious the group opens/closes on
@@ -1765,7 +1765,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                 className={[
                   "w-full flex items-center gap-2 text-left transition-colors",
                   collapsedOnMobile
-                    ? "rounded-xl border border-ir-border bg-ir-card px-3.5 py-3 mb-2 active:bg-ir-t1/[0.04]"
+                    ? "rounded-md border border-ir-border bg-ir-card px-3.5 py-3 mb-2 active:bg-ir-t1/[0.04]"
                     : "px-3.5 pt-3 pb-2",
                   "md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:min-h-6 md:mb-3 md:active:bg-transparent md:cursor-default",
                 ].join(" ")}
@@ -1810,9 +1810,9 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                         // Same selected/hover language as OptionCard (production WRS): lime-tinted
                         // fill + olive border + soft ring when picked. Kept as its own button
                         // (not OptionCard) because the ghost-flight animation needs its ref.
-                        "group/sel text-left rounded-[18px] border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-200 active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+                        "group/sel text-left rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-200 active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
                         sel
-                          ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)]"
+                          ? "border-ir-select bg-primary-50 shadow-selected"
                           : disabled
                             ? "border-ir-border bg-ir-card opacity-40 cursor-not-allowed"
                             // AI-recommended cards use the same neutral border as any other
@@ -1967,9 +1967,9 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
             <div
               key={s.domain}
               // Once one is picked, the others recede (sel-recede) and come back on hover.
-              className={`group/sel rounded-[16px] sm:rounded-[20px] border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-200 ${
+              className={`group/sel rounded-lg sm:rounded-xl border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-200 ${
                 isSelected
-                  ? "border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.12)]"
+                  ? "border-ir-select bg-primary-50 shadow-selected"
                   : `border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 ${activeDomain ? "sel-recede" : ""}`
               }`}
             >
@@ -1980,7 +1980,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                 onClick={() => pick(s.domain)}
                 aria-pressed={isSelected}
                 aria-label={`เลือก ${s.name} เป็นเว็บอ้างอิง`}
-                className="relative block w-full overflow-hidden rounded-[12px] sm:rounded-[14px] text-left transition-[scale] duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                className="relative block w-full overflow-hidden rounded-md sm:rounded-md text-left transition-[scale] duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
                 style={{ paddingTop: "56.42%", background: dir?.bg ?? "#141613" }}
               >
                 <span className="absolute inset-0 flex flex-col justify-between p-3 sm:p-4 text-white">
@@ -2296,7 +2296,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             เว็บไซต์ที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
           </p>
           <div
-            className={`flex items-stretch rounded-2xl border bg-ir-card overflow-hidden transition-colors ${
+            className={`flex items-stretch rounded-lg border bg-ir-card overflow-hidden transition-colors ${
               {
                 empty: "border-ir-border focus-within:border-ir-accent/50",
                 valid: "border-ir-accent/50",
@@ -2321,7 +2321,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               onClick={commitUrl}
               disabled={urlValidation !== "valid" || urlCapReached}
               aria-busy={isCommittingUrl}
-              className="shrink-0 flex items-center gap-1.5 text-[15px] font-semibold text-ir-on-accent bg-ir-accent px-4 my-1.5 mr-1.5 rounded-xl hover:bg-ir-accent-hi active:scale-[0.97] transition-all disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="shrink-0 flex items-center gap-1.5 text-[15px] font-semibold text-ir-on-accent bg-ir-accent px-4 my-1.5 mr-1.5 rounded-md hover:bg-ir-accent-hi active:scale-[0.97] transition-all disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
               {/* Icon swaps between four states — idle (+) / loading (spinner) / completed
                   (check) — each mount plays a short, non-bouncy fade+scale so the swap reads
@@ -2369,7 +2369,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                 {urls.map((u, i) => (
                   <div
                     key={u.id}
-                    className={`relative group rounded-lg overflow-hidden border border-ir-border shrink-0 ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
                     style={{ width: 72, height: 72, animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     <div
@@ -2419,7 +2419,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                 {images.map((img) => (
                   <div
                     key={img.id}
-                    className={`relative group rounded-lg overflow-hidden border border-ir-border shrink-0 ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
                     style={{ width: 72, height: 72, animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2466,15 +2466,15 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                 const editingImage = images.find((img) => img.id === noteEditing);
                 if (!editingUrl && !editingImage) return null;
                 return (
-                  <div className="mt-3 rounded-xl border border-ir-accent/30 bg-ir-accent/[0.04] p-3">
+                  <div className="mt-3 rounded-md border border-ir-accent/30 bg-ir-accent/[0.04] p-3">
                     <div className="flex items-center gap-2 mb-2">
                       {editingUrl ? (
-                        <span className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: URL_THUMB_THEMES[0] }}>
+                        <span className="w-6 h-6 rounded-sm flex items-center justify-center shrink-0" style={{ background: URL_THUMB_THEMES[0] }}>
                           <IconGlobe width={10} height={10} className="text-white/80" />
                         </span>
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-md object-cover shrink-0" />
+                        <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" />
                       )}
                       <span className="text-[14px] font-medium text-ir-t2 truncate flex-1">
                         {editingUrl ? domainOf(editingUrl.value) : editingImage!.name}
@@ -2514,7 +2514,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         editingUrl ? updateUrlNote(editingUrl.id, e.target.value) : updateImageNote(editingImage!.id, e.target.value)
                       }
                       placeholder="โน้ตเพิ่มเติม (ไม่บังคับ)"
-                      className="w-full bg-ir-card border border-ir-border rounded-lg text-[14.5px] text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
+                      className="w-full bg-ir-card border border-ir-border rounded-sm text-[14.5px] text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
                     />
                   </div>
                 );
@@ -2533,11 +2533,11 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             onDragOver={onDropZoneDragOver}
             onDragLeave={onDropZoneDragLeave}
             onDrop={onDropZoneDrop}
-            className={`flex flex-col items-center text-center gap-1.5 rounded-2xl border-2 border-dashed cursor-pointer px-5 py-6 mb-6 transition-colors select-none ${
+            className={`flex flex-col items-center text-center gap-1.5 rounded-lg border-2 border-dashed cursor-pointer px-5 py-6 mb-6 transition-colors select-none ${
               isDragOver ? "border-ir-accent bg-ir-accent/[0.06]" : "border-ir-border bg-ir-card hover:border-ir-accent/40 hover:bg-ir-accent/[0.03] active:border-ir-accent/40 active:bg-ir-accent/[0.03]"
             }`}
           >
-            <span className="w-10 h-10 rounded-xl bg-ir-accent/10 flex items-center justify-center text-[20px] mb-1">🖼️</span>
+            <span className="w-10 h-10 rounded-md bg-ir-accent/10 flex items-center justify-center text-[20px] mb-1">🖼️</span>
             <p className="text-[15.5px] font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
             <p className="text-[14px] text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
             <p className="text-[14px] text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
@@ -2761,12 +2761,12 @@ function ConceptBoard({ draft }: { draft: any }) {
 
   return (
     // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside.
-    <div className="rounded-[20px] border border-ir-border bg-ir-card ir-shadow overflow-clip">
+    <div className="rounded-xl border border-ir-border bg-ir-card shadow-e1 overflow-clip">
       {/* Header strip — Direction name is the actual content here, so it carries the
           weight; "Concept" is just the eyebrow label identifying what this card is. */}
       <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-5 md:py-4 border-b border-ir-border">
         <span
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+          className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 border"
           style={{ background: `linear-gradient(135deg, ${primary}26, ${primary}08)`, borderColor: `${primary}30` }}
         >
           <ConceptIcon directionId={draft.selectedDirection} color={primary} />
@@ -2786,7 +2786,7 @@ function ConceptBoard({ draft }: { draft: any }) {
               customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}
           <div
-            className={`sm:col-span-5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
+            className={`sm:col-span-5 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
             style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
           >
             <span className={`text-[14px] font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
@@ -2808,7 +2808,7 @@ function ConceptBoard({ draft }: { draft: any }) {
         <div className={sectionRule}><span className="text-[17px] font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="sc-reveal grid grid-cols-3 sm:grid-cols-6 gap-2.5">
           {paletteSwatches.map((hex, i) => (
-            <div key={`${hex}-${i}`} className="rounded-xl overflow-hidden ring-1 ring-black/[0.06]">
+            <div key={`${hex}-${i}`} className="rounded-md overflow-hidden ring-1 ring-black/[0.06]">
               <div style={{ background: hex, aspectRatio: "1/1" }} />
               <p className="text-[14px] font-mono text-ir-t3 text-center py-1.5">{hex}</p>
             </div>
@@ -2819,7 +2819,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             (headline/body/CTA + numeral-heavy stat tiles) so the choice reads as how it
             will actually look, not just an isolated font-name label. ── */}
         <div className={sectionRule}><span className="text-[17px] font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="sc-reveal rounded-2xl border border-ir-border p-4 md:p-5">
+        <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-[28px] sm:text-[32px] text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
               {pairing.heading}
@@ -2859,7 +2859,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {TYPE_SPECIMEN_STATS.map((s) => (
-                <div key={s.label} className="rounded-xl bg-ir-bg border border-ir-border px-3 py-2.5">
+                <div key={s.label} className="rounded-md bg-ir-bg border border-ir-border px-3 py-2.5">
                   <p className="text-[21px] text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
                   <p className="text-[14px] text-ir-t3 mt-1 leading-snug">{s.label}</p>
                 </div>
@@ -2878,7 +2878,7 @@ function ConceptBoard({ draft }: { draft: any }) {
         {homepageSections.length > 0 ? (
           <div className="sc-reveal grid grid-cols-1 sm:grid-cols-3 gap-2">
             {homepageSections.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2.5 rounded-xl border border-ir-border px-3 py-2.5 min-w-0">
+              <div key={s.id} className="flex items-center gap-2.5 rounded-md border border-ir-border px-3 py-2.5 min-w-0">
                 <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-[14px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
                 <span className="text-[14.5px] text-ir-t1 leading-snug truncate" title={s.name}>{s.name}</span>
               </div>
@@ -2898,7 +2898,7 @@ function ConceptBoard({ draft }: { draft: any }) {
               {visualStyle.shots.map((s) => (
                 <figure key={s.id} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-xl object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
+                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-md object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
                   <figcaption className="mt-1 text-[14px] text-ir-t3 leading-snug">{s.cap}</figcaption>
                 </figure>
               ))}
@@ -3007,7 +3007,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}
         <aside className="w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
           {/* Contact */}
-          <div className="rounded-[20px] border border-ir-border bg-ir-card px-5 pt-5 pb-6 ir-shadow">
+          <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             <p className="text-[17px] font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
             <p className="text-[15px] text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน 1-2 วันทำการ</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
@@ -3023,7 +3023,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           {/* Confirm + submit — one CTA, since "confirm" and "submit" were saying the
               same thing to the customer. The confirm copy now lives as a caption below
               the button instead of its own separate checkbox card. */}
-          <div className="rounded-[20px] border border-ir-border bg-ir-card p-5 ir-shadow">
+          <div className="rounded-xl border border-ir-border bg-ir-card p-5 shadow-e1">
             <div>
               <button
                 onClick={doSubmit}
@@ -3070,7 +3070,7 @@ function F({
         onBlur={onBlur}
         placeholder={placeholder}
         aria-invalid={!!error}
-        className={`w-full border rounded-xl px-3 py-3 text-[16px] outline-none transition-colors ${error ? "border-red-400 focus:border-red-500" : "border-ir-border focus:border-ir-accent"}`}
+        className={`w-full border rounded-md px-3 py-3 text-[16px] outline-none transition-colors ${error ? "border-red-400 focus:border-red-500" : "border-ir-border focus:border-ir-accent"}`}
       />
       {error && <p className="text-[14px] text-red-600 mt-1">{error}</p>}
     </div>

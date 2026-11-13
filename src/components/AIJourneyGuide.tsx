@@ -73,7 +73,7 @@ function ActionContent({ action, content, accentColor }: {
     return (
       <div className="grid grid-cols-2 gap-2">
         {dashParts.slice(0, 2).map((seg, i) => (
-          <div key={i} className="rounded-lg bg-black/[0.035] px-2.5 py-2">
+          <div key={i} className="rounded-sm bg-black/[0.035] px-2.5 py-2">
             <p className="text-[14px] text-ir-t2 leading-snug">{seg}</p>
           </div>
         ))}
@@ -154,7 +154,7 @@ function FloatingCard({
 }) {
   return (
     <div
-      className={[CARD_POS, "rounded-2xl bg-white border border-ir-border/70 overflow-hidden ai-guide-card shadow-lg", exiting ? "ai-hint-out" : "ai-guide-popover-in"].join(" ")}
+      className={[CARD_POS, "rounded-lg bg-white border border-ir-border/70 overflow-hidden ai-guide-card shadow-e3", exiting ? "ai-hint-out" : "ai-guide-popover-in"].join(" ")}
       data-mode={liveMode}
       onMouseDown={e => e.stopPropagation()}
     >

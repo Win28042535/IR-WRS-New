@@ -96,7 +96,7 @@ interface PanelTheme {
 const DARK: PanelTheme = {
   outerBg: "#151823",
   outerBorder: "border-white/[0.06]",
-  outerRound: "rounded-2xl",
+  outerRound: "rounded-lg",
   headerBg: "",
   headerBorder: "border-white/[0.07]",
   actionBase: "text-white/40",
@@ -104,7 +104,7 @@ const DARK: PanelTheme = {
   actionActive: "active:text-white active:bg-white/[0.08]",
   divider: "bg-white/[0.06]",
   listItemBase: "border-transparent bg-white/[0.04] hover:bg-white/[0.06]",
-  listItemDragging: "opacity-90 scale-[1.02] -translate-y-0.5 shadow-[0_14px_30px_rgba(0,0,0,0.55)] border-ir-accent/40 bg-white/[0.07] z-10",
+  listItemDragging: "opacity-90 scale-[1.02] -translate-y-0.5 shadow-e4 border-ir-accent/40 bg-white/[0.07] z-10",
   listItemTarget: "border-ir-accent/50 bg-ir-accent/[0.07]",
   lockedItemBase: "border-transparent bg-white/[0.02]",
   text1: "text-white/80",
@@ -129,7 +129,7 @@ const DARK: PanelTheme = {
 const LIGHT: PanelTheme = {
   outerBg: "#F2F4F8",
   outerBorder: "border-ir-border",
-  outerRound: "rounded-[20px]",
+  outerRound: "rounded-xl",
   headerBg: "bg-white/80",
   headerBorder: "border-ir-border/60",
   actionBase: "text-ir-t3",
@@ -137,7 +137,7 @@ const LIGHT: PanelTheme = {
   actionActive: "active:text-ir-t1 active:bg-ir-border",
   divider: "bg-ir-border",
   listItemBase: "border-ir-border/50 bg-ir-card hover:bg-ir-bg",
-  listItemDragging: "opacity-95 scale-[1.02] -translate-y-0.5 shadow-[0_14px_30px_rgba(6,7,15,0.20)] border-ir-accent/40 bg-ir-card z-10",
+  listItemDragging: "opacity-95 scale-[1.02] -translate-y-0.5 shadow-e4 border-ir-accent/40 bg-ir-card z-10",
   listItemTarget: "border-ir-accent/50 bg-ir-accent/[0.05]",
   lockedItemBase: "border-transparent bg-ir-t1/[0.025]",
   text1: "text-ir-t1",
@@ -275,7 +275,7 @@ export function PreviewPanel({ hidden = false, dominant = false, embedded = fals
             onMouseDown={onResizeMouseDown}
             aria-label="Resize preview panel"
           >
-            <div className="w-full h-full rounded-l-[16px] group-hover:bg-ir-accent/20 transition-colors duration-150" />
+            <div className="w-full h-full rounded-l-lg group-hover:bg-ir-accent/20 transition-colors duration-150" />
             <div className="absolute text-white/15 group-hover:text-ir-accent/60 transition-colors duration-150 pointer-events-none">
               <IconGrip />
             </div>
@@ -348,7 +348,7 @@ function OpenPanel({
           {embedded && (
             <button
               onClick={toggleWsCollapsed}
-              className={`hidden md:flex w-6 h-6 items-center justify-center rounded-md transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
+              className={`hidden md:flex w-6 h-6 items-center justify-center rounded-sm transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
               title="ซ่อน Workspace"
             >
               <IconChevronRight />
@@ -357,7 +357,7 @@ function OpenPanel({
           {!embedded && (
             <button
               onClick={toggle}
-              className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
+              className={`w-6 h-6 flex items-center justify-center rounded-sm transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
               title="ซ่อน"
             >
               <IconChevronRight />
@@ -626,7 +626,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                     key={id}
                     ref={(el) => { rowRefs.current[id] = el; }}
                     data-section-row={id}
-                    className={`relative rounded-lg border cursor-default ${theme.lockedItemBase}`}
+                    className={`relative rounded-sm border cursor-default ${theme.lockedItemBase}`}
                   >
                     <div className="w-full flex items-center gap-1.5 px-2 py-2">
                       <span className={`text-[14px] w-5 shrink-0 text-right tabular-nums select-none ${theme.text3}`}>
@@ -664,7 +664,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                   ref={(el) => { rowRefs.current[id] = el; }}
                   data-section-row={id}
                   style={!isDragging && shiftPx !== 0 ? { transform: `translateY(${shiftPx}px)` } : undefined}
-                  className={`relative rounded-lg border transition-all duration-150 ${theme.listItemBase} ${
+                  className={`relative rounded-sm border transition-all duration-150 ${theme.listItemBase} ${
                     isDragging ? theme.listItemDragging : ""
                   } ${isOver ? theme.listItemTarget : ""} ${
                     isLanded || reorderedId === id ? "wrs-row-landed" : ""
@@ -689,7 +689,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                         hover chip, accent-tinted while active. Pointer Events (not native
                         HTML5 drag-and-drop) so this works via touch, not just mouse. */}
                     <span
-                      className={`shrink-0 self-stretch -my-2 -ml-1 flex items-center justify-center w-8 rounded-md cursor-grab active:cursor-grabbing touch-none select-none wrs-no-callout transition-colors ${
+                      className={`shrink-0 self-stretch -my-2 -ml-1 flex items-center justify-center w-8 rounded-sm cursor-grab active:cursor-grabbing touch-none select-none wrs-no-callout transition-colors ${
                         isDragging ? "bg-ir-accent/20 text-ir-accent" : `${theme.text2} hover:bg-ir-accent/10 hover:text-ir-accent`
                       }`}
                       aria-label="ลากเพื่อจัดลำดับ"
@@ -766,7 +766,7 @@ function FullscreenOverlay({ ctx, onClose }: { ctx: ReturnType<typeof useProject
         </div>
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors duration-150 text-[15px]"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors duration-150 text-[15px]"
         >
           <IconClose width={24} height={24} />
           <span>ปิด</span>

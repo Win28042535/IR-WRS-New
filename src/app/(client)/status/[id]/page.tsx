@@ -43,13 +43,13 @@ export default function SubmittedPage() {
     <div className="max-w-2xl mx-auto px-6 py-10">
       {/* success header */}
       {/* overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside. */}
-      <div className="bg-ir-card border border-ir-border rounded-[28px] overflow-clip ir-shadow mb-6">
+      <div className="bg-ir-card border border-ir-border rounded-3xl overflow-clip shadow-e1 mb-6">
         <div className="relative text-center px-8 py-10 bg-ir-dark">
           {/* LUMA squircle success badge — scales down on narrow screens instead of
               staying a fixed 80px, which read as oversized relative to the card on mobile */}
           <div className="relative w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5">
-            <div className="absolute inset-0 rounded-[14px] sm:rounded-[19px] bg-ir-accent/20 animate-ping" style={{ animationDuration: "2s" }} />
-            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-[14px] sm:rounded-[19px] bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(215,224,39,0.15)" }}>
+            <div className="absolute inset-0 rounded-md sm:rounded-xl bg-ir-accent/20 animate-ping" style={{ animationDuration: "2s" }} />
+            <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-md sm:rounded-xl bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(215,224,39,0.15)" }}>
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function SubmittedPage() {
           </div>
 
           {/* What happens next: who, when, how — in plain words */}
-          <div className="sc-reveal rounded-[18px] border border-ir-select-soft bg-primary-50 px-5 py-5 mb-6">
+          <div className="sc-reveal rounded-xl border border-ir-select-soft bg-primary-50 px-5 py-5 mb-6">
             <div className="flex items-center gap-2.5">
               <LumaChip type="celebrate" size={16} />
               <h2 className="text-[18px] font-semibold text-ir-t1">สิ่งที่จะเกิดขึ้นต่อจากนี้</h2>
@@ -90,7 +90,7 @@ export default function SubmittedPage() {
                 ["เมื่อไร", "ภายใน 1–2 วันทำการ"],
                 ["ทางไหน", req.phone || req.email ? [req.phone, req.email].filter(Boolean).join(" · ") : "ข้อมูลติดต่อที่ให้ไว้"],
               ].map(([k, v]) => (
-                <div key={k} className="rounded-[14px] bg-white px-4 py-3">
+                <div key={k} className="rounded-md bg-white px-4 py-3">
                   <dt className="text-[14px] text-ir-t3">{k}</dt>
                   <dd className="mt-0.5 text-[16px] font-semibold text-ir-t1 break-words">{v}</dd>
                 </div>
@@ -106,7 +106,7 @@ export default function SubmittedPage() {
             const dir = directionById(req.selectedDirection);
             const colors = dir?.colors ?? [];
             return (
-              <div className="sc-reveal rounded-[18px] border border-ir-border bg-ir-bg overflow-hidden">
+              <div className="sc-reveal rounded-xl border border-ir-border bg-ir-bg overflow-hidden">
                 {/* Color palette strip actual colors from quiz-derived direction */}
                 {colors.length > 0 && (
                   <div className="flex h-2">
@@ -153,7 +153,7 @@ export default function SubmittedPage() {
 
 function Field({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return (
-    <div className="bg-ir-bg border border-ir-border rounded-lg px-3.5 py-2.5">
+    <div className="bg-ir-bg border border-ir-border rounded-sm px-3.5 py-2.5">
       <div className="text-[14px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
       <div className={`text-[15px] font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
     </div>

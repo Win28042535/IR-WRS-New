@@ -158,7 +158,7 @@ export function RankPicker({
           const Icon = it.icon;
           return (
             // The slot: while its card is lifted it shows where the card came from.
-            <div key={it.id} className={`relative flex min-w-0 rounded-[18px] ${dragging ? "border-2 border-dashed border-ir-select/70 bg-primary-50/50" : ""} ${itemClassName?.(it.id, i) ?? ""}`}>
+            <div key={it.id} className={`relative flex min-w-0 rounded-xl ${dragging ? "border-2 border-dashed border-ir-select/70 bg-primary-50/50" : ""} ${itemClassName?.(it.id, i) ?? ""}`}>
             <div
               ref={(el) => { cardRefs.current[it.id] = el; }}
               role="button"
@@ -174,16 +174,16 @@ export function RankPicker({
               onKeyDown={(e) => !dim && onKey(e, it.id)}
               style={dragging ? { transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` } : undefined}
               className={[
-                "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-[18px] border px-3.5 py-3 text-left outline-none",
+                "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-xl border px-3.5 py-3 text-left outline-none",
                 "focus-visible:ring-3 focus-visible:ring-ir-ring/50",
-                dragging ? "z-30 cursor-grabbing shadow-[0_28px_56px_-18px_rgba(20,22,19,0.45)] ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-200",
+                dragging ? "z-30 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-200",
                 resting ? "opacity-70" : "",
                 flash === it.id ? "rk-landed" : "",
                 on
-                  ? `cursor-grab border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.22)] ${e2(dragging)}`
+                  ? `cursor-grab border-ir-select bg-primary-50 shadow-selected ${e2(dragging)}`
                   : dim
-                    ? "cursor-not-allowed border-[#ECECEA] bg-[#FCFCFB] opacity-45"
-                    : "cursor-pointer border-[#ECECEA] bg-[#FCFCFB] hover:border-ir-select-soft hover:bg-white active:scale-[0.99]",
+                    ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45"
+                    : "cursor-pointer border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white active:scale-[0.99]",
                 target ? "outline-2 outline-dashed outline-offset-2 outline-ir-select" : "",
               ].join(" ")}
             >
@@ -203,14 +203,14 @@ export function RankPicker({
                 <span
                   aria-hidden="true"
                   onPointerDown={(e) => { e.stopPropagation(); onDown(e, it.id, true); }}
-                  className={`grid h-12 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-[12px] text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07] ${rank === 1 ? "mt-4" : ""}`}
+                  className={`grid h-12 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07] ${rank === 1 ? "mt-4" : ""}`}
                 >
                   <svg width={14} height={20} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                 </span>
                 </>
               )}
               {rank === 1 && (
-                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-[0_18px_0_12px] bg-ir-accent py-1 pl-2.5 pr-3.5 text-[13px] font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
+                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-[13px] font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
               )}
             </div>
             </div>

@@ -24,7 +24,7 @@ const v = (vars: Record<string, number>): Vars => Object.fromEntries(Object.entr
 // painted surface: no separate layer underneath that could peek out at an edge.
 const Tile = ({ label, step, d, dark, bg, className = "", children }: { label: string; step: number; d: number; dark?: boolean; bg?: string; className?: string; children: ReactNode }) => (
   <div className={`mb-tile flex min-w-0 ${className}`} style={v({ d })}>
-    <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-[20px] border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-12px_rgba(20,22,19,0.22)] ${
+    <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-xl border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-e2 ${
       dark ? "border-transparent text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
     }`} style={bg ? { background: bg } : undefined}>
       <p className={`text-[14px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
@@ -84,7 +84,7 @@ export function Moodboard({ company }: { company: string }) {
           <div className="grid flex-1 grid-cols-3 gap-1.5">
             {d.colors.slice(0, 3).map((c, j) => (
               <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
-                <span className="mb-swatch block flex-1 rounded-[12px] ring-1 ring-inset ring-black/10" style={{ background: c, transformOrigin: "bottom" }} />
+                <span className="mb-swatch block flex-1 rounded-md ring-1 ring-inset ring-black/10" style={{ background: c, transformOrigin: "bottom" }} />
                 <span className="mb-item mt-1.5 font-mono text-[13px] text-ir-t2">{c}</span>
               </div>
             ))}
@@ -105,7 +105,7 @@ export function Moodboard({ company }: { company: string }) {
         <Tile label="สไตล์ภาพ" step={3} d={2} className="col-span-2 md:col-span-6 lg:col-span-7">
           <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-1.5">
             {photos.map((p, j) => (
-              <div key={p.id} className="overflow-hidden rounded-[12px] bg-ir-muted">
+              <div key={p.id} className="overflow-hidden rounded-md bg-ir-muted">
                 <img src={unsplashUrl(p.id, 420)} alt={p.cap} loading="lazy" className="mb-photo aspect-[4/3] h-full w-full object-cover" style={v({ j })} />
               </div>
             ))}
@@ -121,7 +121,7 @@ export function Moodboard({ company }: { company: string }) {
               const opt = pick === "A" ? q.optionA : q.optionB;
               return (
                 <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
-                  <span className="mb-swatch h-7 w-10 shrink-0 rounded-[8px] ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
+                  <span className="mb-swatch h-7 w-10 shrink-0 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
                   <span className="mb-item min-w-0 flex-1 truncate text-[14px] text-ir-t2">{q.topic}</span>
                   <span className="mb-item shrink-0 text-[14px] font-semibold text-ir-t1">{opt.label}</span>
                   <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[13px] font-bold text-ir-accent-text">{pick}</span>
@@ -149,7 +149,7 @@ export function Moodboard({ company }: { company: string }) {
         <Tile label="โครงหน้าแรก" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
           <ol className="grid gap-1">
             {SAMPLE_SECTIONS.map((s, j) => (
-              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-[6px] px-2 text-[14px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
+              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-sm px-2 text-[14px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
                 <span className="font-mono opacity-70">{j + 1}</span><span className="truncate">{s}</span>
               </li>
             ))}
@@ -167,7 +167,7 @@ export function Moodboard({ company }: { company: string }) {
 // Each mock shows only the one thing that step is about, centred with room around it —
 // a hint of the screen, not a copy of it.
 const Frame = ({ children }: { children: ReactNode }) => (
-  <div className="flex h-[184px] flex-col items-center justify-center overflow-hidden rounded-[16px] border border-ir-border bg-ir-bg px-5" aria-hidden="true">{children}</div>
+  <div className="flex h-[184px] flex-col items-center justify-center overflow-hidden rounded-lg border border-ir-border bg-ir-bg px-5" aria-hidden="true">{children}</div>
 );
 const Chip = ({ on, t, children }: { on?: boolean; t?: number; children: ReactNode }) => (
   <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium ${on ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={t === undefined ? undefined : v({ t })}>
@@ -193,7 +193,7 @@ function MockDefine() {
     <Frame>
       <div className="grid w-full max-w-[230px] gap-2">
         {goals.map((g, i) => (
-          <div key={g.id} className={`flex items-center justify-between rounded-[12px] border px-3.5 py-2.5 ${i === 0 ? "sg-pick border-ir-select bg-primary-50" : "border-ir-border bg-white"}`} style={v({ t: i })}>
+          <div key={g.id} className={`flex items-center justify-between rounded-md border px-3.5 py-2.5 ${i === 0 ? "sg-pick border-ir-select bg-primary-50" : "border-ir-border bg-white"}`} style={v({ t: i })}>
             <span className="truncate text-[13px] font-semibold text-ir-t1">{g.label}</span>
             {i === 0 && <span className="sg-check ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>}
           </div>
@@ -208,8 +208,8 @@ function MockExplore() {
     <Frame>
       <div className="grid w-full max-w-[250px] grid-cols-2 gap-2.5">
         {[q.optionA, q.optionB].map((o, i) => (
-          <div key={o.label} className={`relative rounded-[12px] border-2 bg-white p-1 ${i === 1 ? "sg-pickbump border-ir-select" : "border-transparent"}`} style={v({ t: 1 })}>
-            <div className="relative overflow-hidden rounded-[8px]" style={{ paddingTop: "70%" }}>
+          <div key={o.label} className={`relative rounded-md border-2 bg-white p-1 ${i === 1 ? "sg-pickbump border-ir-select" : "border-transparent"}`} style={v({ t: 1 })}>
+            <div className="relative overflow-hidden rounded-sm" style={{ paddingTop: "70%" }}>
               <div className="absolute inset-0"><ExploreMock id={o.mock} /></div>
             </div>
             <span className={`absolute -top-2 -left-2 grid h-6 w-6 place-items-center rounded-full font-mono text-[12px] font-bold ${i === 1 ? "ir-grad-fill text-ir-on-accent" : "bg-white text-ir-t3 ring-1 ring-ir-border"}`}>{i === 0 ? "A" : "B"}</span>
@@ -226,7 +226,7 @@ function MockStructure() {
       <div className="grid w-full max-w-[220px] gap-1.5">
         {rows.map((r, i) => (
           // Row 2 is dragged up past row 3, which drops back into place.
-          <div key={r} className={`flex items-center gap-2 rounded-[10px] border border-ir-border bg-white px-3 py-2 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-[0_6px_16px_rgba(20,22,19,0.12)]" : i === 2 ? "sg-drop" : ""}`}>
+          <div key={r} className={`flex items-center gap-2 rounded-sm border border-ir-border bg-white px-3 py-2 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-e2" : i === 2 ? "sg-drop" : ""}`}>
             <span className="text-[12px] leading-none text-ir-t3">⋮⋮</span>
             <span className="truncate text-[13px] font-medium text-ir-t1">{r}</span>
           </div>
@@ -240,8 +240,8 @@ function MockInspire() {
     <Frame>
       <div className="grid w-full max-w-[220px] grid-cols-2 gap-2.5">
         {["linear-gradient(135deg,#0D1B4B,#1A2E6B)", "linear-gradient(135deg,#1E3A1E,#4A8C4A)"].map((bg, i) => (
-          <div key={bg} className={`sg-a relative rounded-[12px] border-2 bg-white p-1 ${i === 0 ? "border-ir-select" : "border-transparent"}`} style={v({ t: i })}>
-            <div className="h-16 rounded-[8px]" style={{ background: bg }} />
+          <div key={bg} className={`sg-a relative rounded-md border-2 bg-white p-1 ${i === 0 ? "border-ir-select" : "border-transparent"}`} style={v({ t: i })}>
+            <div className="h-16 rounded-sm" style={{ background: bg }} />
             {i === 0 && <span className="sg-check ir-grad-fill absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full text-ir-on-accent" style={v({ t: 2 })}><Tick className="h-3 w-3" /></span>}
           </div>
         ))}
@@ -253,7 +253,7 @@ function MockDeliver() {
   const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
   return (
     <Frame>
-      <div className="sg-a flex w-full max-w-[230px] items-center gap-2.5 rounded-[12px] border border-ir-border bg-white px-3 py-2.5" style={v({ t: 0 })}>
+      <div className="sg-a flex w-full max-w-[230px] items-center gap-2.5 rounded-md border border-ir-border bg-white px-3 py-2.5" style={v({ t: 0 })}>
         <span className="h-7 w-7 shrink-0 rounded-full" style={{ background: d.bg }} />
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-semibold text-ir-t1">{d.label}</span>
@@ -310,7 +310,7 @@ function StepCard({ i, name }: { i: number; name: string }) {
 
   return (
     <li ref={ref} className="sg-card flex" onMouseEnter={replay}>
-      <div className="sg-lift group flex w-full flex-col rounded-[24px] border border-black/[0.06] bg-ir-card p-3.5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-[0_18px_40px_-16px_rgba(20,22,19,0.2)]">
+      <div className="sg-lift group flex w-full flex-col rounded-2xl border border-black/[0.06] bg-ir-card p-3.5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-e2">
         <Mock key={run} />
         <div className="px-1.5 pt-4 pb-1.5">
           <div className="flex items-center gap-2.5">
@@ -443,7 +443,7 @@ export function BriefFlow() {
     { name: FLOW_STEPS[1], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
       body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
     { name: FLOW_STEPS[2], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
-      body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-[7px] border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
+      body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-sm border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
     { name: FLOW_STEPS[3], q: "เรียงเนื้อหาบนหน้าแรก", token: `${SAMPLE_SECTIONS.length} Section`,
       body: <div className="flex flex-wrap gap-1">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div> },
   ];
@@ -481,9 +481,9 @@ export function BriefFlow() {
     { label: "โครงหน้าแรก", body: (
       <div className="grid gap-1">
         <span className="h-1.5 w-full rounded-full bg-ir-border" />
-        <span className="grid h-9 place-items-center rounded-[6px] bg-ir-dark text-[10px] font-semibold text-ir-accent">{SAMPLE_SECTIONS[0]}</span>
-        <span className="grid grid-cols-3 gap-1">{[0, 1, 2].map((j) => <span key={j} className="h-5 rounded-[5px] bg-ir-accent-soft" />)}</span>
-        <span className="grid grid-cols-2 gap-1"><span className="h-4 rounded-[5px] bg-ir-muted" /><span className="h-4 rounded-[5px] bg-ir-muted" /></span>
+        <span className="grid h-9 place-items-center rounded-sm bg-ir-dark text-[10px] font-semibold text-ir-accent">{SAMPLE_SECTIONS[0]}</span>
+        <span className="grid grid-cols-3 gap-1">{[0, 1, 2].map((j) => <span key={j} className="h-5 rounded-xs bg-ir-accent-soft" />)}</span>
+        <span className="grid grid-cols-2 gap-1"><span className="h-4 rounded-xs bg-ir-muted" /><span className="h-4 rounded-xs bg-ir-muted" /></span>
       </div>
     ) },
   ];
@@ -492,7 +492,7 @@ export function BriefFlow() {
   const status = step === 0 ? "รอคำตอบ" : step === 5 ? "เรียบเรียงเสร็จ" : `กำลังแปลงคำตอบ ${step}/4`;
 
   return (
-    <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-[24px] sm:rounded-[28px] bg-ir-dark p-3 sm:p-5 lg:p-6">
+    <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-2xl sm:rounded-3xl bg-ir-dark p-3 sm:p-5 lg:p-6">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
         style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       <div aria-hidden="true" className="bm-glow pointer-events-none absolute left-1/2 top-1/2 h-[460px] w-[460px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
@@ -504,7 +504,7 @@ export function BriefFlow() {
           <ol className="grid gap-2">
             {inputs.map((x, i) => (
               <li key={x.q} ref={(n) => { ins.current[i] = n; }} data-state={step === i + 1 && phase === "in" ? "active" : step > i + 1 || (step === i + 1 && phase !== "in") ? "done" : "idle"}
-                className="bm-in flex items-start gap-2.5 rounded-[14px] border border-white/10 bg-white/[0.04] px-3 py-2">
+                className="bm-in flex items-start gap-2.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-2">
                 <div className="bm-in-body min-w-0 flex-1">
                   <p className="text-[11px] text-white/50">ขั้นที่ {i + 1} · {x.name}</p>
                   <p className="mt-0.5 text-[13px] font-semibold text-white">{x.q}</p>
@@ -518,7 +518,7 @@ export function BriefFlow() {
         </div>
 
         {/* ② the machine */}
-        <div className="bm-chamber relative mt-1 lg:mt-0 h-[170px] rounded-[22px] border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] lg:col-start-2 lg:row-start-2 lg:h-auto lg:min-h-[300px]">
+        <div className="bm-chamber relative mt-1 lg:mt-0 h-[170px] rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] lg:col-start-2 lg:row-start-2 lg:h-auto lg:min-h-[300px]">
           <span aria-hidden="true" className="bm-scan pointer-events-none absolute inset-x-3 top-0 h-px" />
           <div ref={core} className="absolute left-1/2 top-1/2 h-0 w-0">
             <div aria-hidden="true" className="bm-ring absolute h-[104px] w-[104px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
@@ -543,7 +543,7 @@ export function BriefFlow() {
         <div className="mt-3 lg:col-start-3 lg:row-start-1 lg:mt-0"><ColHead n="02" title="ผลลัพธ์" sub="สิ่งที่นักออกแบบได้รับ" tone="lime" /></div>
         <div className="lg:col-start-3 lg:row-start-2">
           <div className="relative">
-            <div className="relative rounded-[18px] bg-white p-3.5 shadow-[0_24px_48px_-20px_rgba(0,0,0,0.55)] sm:p-4">
+            <div className="relative rounded-xl bg-white p-3.5 shadow-e4 sm:p-4">
               <div className="flex items-center justify-between gap-3 border-b border-ir-border pb-2.5">
                 <div>
                   <p className="font-mono text-[11px] font-semibold tracking-[0.12em] text-ir-t3">REQUIREMENT</p>
@@ -590,7 +590,7 @@ const PLANE: Record<Plane, { depth: number; dur: number }> = { near: { depth: 16
 const F = ({ i, plane, r, className, children }: { i: number; plane: Plane; r: number; className: string; children: ReactNode }) => (
   <div className={`hf hf-${plane} absolute ${className}`} style={{ ...v({ i, depth: PLANE[plane].depth, dur: PLANE[plane].dur + (i % 3) }), rotate: `${r}deg` }}>{children}</div>
 );
-const glass = "rounded-[12px] border border-white/70 bg-white/50 shadow-[0_10px_28px_-16px_rgba(20,22,19,0.3)] backdrop-blur-sm";
+const glass = "rounded-md border border-white/70 bg-white/50 shadow-e2 backdrop-blur-sm";
 
 export function HeroFragments() {
   const ref = useRef<HTMLDivElement>(null);
@@ -641,7 +641,7 @@ export function HeroFragments() {
       {/* ── left: 4 / 30 / 58 / 86 % ── */}
       <F i={0} plane="near" r={-6} className="left-[1%] top-[4%]">
         <div className={`${glass} px-2.5 py-2`}>
-          <div className="flex gap-1">{d.colors.map((c) => <span key={c} className="h-6 w-6 rounded-[7px] ring-1 ring-inset ring-black/10" style={{ background: c }} />)}</div>
+          <div className="flex gap-1">{d.colors.map((c) => <span key={c} className="h-6 w-6 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: c }} />)}</div>
           <p className="mt-1 text-[10px] font-medium text-ir-t3">{d.palette}</p>
         </div>
       </F>
@@ -658,7 +658,7 @@ export function HeroFragments() {
       </F>
       <F i={3} plane="near" r={5} className="left-[2%] top-[84%]">
         <div className={`${glass} p-1`}>
-          <img src={unsplashUrl(photo.id, 200)} alt="" loading="lazy" className="h-[50px] w-[70px] rounded-[8px] object-cover" />
+          <img src={unsplashUrl(photo.id, 200)} alt="" loading="lazy" className="h-[50px] w-[70px] rounded-sm object-cover" />
         </div>
       </F>
 
@@ -675,9 +675,9 @@ export function HeroFragments() {
       </F>
       <F i={6} plane="far" r={4} className="right-[10%] top-[62%] hidden xl:block">
         <div className={`${glass} w-[84px] p-1.5`}>
-          <span className="block h-2.5 rounded-[3px] bg-ir-dark/70" />
-          <span className="mt-1 grid grid-cols-3 gap-0.5">{[0, 1, 2].map((j) => <span key={j} className="h-2 rounded-[2px] bg-ir-accent/50" />)}</span>
-          <span className="mt-1 block h-1.5 rounded-[2px] bg-ir-muted" />
+          <span className="block h-2.5 rounded-xs bg-ir-dark/70" />
+          <span className="mt-1 grid grid-cols-3 gap-0.5">{[0, 1, 2].map((j) => <span key={j} className="h-2 rounded-xs bg-ir-accent/50" />)}</span>
+          <span className="mt-1 block h-1.5 rounded-xs bg-ir-muted" />
         </div>
       </F>
       <F i={7} plane="near" r={-3} className="right-[2%] top-[88%]">

@@ -34,7 +34,7 @@ export function nextStepText(status: Requirement["status"]): string {
 export function Collapsible({ title, emoji, badge, defaultOpen = false, children }: { title: string; emoji?: string; badge?: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="bg-ir-card border border-ir-border rounded-[20px] ir-shadow mb-4 overflow-hidden">
+    <div className="bg-ir-card border border-ir-border rounded-xl shadow-e1 mb-4 overflow-hidden">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 md:px-6 py-4 text-left hover:bg-ir-bg/60 transition-colors">
         <span className="text-[16px] font-medium text-ir-t1 flex items-center gap-2">{emoji && <span>{emoji}</span>}{title}</span>
         <span className="flex items-center gap-2 text-[14px] text-ir-t3">{badge}<span className="text-[12px]">{open ? "▲" : "▼"}</span></span>
@@ -46,11 +46,11 @@ export function Collapsible({ title, emoji, badge, defaultOpen = false, children
 
 // ── small helpers ──
 export function Info({ k, v }: { k: string; v: string }) {
-  return <div className="bg-ir-bg border border-ir-border rounded-lg px-3.5 py-2.5"><div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div><div className="text-[15px] text-ir-t1">{v || "-"}</div></div>;
+  return <div className="bg-ir-bg border border-ir-border rounded-sm px-3.5 py-2.5"><div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div><div className="text-[15px] text-ir-t1">{v || "-"}</div></div>;
 }
 
 function Vcard({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="border border-ir-border rounded-xl p-3 bg-ir-card"><div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-2">{label}</div>{children}</div>;
+  return <div className="border border-ir-border rounded-md p-3 bg-ir-card"><div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-2">{label}</div>{children}</div>;
 }
 
 // ── Lightweight preview summary (Submitted page) ──
@@ -60,7 +60,7 @@ export function LightPreviewSummary({ req }: { req: Requirement }) {
   if (!dir) return null;
   return (
     <div className="grid sm:grid-cols-[200px_1fr] gap-4 items-center">
-      <div className="aspect-[16/10] rounded-xl overflow-hidden border border-ir-border"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
+      <div className="aspect-[16/10] rounded-md overflow-hidden border border-ir-border"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
       <div>
         <div className="text-[12px] uppercase tracking-wide text-ir-t3 mb-1">Website Direction</div>
         <div className="text-[17px] font-semibold text-ir-t1">{dir.label}</div>
@@ -98,7 +98,7 @@ export function DirectionDetail({ req }: { req: Requirement }) {
   if (!dir) return <p className="text-[14px] text-ir-t3 mt-3">ยังไม่ได้เลือก Direction</p>;
   return (
     <div className="grid md:grid-cols-[260px_1fr] gap-4 mt-3 items-start">
-      <div className="aspect-[16/10] rounded-xl overflow-hidden border border-ir-border"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
+      <div className="aspect-[16/10] rounded-md overflow-hidden border border-ir-border"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
       <div className="space-y-2">
         <div><div className="text-[17px] font-semibold text-ir-t1">{dir.label}</div><div className="text-[14px] text-ir-t3">{dir.tagline}</div></div>
         <div className="flex items-start gap-2"><span className="text-[12px] uppercase tracking-wide text-ir-t3 w-24 shrink-0 mt-1">Mood &amp; Tone</span><span className="text-[14px] text-ir-t2">{dir.mood.join(" · ")}</span></div>
@@ -120,7 +120,7 @@ export function GoalsDetail({ req }: { req: Requirement }) {
       {req.businessGoals.map((g) => {
         const G = BUSINESS_GOALS.find((x) => x.id === g);
         return (
-          <div key={g} className="flex items-start gap-2.5 bg-ir-bg border border-ir-border rounded-lg px-3 py-2">
+          <div key={g} className="flex items-start gap-2.5 bg-ir-bg border border-ir-border rounded-sm px-3 py-2">
             <span className="text-[20px] shrink-0">{G?.emoji}</span>
             <div><div className="text-[15px] font-medium text-ir-t1">{G?.label || g}</div>{G?.desc && <div className="text-[13px] text-ir-t3">{G.desc}</div>}</div>
           </div>
@@ -163,12 +163,12 @@ export function VisualGallery({ req }: { req: Requirement }) {
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
       {dir && (
         <Vcard label="Website Direction">
-          <div className="aspect-[16/9] rounded-lg overflow-hidden border border-ir-border mb-2"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
+          <div className="aspect-[16/9] rounded-sm overflow-hidden border border-ir-border mb-2"><MiniMock colors={dir.colors} layout={dir.layout} /></div>
           <div className="text-[14px] font-medium text-ir-t1">{dir.label}</div>
         </Vcard>
       )}
       <Vcard label="Industry">
-        <div className="aspect-[16/9] rounded-lg overflow-hidden border border-ir-border mb-2" style={{ background: bgImage(photo("hero", req.industry, 0, 360, 200), "linear-gradient(135deg,#151823,#3C404C)", 0.08), backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="aspect-[16/9] rounded-sm overflow-hidden border border-ir-border mb-2" style={{ background: bgImage(photo("hero", req.industry, 0, 360, 200), "linear-gradient(135deg,#151823,#3C404C)", 0.08), backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="text-[14px] text-ir-t1">{req.industry || "—"}</div>
       </Vcard>
       <Vcard label={`Sitemap · ${req.selectedSections.length} sections`}><SitemapView sections={req.selectedSections} compact /></Vcard>
@@ -225,7 +225,7 @@ export function StakeholdersApproval({ req }: { req: Requirement }) {
         <p className="text-[13px] text-ir-t3 mb-3">ทุกระดับต้องอนุมัติ ก่อนเข้าสู่สถานะ Requirement Freeze</p>
         <div className="space-y-2.5">{req.approvers.map((a) => <ApproverRow key={a.id} a={a} frozen={frozen} onDecide={(d) => approve(req.id, a.id, d)} />)}</div>
         {frozen && (
-          <div className="mt-4 flex items-center gap-2.5 bg-ir-accent/10 border border-ir-accent/30 rounded-xl px-4 py-3">
+          <div className="mt-4 flex items-center gap-2.5 bg-ir-accent/10 border border-ir-accent/30 rounded-md px-4 py-3">
             <IconLock className="text-ir-accent-text" /><span className="text-[14px] text-ir-accent-text">Requirement ถูก Freeze แล้ว แก้ไขผ่าน Change Request เท่านั้น</span>
           </div>
         )}
@@ -236,7 +236,7 @@ export function StakeholdersApproval({ req }: { req: Requirement }) {
         <div className="flex items-center justify-between mb-2"><h4 className="text-[14px] font-medium">จัดการสถานะ <span className="text-ir-t3 font-normal">(Internal)</span></h4><span className="text-[13px] text-ir-t3">ปัจจุบัน: <span className="text-ir-accent-text font-medium">{STATUS_LABEL[req.status]}</span></span></div>
         <div className="flex flex-wrap gap-1.5">
           {(["draft", "in_review", "submitted", "approved", "frozen", "change_request", "archived"] as Requirement["status"][]).map((s) => (
-            <button key={s} onClick={() => setStatus(req.id, s)} className={`text-[14px] px-3 py-1.5 rounded-lg border transition-colors ${req.status === s ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>{STATUS_LABEL[s]}</button>
+            <button key={s} onClick={() => setStatus(req.id, s)} className={`text-[14px] px-3 py-1.5 rounded-sm border transition-colors ${req.status === s ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>{STATUS_LABEL[s]}</button>
           ))}
         </div>
       </div>
@@ -249,7 +249,7 @@ export function StakeholdersApproval({ req }: { req: Requirement }) {
 function SumBox({ title, items, tone }: { title: string; items: string[]; tone: "green" | "amber" | "blue" }) {
   const bg = tone === "green" ? "bg-ir-accent/8" : tone === "amber" ? "bg-amber-50" : "bg-blue-50";
   return (
-    <div className={`rounded-xl p-3.5 ${bg}`}>
+    <div className={`rounded-md p-3.5 ${bg}`}>
       <div className="text-[13px] font-medium mb-2">{title}</div>
       {items.length ? <ul className="space-y-1">{items.map((i, k) => <li key={k} className="text-[14px] text-ir-t2 leading-snug">{i}</li>)}</ul> : <p className="text-[14px] text-ir-t3">—</p>}
     </div>
@@ -262,13 +262,13 @@ function ApproverRow({ a, frozen, onDecide }: { a: Approver; frozen: boolean; on
   const statusText = a.status === "pending" ? "รอการอนุมัติ" : a.status === "approved" ? "อนุมัติแล้ว" : "ปฏิเสธ";
   const statusCls = a.status === "approved" ? "text-ir-accent-text" : a.status === "rejected" ? "text-ir-error" : "text-ir-t3";
   return (
-    <div className="flex items-center gap-3 bg-ir-bg border border-ir-border rounded-xl px-4 py-3">
+    <div className="flex items-center gap-3 bg-ir-bg border border-ir-border rounded-md px-4 py-3">
       <span className={`w-9 h-9 rounded-full flex items-center justify-center text-[14px] shrink-0 ${color}`}>{a.status === "approved" ? <IconCheck width={24} height={24} /> : a.status === "rejected" ? <IconClose width={24} height={24} /> : "○"}</span>
       <div className="flex-1 min-w-0"><div className="text-[15px] font-medium text-ir-t1">{p?.name || a.role}</div><div className="text-[13px] text-ir-t3 truncate">{p ? `${p.title} · ${p.department}` : a.role} · <span className={statusCls}>{statusText}</span></div></div>
       {a.status === "pending" && !frozen && (
         <div className="flex gap-1.5">
-          <button onClick={() => onDecide("rejected")} className="text-[13px] px-2.5 py-1.5 rounded-lg border border-ir-border text-ir-t2 hover:border-red-400 hover:text-red-500">ปฏิเสธ</button>
-          <button onClick={() => onDecide("approved")} className="text-[13px] px-2.5 py-1.5 rounded-lg bg-ir-accent text-ir-on-accent hover:bg-ir-accent-hi">อนุมัติ</button>
+          <button onClick={() => onDecide("rejected")} className="text-[13px] px-2.5 py-1.5 rounded-sm border border-ir-border text-ir-t2 hover:border-red-400 hover:text-red-500">ปฏิเสธ</button>
+          <button onClick={() => onDecide("approved")} className="text-[13px] px-2.5 py-1.5 rounded-sm bg-ir-accent text-ir-on-accent hover:bg-ir-accent-hi">อนุมัติ</button>
         </div>
       )}
     </div>
@@ -283,13 +283,13 @@ function ChangeRequest({ reqId, onSubmit }: { reqId: string; onSubmit: (id: stri
       <h4 className="text-[14px] font-medium mb-1">Change Request</h4>
       <p className="text-[13px] text-ir-t3 mb-3">สร้าง Change Request เพื่อแก้ไข รีเซ็ตการอนุมัติและสร้าง Version ใหม่</p>
       {!open ? (
-        <button onClick={() => setOpen(true)} className="text-[14px] px-4 py-2 rounded-lg border border-ir-border text-ir-t2 hover:border-ir-border-hi">+ สร้าง Change Request</button>
+        <button onClick={() => setOpen(true)} className="text-[14px] px-4 py-2 rounded-sm border border-ir-border text-ir-t2 hover:border-ir-border-hi">+ สร้าง Change Request</button>
       ) : (
         <div>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="อธิบายสิ่งที่ต้องการเปลี่ยนแปลง..." className="w-full border border-ir-border rounded-lg px-3 py-2.5 text-[15px] outline-none focus:border-ir-accent resize-y mb-3" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="อธิบายสิ่งที่ต้องการเปลี่ยนแปลง..." className="w-full border border-ir-border rounded-sm px-3 py-2.5 text-[15px] outline-none focus:border-ir-accent resize-y mb-3" />
           <div className="flex gap-2">
-            <button onClick={() => { if (note.trim()) { onSubmit(reqId, note.trim()); setOpen(false); setNote(""); } }} className="text-[15px] font-semibold px-4 py-2 rounded-lg bg-ir-accent text-ir-on-accent hover:bg-ir-accent-hi transition-colors">ส่ง Change Request</button>
-            <button onClick={() => setOpen(false)} className="text-[15px] px-4 py-2 rounded-lg border border-ir-border text-ir-t2">ยกเลิก</button>
+            <button onClick={() => { if (note.trim()) { onSubmit(reqId, note.trim()); setOpen(false); setNote(""); } }} className="text-[15px] font-semibold px-4 py-2 rounded-sm bg-ir-accent text-ir-on-accent hover:bg-ir-accent-hi transition-colors">ส่ง Change Request</button>
+            <button onClick={() => setOpen(false)} className="text-[15px] px-4 py-2 rounded-sm border border-ir-border text-ir-t2">ยกเลิก</button>
           </div>
         </div>
       )}
@@ -305,7 +305,7 @@ export function ActivityDetail({ req }: { req: Requirement }) {
         <div>
           <h4 className="text-[13px] uppercase tracking-wide text-ir-t3 mb-3">Version History</h4>
           <div className="space-y-2">{[...req.versions].reverse().map((v) => (
-            <div key={v.version} className="flex items-center gap-3 text-[15px]"><span className="bg-ir-accent/10 text-ir-accent-text text-[13px] px-2 py-0.5 rounded-md shrink-0">v{v.version}</span><span className="text-ir-t2 flex-1">{v.note}</span><span className="text-ir-t3 text-[14px]">{fmtDate(v.at)}</span></div>
+            <div key={v.version} className="flex items-center gap-3 text-[15px]"><span className="bg-ir-accent/10 text-ir-accent-text text-[13px] px-2 py-0.5 rounded-sm shrink-0">v{v.version}</span><span className="text-ir-t2 flex-1">{v.note}</span><span className="text-ir-t3 text-[14px]">{fmtDate(v.at)}</span></div>
           ))}</div>
         </div>
       )}

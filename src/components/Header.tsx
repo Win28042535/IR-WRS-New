@@ -35,9 +35,9 @@ export function Header() {
     // Page-colored bar with no rule line (production WRS) — the step pill below carries the
     // separation, so a border here would just be a second horizontal line.
     <header ref={menuRef} className="h-14 sticky top-0 z-50 bg-ir-bg/85 backdrop-blur-md flex items-center justify-between gap-3 px-5 lg:px-7">
-      <Link href="/" className="flex min-h-11 min-w-0 items-center gap-3 group rounded-lg -ml-1.5 px-1.5">
+      <Link href="/" className="flex min-h-11 min-w-0 items-center gap-3 group rounded-sm -ml-1.5 px-1.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/irplus-logo.jpg" alt="IR PLUS by efin" width={32} height={32} className="rounded-lg shrink-0" />
+        <img src="/irplus-logo.jpg" alt="IR PLUS by efin" width={32} height={32} className="rounded-sm shrink-0" />
         {/* Narrow phones show the logo only, so the menu and start buttons fit. */}
         <div className="min-w-0 border-l border-ir-border pl-3 leading-none max-[479px]:hidden">
           <div className="truncate text-ir-t1 text-[14px] font-semibold tracking-[-0.01em]">Website Requirement System</div>
@@ -77,13 +77,13 @@ export function Header() {
       </div>
 
       {open && (
-        <nav id="site-menu" aria-label="เมนูหลัก" className="absolute inset-x-0 top-14 border-b border-black/[0.06] bg-ir-bg/95 px-4 pb-4 pt-2 shadow-[0_18px_30px_-20px_rgba(20,22,19,0.35)] backdrop-blur-md md:hidden">
+        <nav id="site-menu" aria-label="เมนูหลัก" className="absolute inset-x-0 top-14 border-b border-black/[0.06] bg-ir-bg/95 px-4 pb-4 pt-2 shadow-e3 backdrop-blur-md md:hidden">
           {NAV.map((n) => (
             <a
               key={n.id}
               href={href(n.id)}
               onClick={() => setOpen(false)}
-              className="flex min-h-[52px] items-center justify-between rounded-[14px] px-4 text-[18px] font-semibold text-ir-t1 active:bg-white"
+              className="flex min-h-[52px] items-center justify-between rounded-md px-4 text-[18px] font-semibold text-ir-t1 active:bg-white"
             >
               {n.label}
               <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-t3"><path d="M9 6l6 6-6 6" /></svg>

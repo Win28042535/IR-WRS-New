@@ -56,7 +56,7 @@ export default function Landing() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]"
         style={{
-          backgroundImage: "linear-gradient(#E9EBE4 1px, transparent 1px), linear-gradient(90deg, #E9EBE4 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(var(--color-ir-border-soft) 1px, transparent 1px), linear-gradient(90deg, var(--color-ir-border-soft) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
@@ -69,7 +69,7 @@ export default function Landing() {
       {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
       <section className="relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 pb-6 text-center ir-fade-up">
         <HeroFragments />
-        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[14px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
+        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[14px] font-medium leading-snug text-ir-t2 shadow-e1 backdrop-blur">
           <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[14px] font-semibold text-white">IR Plus</span>
           <span className="whitespace-nowrap">สำหรับบริษัทจดทะเบียน</span>
         </span>
@@ -181,7 +181,7 @@ export default function Landing() {
 
       {/* ── Closing banner — start (or resume) right here, no scrolling back up ── */}
       <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-16 sm:pt-20 pb-16">
-        <div id="final-cta" className="sc-reveal relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
+        <div id="final-cta" className="sc-reveal relative overflow-hidden rounded-3xl bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-[-220px] h-[440px] w-[760px] -translate-x-1/2 rounded-full"
@@ -277,7 +277,7 @@ function BackToTop() {
       aria-label="กลับขึ้นด้านบน"
       title="กลับขึ้นด้านบน"
       inert={!show}
-      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-[0_10px_30px_rgba(20,22,19,0.25)] transition-[opacity,transform,background-color] duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 motion-reduce:transition-none ${
+      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-e3 transition-[opacity,transform,background-color] duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 motion-reduce:transition-none ${
         show ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-3"
       }`}
     >
@@ -308,7 +308,7 @@ function StartForm({ value, onChange, onStart, inputId = "company-input", dark }
         onChange={(e) => onChange(e.target.value)}
         placeholder="เช่น บริษัท ตัวอย่าง จำกัด (มหาชน)"
         autoComplete="organization"
-        className="mt-2 h-[58px] w-full rounded-full border border-black/10 bg-white px-6 text-[17px] text-ir-t1 shadow-sm outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
+        className="mt-2 h-[58px] w-full rounded-full border border-black/10 bg-white px-6 text-[17px] text-ir-t1 shadow-e1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
       />
       <div className="mt-3">
         <PrimaryCta type="submit" onDark={dark} block>เริ่มตอบคำถาม</PrimaryCta>
@@ -322,7 +322,7 @@ function StartForm({ value, onChange, onStart, inputId = "company-input", dark }
 function ResumeCard({ flow }: { flow: ReturnType<typeof useStartFlow> }) {
   const [confirmNew, setConfirmNew] = useState(false);
   return (
-    <div className="rounded-[24px] border border-black/[0.06] bg-white/85 p-5 shadow-sm backdrop-blur">
+    <div className="rounded-2xl border border-black/[0.06] bg-white/85 p-5 shadow-e1 backdrop-blur">
       <p className="text-[14px] text-ir-t3">คุณทำค้างไว้</p>
       <p className="mt-0.5 text-[18px] font-semibold text-ir-t1">{flow.company || "เว็บไซต์ IR ของคุณ"}</p>
       <div className="mt-3 flex items-center gap-3">
@@ -356,7 +356,7 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
       type={type}
       onClick={onClick}
       className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-[18px]" : "h-[56px] text-[16px]"} transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
-        onDark ? "ir-grad-fill text-ir-on-accent shadow-[0_10px_40px_rgba(215,224,39,0.25)] hover:brightness-105" : "bg-ir-dark text-white shadow-[0_10px_30px_rgba(20,22,19,0.18)] hover:bg-neutral-800"
+        onDark ? "ir-grad-fill text-ir-on-accent shadow-glow hover:brightness-105" : "bg-ir-dark text-white shadow-e2 hover:bg-neutral-800"
       }`}
     >
       {children}
@@ -369,8 +369,8 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="group rounded-[20px] border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-200 open:border-ir-select-soft open:shadow-[0_14px_32px_-18px_rgba(20,22,19,0.18)]">
-      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-[14px] px-3 text-[16px] font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-xl border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-200 open:border-ir-select-soft open:shadow-e2">
+      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md px-3 text-[16px] font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
         {title}
         <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-[18px] text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
       </summary>

@@ -41,12 +41,12 @@ export function HomeContact() {
   const label = "text-[14px] font-medium text-ir-t2";
 
   const shell = (children: ReactNode) => (
-    <div className="rounded-[24px] border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 lg:p-8">{children}</div>
+    <div className="rounded-2xl border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 lg:p-8">{children}</div>
   );
 
   if (sentId) {
     return shell(
-      <div role="status" className="flex items-start gap-3 rounded-[18px] bg-white px-5 py-5">
+      <div role="status" className="flex items-start gap-3 rounded-xl bg-white px-5 py-5">
         <span className="ir-grad-fill grid w-9 h-9 shrink-0 place-items-center rounded-full text-ir-on-accent"><IconCheck width={20} height={20} className="sel-check" /></span>
         <div className="min-w-0">
           <p className="text-[16px] font-semibold text-ir-t1">รับเรื่องไว้แล้ว</p>
@@ -90,7 +90,7 @@ export function HomeContact() {
             onChange={(e) => setMessage(e.target.value)}
             rows={2}
             placeholder="เช่น อยากทราบระยะเวลาและงบประมาณโดยประมาณ"
-            className="mt-1 w-full resize-y rounded-[16px] border border-black/10 bg-white px-4 py-2.5 text-[15px] leading-relaxed text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
+            className="mt-1 w-full resize-y rounded-lg border border-black/10 bg-white px-4 py-2.5 text-[15px] leading-relaxed text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
           />
         </label>
       </div>

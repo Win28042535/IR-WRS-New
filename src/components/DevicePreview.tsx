@@ -108,7 +108,7 @@ export function DevicePreview({
 
   const Frame = ({ sm }: { sm: boolean }) => (
     <div
-      className="mx-auto bg-white border border-ir-border rounded-xl overflow-hidden shadow-sm transition-all duration-300"
+      className="mx-auto bg-white border border-ir-border rounded-md overflow-hidden shadow-e1 transition-all duration-300"
       style={{ maxWidth: sm ? DEVICE_W.mobile : undefined, width: "100%" }}
     >
       {/* ── Utility top bar (SET-style) ── */}
@@ -162,7 +162,7 @@ export function DevicePreview({
           </div>
           <div className="text-white font-bold leading-tight mb-2" style={{ fontSize: sm ? 16 : 26 }}>{c.heroTitle}</div>
           <div className="text-white/75 mb-3" style={{ fontSize: sm ? 9 : 12, maxWidth: 380 }}>{c.heroSub}</div>
-          <span className="inline-block px-4 py-1.5 rounded-md font-semibold" style={{ fontSize: sm ? 10 : 12, background: brand.accent, color: brand.onAccent }}>{c.cta} →</span>
+          <span className="inline-block px-4 py-1.5 rounded-sm font-semibold" style={{ fontSize: sm ? 10 : 12, background: brand.accent, color: brand.onAccent }}>{c.cta} →</span>
         </div>
       </div>
 
@@ -214,7 +214,7 @@ export function DevicePreview({
               <div>{c.contact.email}</div>
             </div>
           </div>
-          <div className="rounded-lg min-h-[70px]" style={{ background: bgImage(photo("office", industry, 7, 600, 360), brand.gradient, 0.1), backgroundSize: "cover", backgroundPosition: "center" }} />
+          <div className="rounded-sm min-h-[70px]" style={{ background: bgImage(photo("office", industry, 7, 600, 360), brand.gradient, 0.1), backgroundSize: "cover", backgroundPosition: "center" }} />
         </div>
       )}
 
@@ -225,7 +225,7 @@ export function DevicePreview({
           <span className="text-white/40 text-[8px]">© 2026 {name}. All rights reserved.</span>
         </div>
         <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1.5 text-[7px] text-white/35">
-          <span className="inline-flex items-center justify-center w-3 h-3 rounded-sm" style={{ background: "#BCC416", color: "#151823" }}>✦</span>
+          <span className="inline-flex items-center justify-center w-3 h-3 rounded-xs" style={{ background: "#BCC416", color: "#151823" }}>✦</span>
           Powered by IR PLUS · Website Requirement System
         </div>
       </div>
@@ -239,7 +239,7 @@ export function DevicePreview({
     <div className="flex gap-1.5">
       {([["desktop", IconDesktop, "Desktop"], ["tablet", IconTablet, "Tablet"], ["mobile", IconMobile, "Mobile"]] as const).map(([m, Icon, label]) => (
         <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m} aria-label={label}
-          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-sm border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
             mode === m ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           <Icon /> {compact ? "" : label}
         </button>
@@ -256,18 +256,18 @@ export function DevicePreview({
       {/* existing pins */}
       {comments.map((c, i) => (
         <button key={c.id} onClick={(e) => { e.stopPropagation(); setDraftPin(null); }}
-          className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[13px] font-bold flex items-center justify-center ring-2 ring-white shadow-md z-10"
+          className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-[13px] font-bold flex items-center justify-center ring-2 ring-white shadow-e2 z-10"
           style={{ left: `${c.x}%`, top: `${c.y}%`, background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>
           {i + 1}
         </button>
       ))}
       {/* new-comment popover */}
       {draftPin && (
-        <div className="absolute z-20 w-56 -translate-x-1/2 bg-white border border-ir-border rounded-xl ir-shadow-lg p-2.5" style={{ left: `${draftPin.x}%`, top: `calc(${draftPin.y}% + 14px)` }} onClick={(e) => e.stopPropagation()}>
-          <textarea autoFocus value={draftText} onChange={(e) => setDraftText(e.target.value)} rows={2} placeholder="พิมพ์คอมเมนต์ที่จุดนี้..." className="w-full border border-ir-border rounded-lg px-2 py-1.5 text-[14px] outline-none focus:border-ir-accent resize-none" />
+        <div className="absolute z-20 w-56 -translate-x-1/2 bg-white border border-ir-border rounded-md shadow-e2 p-2.5" style={{ left: `${draftPin.x}%`, top: `calc(${draftPin.y}% + 14px)` }} onClick={(e) => e.stopPropagation()}>
+          <textarea autoFocus value={draftText} onChange={(e) => setDraftText(e.target.value)} rows={2} placeholder="พิมพ์คอมเมนต์ที่จุดนี้..." className="w-full border border-ir-border rounded-sm px-2 py-1.5 text-[14px] outline-none focus:border-ir-accent resize-none" />
           <div className="flex justify-end gap-1.5 mt-1.5">
-            <button onClick={() => setDraftPin(null)} className="text-[13px] px-2 py-1 rounded-md text-ir-t3 hover:text-ir-t1">ยกเลิก</button>
-            <button onClick={addComment} className="text-[13px] px-2.5 py-1 rounded-md bg-ir-accent text-ir-on-accent font-medium hover:bg-ir-accent-hi">เพิ่ม</button>
+            <button onClick={() => setDraftPin(null)} className="text-[13px] px-2 py-1 rounded-sm text-ir-t3 hover:text-ir-t1">ยกเลิก</button>
+            <button onClick={addComment} className="text-[13px] px-2.5 py-1 rounded-sm bg-ir-accent text-ir-on-accent font-medium hover:bg-ir-accent-hi">เพิ่ม</button>
           </div>
         </div>
       )}
@@ -276,7 +276,7 @@ export function DevicePreview({
 
   if (snapshot) {
     return (
-      <div className="bg-ir-bg/60 border border-ir-border rounded-xl p-3 md:p-4 overflow-hidden">
+      <div className="bg-ir-bg/60 border border-ir-border rounded-md p-3 md:p-4 overflow-hidden">
         <Frame sm={false} />
       </div>
     );
@@ -286,17 +286,17 @@ export function DevicePreview({
     <div>
       <div className="flex items-center justify-end gap-2 mb-4">
         <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-sm border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           💬 Comment{comments.length > 0 ? ` (${comments.length})` : ""}
         </button>
-        <button onClick={() => setFull(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-ir-border bg-ir-card text-ir-t2 text-[15px] hover:border-ir-border-hi transition-colors">
+        <button onClick={() => setFull(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-sm border border-ir-border bg-ir-card text-ir-t2 text-[15px] hover:border-ir-border-hi transition-colors">
           <IconExpand /> Full-screen
         </button>
       </div>
 
-      {commentMode && <div className="mb-3 text-[14px] text-ir-accent-text bg-ir-accent/[0.06] border border-ir-accent/20 rounded-lg px-3 py-2">โหมดคอมเมนต์: คลิกตำแหน่งใดก็ได้บน Preview เพื่อปักหมุดคอมเมนต์ (เหมือน Figma)</div>}
+      {commentMode && <div className="mb-3 text-[14px] text-ir-accent-text bg-ir-accent/[0.06] border border-ir-accent/20 rounded-sm px-3 py-2">โหมดคอมเมนต์: คลิกตำแหน่งใดก็ได้บน Preview เพื่อปักหมุดคอมเมนต์ (เหมือน Figma)</div>}
 
-      <div className="bg-ir-bg/60 border border-ir-border rounded-xl p-4 md:p-6">
+      <div className="bg-ir-bg/60 border border-ir-border rounded-md p-4 md:p-6">
         {stage(DEVICE_W["desktop"])}
       </div>
 
@@ -316,7 +316,7 @@ export function DevicePreview({
             <span className="text-ir-t2 text-[15px] font-medium truncate">High-Fidelity Preview {dir?.label} · {brand.paletteName}</span>
             <div className="flex items-center gap-3">
               {deviceToggle(true)}
-              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-lg border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
+              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-sm border text-[15px] transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
               <button onClick={() => setFull(false)} className="text-ir-t2 hover:text-ir-t1 p-1.5"><IconClose width={24} height={24} /></button>
             </div>
           </div>
@@ -334,15 +334,15 @@ export function DevicePreview({
 function CommentRow({ n, c, onResolve, onDelete, onReply }: { n: number; c: PinComment; onResolve: () => void; onDelete: () => void; onReply: (t: string) => void }) {
   const [reply, setReply] = useState("");
   return (
-    <div className={`border rounded-xl p-3 ${c.status === "resolved" ? "border-ir-border bg-ir-bg/60" : "border-ir-border bg-white"}`}>
+    <div className={`border rounded-md p-3 ${c.status === "resolved" ? "border-ir-border bg-ir-bg/60" : "border-ir-border bg-white"}`}>
       <div className="flex items-start gap-2.5">
         <span className="w-6 h-6 rounded-full text-[13px] font-bold flex items-center justify-center shrink-0" style={{ background: c.status === "resolved" ? "#34C759" : "#BCC416", color: c.status === "resolved" ? "#fff" : "#151823" }}>{n}</span>
         <div className="flex-1 min-w-0">
           <div className="text-[15px] text-ir-t1">{c.text}</div>
           {c.replies.map((r, i) => (<div key={i} className="text-[14px] text-ir-t2 mt-1 pl-2 border-l-2 border-ir-border">↳ {r}</div>))}
           <div className="flex items-center gap-2 mt-2">
-            <input value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && reply.trim()) { onReply(reply.trim()); setReply(""); } }} placeholder="ตอบกลับ..." className="flex-1 border border-ir-border rounded-md px-2 py-1 text-[14px] outline-none focus:border-ir-accent" />
-            <button onClick={onResolve} className="text-[13px] px-2 py-1 rounded-md border border-ir-border text-ir-t2 hover:border-ir-border-hi">{c.status === "open" ? "Resolve" : "Reopen"}</button>
+            <input value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && reply.trim()) { onReply(reply.trim()); setReply(""); } }} placeholder="ตอบกลับ..." className="flex-1 border border-ir-border rounded-sm px-2 py-1 text-[14px] outline-none focus:border-ir-accent" />
+            <button onClick={onResolve} className="text-[13px] px-2 py-1 rounded-sm border border-ir-border text-ir-t2 hover:border-ir-border-hi">{c.status === "open" ? "Resolve" : "Reopen"}</button>
             <button onClick={onDelete} className="text-[13px] text-ir-t3 hover:text-ir-error">ลบ</button>
           </div>
         </div>
@@ -396,7 +396,7 @@ function Block({
           <div className="text-ir-t2 leading-relaxed mb-2" style={{ fontSize: tFs }}>{c.about}</div>
           <div className="text-ir-t3 leading-relaxed" style={{ fontSize: tFs }}>{c.businessDesc}</div>
         </div>
-        <div className="rounded-lg min-h-[110px]" style={{ background: bgImage(photo("office", industry, idx, 700, 460), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="rounded-sm min-h-[110px]" style={{ background: bgImage(photo("office", industry, idx, 700, 460), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
       </div>
     );
   }
@@ -408,7 +408,7 @@ function Block({
         <SecLabel brand={brand}>ธุรกิจและบริการ</SecLabel>
         <div className="grid gap-3" style={{ gridTemplateColumns: sm ? "1fr" : "repeat(3,1fr)" }}>
           {c.products.map((p, i) => (
-            <div key={p.name} className="rounded-lg overflow-hidden border border-ir-border">
+            <div key={p.name} className="rounded-sm overflow-hidden border border-ir-border">
               <div className="h-16" style={{ background: bgImage(photo(prodRole, industry, i + idx, 500, 320), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
               <div className="p-2.5">
                 <div className="font-semibold mb-0.5" style={{ color: brand.primary, fontSize: tFs }}>{p.name}</div>
@@ -428,7 +428,7 @@ function Block({
         <div className="grid gap-3" style={{ gridTemplateColumns: sm ? "repeat(3,1fr)" : "repeat(3,1fr)" }}>
           {c.execs.map((e, i) => (
             <div key={e.name} className="text-center">
-              <div className="rounded-lg mx-auto mb-1.5" style={{ width: sm ? 48 : 84, height: sm ? 56 : 96, background: bgImage(photo("executive", industry, i + idx, 320, 380), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
+              <div className="rounded-sm mx-auto mb-1.5" style={{ width: sm ? 48 : 84, height: sm ? 56 : 96, background: bgImage(photo("executive", industry, i + idx, 320, 380), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
               <div className="font-semibold" style={{ color: brand.primary, fontSize: sm ? 8.5 : 10 }}>{e.name}</div>
               <div className="text-ir-t3" style={{ fontSize: sm ? 7 : 8.5 }}>{e.title}</div>
             </div>
@@ -443,7 +443,7 @@ function Block({
       <div className="px-6 py-5 border-t border-ir-border" style={{ background: "#fff" }}>
         <SecLabel brand={brand}>นักลงทุนสัมพันธ์</SecLabel>
         <div className="grid gap-3" style={{ gridTemplateColumns: sm ? "1fr" : "1.3fr 1fr" }}>
-          <div className="rounded-lg p-3" style={{ background: brand.gradient }}>
+          <div className="rounded-sm p-3" style={{ background: brand.gradient }}>
             <div className="text-white/70 text-[8px] mb-1">ราคาหลักทรัพย์ ({c.stock.symbol})</div>
             <div className="flex items-end gap-2 mb-2">
               <span className="text-white font-bold" style={{ fontSize: sm ? 18 : 24 }}>{c.stock.price}</span>
@@ -475,7 +475,7 @@ function Block({
         <SecLabel brand={brand}>การกำกับดูแลกิจการ</SecLabel>
         <div className="grid gap-2" style={{ gridTemplateColumns: sm ? "1fr 1fr" : "repeat(4,1fr)" }}>
           {["จริยธรรมธุรกิจ", "โครงสร้างคณะกรรมการ", "การบริหารความเสี่ยง", "การต่อต้านทุจริต"].map((g2) => (
-            <div key={g2} className="rounded-lg border border-ir-border bg-white px-2.5 py-2.5 text-center">
+            <div key={g2} className="rounded-sm border border-ir-border bg-white px-2.5 py-2.5 text-center">
               <div className="mx-auto mb-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: brand.accent, color: brand.onAccent, fontSize: 9 }}>⚖</div>
               <div className="text-ir-t2 leading-tight" style={{ fontSize: 8.5 }}>{g2}</div>
             </div>
@@ -488,13 +488,13 @@ function Block({
   if (group === "esg") {
     return (
       <div className="px-6 py-5 border-t border-ir-border grid gap-4 items-center" style={{ gridTemplateColumns: cols }}>
-        <div className="rounded-lg min-h-[110px] order-2" style={{ background: bgImage(photo("esg", industry, idx, 700, 460), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="rounded-sm min-h-[110px] order-2" style={{ background: bgImage(photo("esg", industry, idx, 700, 460), brand.gradient, 0.05), backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="order-1">
           <SecLabel brand={brand}>ความยั่งยืน (ESG)</SecLabel>
           <div className="font-semibold mb-1.5" style={{ color: brand.primary, fontSize: sm ? 12 : 14 }}>มุ่งสู่การเติบโตอย่างยั่งยืน</div>
           <div className="grid grid-cols-3 gap-2 mt-2">
             {c.stats.map((s) => (
-              <div key={s.label} className="rounded-lg bg-ir-bg py-2 text-center">
+              <div key={s.label} className="rounded-sm bg-ir-bg py-2 text-center">
                 <div className="font-bold" style={{ color: brand.primary, fontSize: sm ? 11 : 14 }}>{s.value}</div>
                 <div className="text-ir-t3" style={{ fontSize: 7.5 }}>{s.label}</div>
               </div>
@@ -514,7 +514,7 @@ function Block({
       </div>
       <div className="grid gap-3" style={{ gridTemplateColumns: sm ? "1fr" : "repeat(3,1fr)" }}>
         {c.news.map((n, i) => (
-          <div key={n.title} className="rounded-lg overflow-hidden border border-ir-border">
+          <div key={n.title} className="rounded-sm overflow-hidden border border-ir-border">
             <div className="h-14" style={{ background: bgImage(photo("news", industry, i + idx, 500, 300), brand.gradient, 0.1), backgroundSize: "cover", backgroundPosition: "center" }} />
             <div className="p-2.5">
               <div className="flex items-center gap-1.5 mb-1">

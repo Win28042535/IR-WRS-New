@@ -41,7 +41,7 @@ function spectrum(req: Requirement) {
 }
 
 const Block = ({ label, children, className = "" }: { label: string; children: ReactNode; className?: string }) => (
-  <div className={`min-w-0 rounded-[16px] border border-ir-border bg-white p-4 ${className}`}>
+  <div className={`min-w-0 rounded-lg border border-ir-border bg-white p-4 ${className}`}>
     <p className="text-[13px] font-semibold text-ir-t3">{label}</p>
     <div className="mt-2.5">{children}</div>
   </div>
@@ -72,9 +72,9 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
   const likeCount = REFERENCE_LIKES.map((l) => ({ l, n: (req.references ?? []).filter((r) => r.likes?.includes(l)).length })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n);
 
   return (
-    <section aria-label="Design DNA" className={`rounded-[24px] border border-ir-border bg-ir-bg p-3 sm:p-4 ${className}`}>
+    <section aria-label="Design DNA" className={`rounded-2xl border border-ir-border bg-ir-bg p-3 sm:p-4 ${className}`}>
       {/* header: the Direction in its own colours and heading face */}
-      <div className="rounded-[18px] p-5 text-white" style={{ background: own && req.brandPrimary ? `linear-gradient(135deg, ${req.brandPrimary}, #141613)` : dir.bg }}>
+      <div className="rounded-xl p-5 text-white" style={{ background: own && req.brandPrimary ? `linear-gradient(135deg, ${req.brandPrimary}, #141613)` : dir.bg }}>
         <p className="font-mono text-[13px] font-semibold tracking-[0.14em] text-white/70">DESIGN DNA</p>
         <p className="mt-2 text-[clamp(1.6rem,3vw,2.2rem)] font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{dir.label}</p>
         <p className="mt-1 text-[15px] text-white/85">{dir.tagline}</p>
@@ -95,7 +95,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
                   <span className={`truncate text-right ${r.pos! < 0.5 ? "font-semibold text-ir-t1" : "text-ir-t3"}`}>{r.left}</span>
                   <span className="relative h-2 rounded-full bg-ir-muted" aria-label={`${r.topic}: ${r.pos! < 0.5 ? r.left : r.pos! > 0.5 ? r.right : "กลาง ๆ"}`}>
                     <span className="absolute left-1/2 top-1/2 h-3 w-px -translate-y-1/2 bg-ir-border-hi" aria-hidden="true" />
-                    <span className="dna-dot ir-grad-fill absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white shadow" style={{ left: `${Math.round(r.pos! * 100)}%` } as CSSProperties} />
+                    <span className="dna-dot ir-grad-fill absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white shadow-e1" style={{ left: `${Math.round(r.pos! * 100)}%` } as CSSProperties} />
                   </span>
                   <span className={`truncate ${r.pos! > 0.5 ? "font-semibold text-ir-t1" : "text-ir-t3"}`}>{r.right}</span>
                 </li>
@@ -108,7 +108,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
         <Block label={keepOwn ? "ชุดสีของแบรนด์" : `ชุดสี · ${dir.palette}`}>
           {keepOwn && !own ? (
             <div className="flex items-start gap-3">
-              <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-[12px] bg-ir-accent-soft text-ir-accent-text">
+              <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-ir-accent-soft text-ir-accent-text">
                 <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.4-.9.2-1.9 1.2-1.9H17a4 4 0 0 0 4-4c0-5-4-10.3-9-10.3Z" /><circle cx="7.5" cy="11" r="1" /><circle cx="10.5" cy="7.5" r="1" /><circle cx="15" cy="8" r="1" /></svg>
               </span>
               <p className="text-[15px] leading-relaxed text-ir-t1"><span className="font-semibold">ใช้ชุดสีเดิมของแบรนด์</span><br /><span className="text-[14px] text-ir-t2">ทีมจะอ้างอิงจากเว็บไซต์และโลโก้ปัจจุบัน</span></p>
@@ -117,7 +117,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
           <div className="flex gap-2">
             {(own ? ownColors : dir.colors.slice(0, 3)).map((c, i) => (
               <div key={c} className="min-w-0 flex-1">
-                <span className="block h-14 rounded-[10px] ring-1 ring-inset ring-black/10" style={{ background: c }} />
+                <span className="block h-14 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: c }} />
                 <span className="mt-1 block truncate font-mono text-[13px] text-ir-t2">{c}</span>
                 <span className="block text-[13px] text-ir-t3">{own ? (i === 0 ? "หลัก" : "") : roles[i]}</span>
               </div>
@@ -142,7 +142,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
             <div className="grid grid-cols-3 gap-1.5">
               {style.shots.slice(0, 3).map((p) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={p.id} src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" className="aspect-[4/3] w-full rounded-[8px] object-cover" />
+                <img key={p.id} src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" className="aspect-[4/3] w-full rounded-sm object-cover" />
               ))}
             </div>
             <p className="mt-2 text-[13px] leading-snug text-ir-t2">{style.mood}</p>
