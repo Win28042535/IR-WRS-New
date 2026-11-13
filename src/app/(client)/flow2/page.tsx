@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
+import { DesignDNACard } from "@/components/DesignDNA";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import type { DesignProfile, QuizOption } from "@/lib/types";
@@ -861,7 +862,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         </div>
         <span className="font-mono text-[14px] text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-[15px] font-semibold text-ir-accent-text">{idx + 1} — {q.topic}</p>
+      <p className="text-center text-[15px] font-semibold text-ir-accent-text">{idx + 1} {q.topic}</p>
       <p className="text-center text-[22px] sm:text-[24px] font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
@@ -903,6 +904,15 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <figcaption className="mt-1.5 flex items-center gap-2 text-[16px] font-semibold text-ir-t1">
                   <LetterBadge letter={letter} />{o.label}
                 </figcaption>
+                {/* choose straight from the big view — no scrolling back up to the small cards */}
+                <button
+                  type="button"
+                  onClick={() => selectOption(o, letter)}
+                  disabled={!!pending}
+                  className="mt-2 w-full min-h-12 rounded-full bg-ir-dark text-[16px] font-semibold text-white transition-[scale] active:scale-[0.98] disabled:opacity-60"
+                >
+                  เลือก {letter} แบบนี้
+                </button>
               </figure>
             ))}
           </div>
@@ -2016,20 +2026,20 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
 
 function ReferenceEditor({ draft, updateDraft }: any) {
   // ── URL list state ── committed immediately on Enter/blur, no separate save step
-  const [urls, setUrls] = useState<{ id: string; value: string; note?: string }[]>(() =>
+  const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[] }[]>(() =>
     (draft.references ?? [])
       .filter((r: any) => r.type === "url")
-      .map((r: any) => ({ id: r.id, value: r.value, note: r.note }))
+      .map((r: any) => ({ id: r.id, value: r.value, note: r.note, likes: r.likes }))
   );
   const [urlInput, setUrlInput] = useState("");
   // Recomputed every keystroke — pure parsing against the current list, no debounce needed.
   const urlValidation = useMemo(() => validateUrlInput(urlInput, urls), [urlInput, urls]);
 
   // ── Image list state (base64 data-uri) ──
-  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string }[]>(() =>
+  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[] }[]>(() =>
     (draft.references ?? [])
       .filter((r: any) => r.type === "image")
-      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note }))
+      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes }))
   );
 
   // ── Per-item note ("why I picked this one") — id of the tile currently open for editing.
@@ -2093,9 +2103,9 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   const syncToDraft = useCallback((nextUrls: typeof urls, nextImages: typeof images) => {
     const urlItems = nextUrls
       .filter((u) => u.value.trim())
-      .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined }));
+      .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined }));
     const imgItems = nextImages
-      .map((img) => ({ id: img.id, type: "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined }));
+      .map((img) => ({ id: img.id, type: "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined }));
     updateDraft({ references: [...urlItems, ...imgItems] });
   }, [updateDraft]);
 
@@ -2105,6 +2115,19 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   // reading its result on the very next line would still see the pre-update value. So this
   // computes `next` directly off the current `urls`/`images` closure (same as `commitUrl`'s
   // plain-value commit) instead of that "capture inside the updater" pattern.
+  // "ชอบอะไรในเว็บนี้" chips — same direct-commit pattern as the notes below.
+  const toggleLike = (id: string, like: string) => {
+    const flip = (l?: string[]) => (l?.includes(like) ? l.filter((x) => x !== like) : [...(l ?? []), like]);
+    if (urls.some((u) => u.id === id)) {
+      const next = urls.map((u) => (u.id === id ? { ...u, likes: flip(u.likes) } : u));
+      setUrls(next);
+      syncToDraft(next, images);
+    } else {
+      const next = images.map((img) => (img.id === id ? { ...img, likes: flip(img.likes) } : img));
+      setImages(next);
+      syncToDraft(urls, next);
+    }
+  };
   const updateUrlNote = (id: string, note: string) => {
     const next = urls.map((u) => (u.id === id ? { ...u, note } : u));
     setUrls(next);
@@ -2131,6 +2154,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       setUrlInput("");
       syncToDraft(next, images);
       flashNew(id);
+      setNoteEditing(id);
       // Floating preview (all widths) — shows the actual favicon-style swatch rather than
       // a bare checkmark, so it's a genuine visual preview, not only a confirmation message.
       useFloatingPreview.getState().show(
@@ -2256,8 +2280,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
     <div>
       {/* ── AI-learning reassurance — one merged sentence (was two separate, overlapping
           descriptions split across this component and its parent section header) ── */}
-      <p className="text-[14.5px] text-ir-t3 mb-5 leading-relaxed">
-        เพิ่มเว็บไซต์หรือรูปที่ชอบ ให้ AI วิเคราะห์ <span className="text-ir-t2 font-medium">"ความรู้สึก"</span> และปรับ Design Direction ให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
+      <p className="text-[16px] text-ir-t3 mb-5 leading-relaxed">
+        เพิ่มเว็บไซต์หรือรูปที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
       </p>
 
       {/* Mobile/tablet (<768px): Input → Gallery → Upload, so a newly added reference lands
@@ -2387,7 +2411,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     >
                       <IconEdit width={8} height={8} />
                     </button>
-                    {u.note && noteEditing !== u.id && (
+                    {(u.note || u.likes?.length) && noteEditing !== u.id && (
                       <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ir-accent ring-1 ring-white/70" />
                     )}
                   </div>
@@ -2426,7 +2450,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     >
                       <IconEdit width={8} height={8} />
                     </button>
-                    {img.note && noteEditing !== img.id && (
+                    {(img.note || img.likes?.length) && noteEditing !== img.id && (
                       <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ir-accent ring-1 ring-white/70" />
                     )}
                   </div>
@@ -2463,14 +2487,33 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         <IconClose width={9} height={9} />
                       </button>
                     </div>
+                    <p className="mb-1.5 text-[14px] font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? "เว็บนี้" : "ภาพนี้"}?</p>
+                    <div role="group" aria-label="สิ่งที่ชอบ" className="mb-2.5 flex flex-wrap gap-1.5">
+                      {REFERENCE_LIKES.map((like) => {
+                        const on = (editingUrl ? editingUrl.likes : editingImage!.likes)?.includes(like) ?? false;
+                        return (
+                          <button
+                            key={like}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => toggleLike(noteEditing!, like)}
+                            className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 text-[14px] font-medium transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                              on ? "border-ir-select bg-ir-accent-soft text-ir-t1" : "border-ir-border bg-white text-ir-t2 hover:border-ir-select-soft"
+                            }`}
+                          >
+                            {on && <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" className="sel-check text-ir-accent-text" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5" /></svg>}
+                            {like}
+                          </button>
+                        );
+                      })}
+                    </div>
                     <textarea
-                      autoFocus
                       rows={2}
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
                       onChange={(e) =>
                         editingUrl ? updateUrlNote(editingUrl.id, e.target.value) : updateImageNote(editingImage!.id, e.target.value)
                       }
-                      placeholder="โน้ตเพิ่มเติม เช่น ชอบสีพื้นหลัง, ชอบฟอนต์หัวข้อ..."
+                      placeholder="โน้ตเพิ่มเติม (ไม่บังคับ)"
                       className="w-full bg-ir-card border border-ir-border rounded-lg text-[14.5px] text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
                     />
                   </div>
@@ -2512,8 +2555,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
 // cleared, so switching back and forth never loses work already done in it.
 function ReferenceModePicker({ mode, setMode, hasCustom, hasCurated }: { mode: "custom" | "curated" | null; setMode: (m: "custom" | "curated") => void; hasCustom: boolean; hasCurated: boolean }) {
   const OPTIONS: { id: "custom" | "curated"; title: string; desc: string; hasData: boolean }[] = [
-    { id: "custom", title: "วางลิงก์หรือรูปเว็บที่ชอบ", desc: "มีเว็บหรือรูปในใจอยู่แล้ว อยากให้ AI ดูของจริง", hasData: hasCustom },
-    { id: "curated", title: "ให้ AI ช่วยหาเว็บไซต์ตัวอย่าง", desc: "ยังไม่มีตัวอย่างในใจ ให้ทีม IR Plus คัดมาให้เลือก", hasData: hasCurated },
+    { id: "custom", title: "วางลิงก์หรือรูปเว็บที่ชอบ", desc: "มีเว็บหรือรูปในใจอยู่แล้ว อยากให้ทีมดูของจริง", hasData: hasCustom },
+    { id: "curated", title: "ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง", desc: "ยังไม่มีตัวอย่างในใจ ให้ทีม IR Plus คัดมาให้เลือก", hasData: hasCurated },
   ];
   return (
     <div className="mb-6">
@@ -2575,7 +2618,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
 
       {mode === "curated" && (
         <div className="mb-6 md:mb-8">
-          <SectionLabel>ให้ AI ช่วยหาเว็บไซต์ตัวอย่าง</SectionLabel>
+          <SectionLabel>ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง</SectionLabel>
           <CuratedReferenceBoard dir={dir} draft={draft} updateDraft={updateDraft} />
         </div>
       )}
@@ -2951,12 +2994,13 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           `Head()` no longer has one — the heading is already visually distinct. */}
       <div className="mb-4 pb-4 md:mb-5 md:pb-5">
         <h2 className="text-[26px] font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
-        <p className="text-[18px] text-ir-t2 leading-relaxed mt-2">ตรวจสอบภาพรวมโปรเจกต์ที่คุณและ AI ร่วมกันกำหนด แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
+        <p className="text-[18px] text-ir-t2 leading-relaxed mt-2">ตรวจภาพรวมที่สรุปจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* ── LEFT: project overview (main visual) ── */}
         <div className="flex-1 min-w-0 w-full">
+          <DesignDNACard req={draft} className="mb-5" />
           <ConceptBoard draft={draft} />
         </div>
 

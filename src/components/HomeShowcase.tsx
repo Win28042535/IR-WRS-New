@@ -13,7 +13,7 @@ import { FONT_PAIRINGS, fontStack } from "@/lib/fonts";
 import { ExploreMock } from "@/components/ExploreMock";
 
 const SAMPLE: { dir: string; picks: Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B"> } = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "B" } };
-const SAMPLE_SECTIONS = ["Hero Section", "ข้อมูลสำคัญทางการเงิน", "ราคาหลักทรัพย์", "เอกสารนักลงทุน"];
+const SAMPLE_SECTIONS = ["ส่วนเปิดหน้าเว็บ", "ข้อมูลสำคัญทางการเงิน", "ราคาหลักทรัพย์", "เอกสารนักลงทุน"];
 
 // Motion (globals.css .mb-*): tiles assemble on a diagonal (--d), each plays its content
 // once (--j). Hover lifts the tile and names the step that produces it.
@@ -27,9 +27,9 @@ const Tile = ({ label, step, d, dark, bg, className = "", children }: { label: s
     <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-[20px] border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-12px_rgba(20,22,19,0.22)] ${
       dark ? "border-transparent text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
     }`} style={bg ? { background: bg } : undefined}>
-      <p className={`text-[12px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
+      <p className={`text-[14px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
       {/* Sits on the top edge so it never takes layout space. */}
-      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[11px] font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
+      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[14px] font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
         จากขั้นที่ {step} · {FLOW_STEPS[step - 1]}
       </span>
       <div className="mt-3 flex flex-1 flex-col">{children}</div>
@@ -69,12 +69,12 @@ export function Moodboard({ company }: { company: string }) {
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
         {/* Direction — the lead tile, in the Direction's own colours and heading font */}
         <Tile label="แนวทางการออกแบบ" step={3} d={0} dark bg={d.bg} className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
-          <p className="mb-item text-[13px] text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
+          <p className="mb-item text-[14px] text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
           <p className="mb-item mt-auto pt-8 text-[clamp(2.1rem,4vw,3.4rem)] font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
           <p className="mb-item mt-3 text-[16px] text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
           <div className="mt-5 flex flex-wrap gap-1.5">
             {[...d.mood, ...d.tags].map((t, j) => (
-              <span key={t} className="mb-item rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[12px] font-medium text-white/90" style={v({ j: 3 + j * 0.5 })}>{t}</span>
+              <span key={t} className="mb-item rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[14px] font-medium text-white/90" style={v({ j: 3 + j * 0.5 })}>{t}</span>
             ))}
           </div>
         </Tile>
@@ -85,7 +85,7 @@ export function Moodboard({ company }: { company: string }) {
             {d.colors.slice(0, 3).map((c, j) => (
               <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
                 <span className="mb-swatch block flex-1 rounded-[12px] ring-1 ring-inset ring-black/10" style={{ background: c, transformOrigin: "bottom" }} />
-                <span className="mb-item mt-1.5 font-mono text-[11px] text-ir-t2">{c}</span>
+                <span className="mb-item mt-1.5 font-mono text-[13px] text-ir-t2">{c}</span>
               </div>
             ))}
           </div>
@@ -97,8 +97,8 @@ export function Moodboard({ company }: { company: string }) {
             <span className="mb-item text-[clamp(2.6rem,4vw,3.4rem)] leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
             <span className="mb-item text-[clamp(2.3rem,3.6vw,3rem)] leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
           </div>
-          <p className="mb-item mt-3 text-[13px] font-semibold text-ir-t1" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
-          <p className="mb-item mt-0.5 text-[12px] leading-snug text-ir-t3" style={v({ j: 3 })}>{pair.note}</p>
+          <p className="mb-item mt-3 text-[14px] font-semibold text-ir-t1" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
+          <p className="mb-item mt-0.5 text-[14px] leading-snug text-ir-t3" style={v({ j: 3 })}>{pair.note}</p>
         </Tile>
 
         {/* Imagery */}
@@ -110,7 +110,7 @@ export function Moodboard({ company }: { company: string }) {
               </div>
             ))}
           </div>
-          <p className="mb-item mt-2.5 text-[13px] leading-snug text-ir-t2" style={v({ j: 3 })}>{style.mood}</p>
+          <p className="mb-item mt-2.5 text-[14px] leading-snug text-ir-t2" style={v({ j: 3 })}>{style.mood}</p>
         </Tile>
 
         {/* The five picks behind the Direction */}
@@ -122,9 +122,9 @@ export function Moodboard({ company }: { company: string }) {
               return (
                 <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
                   <span className="mb-swatch h-7 w-10 shrink-0 rounded-[8px] ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
-                  <span className="mb-item min-w-0 flex-1 truncate text-[13px] text-ir-t2">{q.topic}</span>
-                  <span className="mb-item shrink-0 text-[13px] font-semibold text-ir-t1">{opt.label}</span>
-                  <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[11px] font-bold text-ir-accent-text">{pick}</span>
+                  <span className="mb-item min-w-0 flex-1 truncate text-[14px] text-ir-t2">{q.topic}</span>
+                  <span className="mb-item shrink-0 text-[14px] font-semibold text-ir-t1">{opt.label}</span>
+                  <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[13px] font-bold text-ir-accent-text">{pick}</span>
                 </li>
               );
             })}
@@ -134,10 +134,10 @@ export function Moodboard({ company }: { company: string }) {
         {/* Who it is for */}
         <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={1} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
           <p className="mb-item text-[17px] font-semibold leading-tight text-ir-t1">{audience.label}</p>
-          <p className="mb-item mt-1 text-[12px] leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
+          <p className="mb-item mt-1 text-[14px] leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
           <ul className="mt-3 grid gap-1.5">
             {goals.map((g, j) => (
-              <li key={g.id} className="flex items-center gap-2 text-[13px] font-medium text-ir-t1" style={v({ j: 2 + j })}>
+              <li key={g.id} className="flex items-center gap-2 text-[14px] font-medium text-ir-t1" style={v({ j: 2 + j })}>
                 <span className="mb-num ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>
                 <span className="mb-item min-w-0 truncate">{g.label}</span>
               </li>
@@ -149,14 +149,14 @@ export function Moodboard({ company }: { company: string }) {
         <Tile label="โครงหน้าแรก" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
           <ol className="grid gap-1">
             {SAMPLE_SECTIONS.map((s, j) => (
-              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-[6px] px-2 text-[11px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
+              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-[6px] px-2 text-[14px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
                 <span className="font-mono opacity-70">{j + 1}</span><span className="truncate">{s}</span>
               </li>
             ))}
           </ol>
         </Tile>
       </div>
-      <figcaption className="mt-4 text-center text-[13px] text-ir-t3" style={{ textWrap: "balance" }}>
+      <figcaption className="mt-4 text-center text-[14px] text-ir-t3" style={{ textWrap: "balance" }}>
         หมายเหตุ: ไม่ใช่ Moodboard จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
       </figcaption>
     </figure>
@@ -316,7 +316,7 @@ function StepCard({ i, name }: { i: number; name: string }) {
           <div className="flex items-center gap-2.5">
             <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-[13px] font-bold text-ir-accent transition-colors duration-300 group-hover:bg-ir-accent group-hover:text-ir-dark">{i + 1}</span>
             <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-ir-t1">{name}</h3>
-            <span className={`ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-medium ${s.optional ? "bg-ir-muted text-ir-t2" : "bg-ir-accent-soft text-ir-accent-text"}`}>{s.how}</span>
+            <span className={`ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-[14px] font-medium ${s.optional ? "bg-ir-muted text-ir-t2" : "bg-ir-accent-soft text-ir-accent-text"}`}>{s.how}</span>
           </div>
           <p className="mt-2 text-[15px] leading-relaxed text-ir-t2">{s.todo}</p>
         </div>

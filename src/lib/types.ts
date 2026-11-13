@@ -38,6 +38,7 @@ export interface ReferenceItem {
   value: string;        // url or data-uri / filename
   label?: string;
   note?: string;         // customer's own comment on why they picked this one
+  likes?: string[];      // what they like about it (REFERENCE_LIKES)
 }
 
 export interface SelectionRule {
@@ -214,6 +215,10 @@ export interface Requirement {
   // corporate identity — does the company have existing brand guidelines
   // (logo, colors, fonts) it wants the AI to reference while designing?
   hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered
+  // read from their current website (/api/brand-colors) when they keep the existing colours
+  brandColors?: string[];  // hex, most prominent first
+  brandPrimary?: string;   // the one they confirmed as the main colour
+  brandFonts?: string[];   // font families found on the site
 
   // design decisions
   selectedMoods: string[];

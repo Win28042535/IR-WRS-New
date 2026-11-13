@@ -8,6 +8,7 @@ import { nextStepText, fmtDate } from "@/components/requirement";
 import { IconCheck, IconPalette } from "@/components/icons";
 import { LumaLoader, LumaChip } from "@/components/AIMascot";
 import { directionById } from "@/lib/data";
+import { DesignDNACard } from "@/components/DesignDNA";
 
 // ── Requirement Submitted clean success/confirmation page only ──
 export default function SubmittedPage() {
@@ -76,14 +77,29 @@ export default function SubmittedPage() {
             <Field k="ประเภทโครงการ" v={req.projectType || "Corporate Website"} />
           </div>
 
-          {/* client-friendly confirmation no internal workflow language */}
-          <div className="sc-reveal flex items-start gap-3 bg-primary-50 border border-ir-select-soft rounded-[18px] px-4 py-4 mb-6">
-            <span className="mt-[3px]"><LumaChip type="celebrate" size={16} /></span>
-            <div>
-              <div className="text-[16px] font-semibold text-ir-t1 mb-1">ข้อมูลของคุณถูกส่งเรียบร้อยแล้ว</div>
-              <p className="text-[15px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+          {/* What happens next: who, when, how — in plain words */}
+          <div className="sc-reveal rounded-[18px] border border-ir-select-soft bg-primary-50 px-5 py-5 mb-6">
+            <div className="flex items-center gap-2.5">
+              <LumaChip type="celebrate" size={16} />
+              <h2 className="text-[18px] font-semibold text-ir-t1">สิ่งที่จะเกิดขึ้นต่อจากนี้</h2>
             </div>
+            <p className="mt-1 text-[16px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+            <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+              {[
+                ["ใครจะติดต่อ", "ผู้ดูแลโครงการจากทีม IR Plus"],
+                ["เมื่อไร", "ภายใน 1–2 วันทำการ"],
+                ["ทางไหน", req.phone || req.email ? [req.phone, req.email].filter(Boolean).join(" · ") : "ข้อมูลติดต่อที่ให้ไว้"],
+              ].map(([k, v]) => (
+                <div key={k} className="rounded-[14px] bg-white px-4 py-3">
+                  <dt className="text-[14px] text-ir-t3">{k}</dt>
+                  <dd className="mt-0.5 text-[16px] font-semibold text-ir-t1 break-words">{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
+
+          {/* The client's Design DNA, the same card they reviewed before sending */}
+          <DesignDNACard req={req} className="sc-reveal mb-6" />
 
           {/* Moodboard notification based on real direction data from quiz */}
           {(() => {
@@ -119,9 +135,12 @@ export default function SubmittedPage() {
         </div>
       </div>
 
-      {/* actions */}
-      <div className="flex justify-center">
-        <Link href="/" className="inline-flex items-center h-11 px-8 rounded-full bg-ir-muted text-ir-t1 text-[17px] font-medium hover:bg-ir-border transition-colors">
+      {/* actions — keep a copy (browser print → PDF), or go home */}
+      <div className="no-print flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <button type="button" onClick={() => window.print()} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-dark px-8 text-[17px] font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] sm:w-auto">
+          บันทึกสรุปเป็น PDF
+        </button>
+        <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-muted px-8 text-[17px] font-medium text-ir-t1 transition-colors hover:bg-ir-border sm:w-auto">
           กลับหน้าหลัก
         </Link>
       </div>

@@ -21,7 +21,7 @@ const balance = { textWrap: "balance" } as CSSProperties;
 // "ทีมได้รับอะไร" (the transformation machine) is switched off for now; flip to bring it back.
 const SHOW_BRIEF = false;
 
-const REASSURE = ["ไม่เกิน 20 นาที", "บันทึกอัตโนมัติ", "แก้ไขได้ก่อนเริ่มออกแบบ", "ไม่ต้องสมัครสมาชิก"];
+const REASSURE = ["ไม่ต้องสมัครสมาชิก", "บันทึกอัตโนมัติ", "แก้ไขได้ภายหลัง"];
 
 const STATS = [
   { pre: "ไม่เกิน", n: "20", post: "นาที" },
@@ -69,28 +69,24 @@ export default function Landing() {
       {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
       <section className="relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 pb-6 text-center ir-fade-up">
         <HeroFragments />
-        {/* Narrow phones wrap after "สำหรับลูกค้า ·", so the pill softens to a rounded box. */}
-        <span className="inline-flex items-center gap-2 rounded-[18px] min-[440px]:rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[13px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
-          <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[12px] font-semibold text-white">IR Plus</span>
-          <span>
-            สำหรับลูกค้า ·{" "}
-            <span className="whitespace-nowrap">บริษัทจดทะเบียนในตลาดหลักทรัพย์</span>
-          </span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[14px] font-medium leading-snug text-ir-t2 shadow-sm backdrop-blur">
+          <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[14px] font-semibold text-white">IR Plus</span>
+          <span className="whitespace-nowrap">สำหรับบริษัทจดทะเบียน</span>
         </span>
-        <h1 className="mx-auto mt-6 max-w-[900px] text-[clamp(2.4rem,6vw,4.75rem)] font-semibold leading-[1.12] tracking-[-0.04em]" style={balance}>
-          <span className="whitespace-nowrap">เว็บไซต์ IR ที่ใช่</span>{" "}
-          <span className="whitespace-nowrap">เริ่มจาก</span>{" "}
-          <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">คำตอบของคุณ</span>
+        <h1 className="mx-auto mt-6 max-w-[920px] text-[clamp(2.2rem,5.6vw,4.4rem)] font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
+          <span className="whitespace-nowrap">ออกแบบเว็บไซต์</span>{" "}
+          <span className="whitespace-nowrap">นักลงทุนสัมพันธ์</span>{" "}
+          <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">ให้ตรงใจองค์กรคุณ</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-[36rem] text-[16px] sm:text-[19px] leading-relaxed text-ir-t2" style={balance}>
-          ตอบคำถามสั้นๆ เลือกสไตล์จากภาพ แล้วรับ Moodboard และ Requirement ที่พร้อมส่งให้ทีมออกแบบ
+        <p className="mx-auto mt-5 max-w-[38rem] text-[18px] sm:text-[20px] leading-relaxed text-ir-t2" style={balance}>
+          ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับภายใน 1–2 วันทำการ
         </p>
 
-        <div className="mx-auto mt-9 max-w-[36rem] text-left">
+        <div id="hero-cta" className="mx-auto mt-8 max-w-[34rem] text-left">
           {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
         </div>
 
-        <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[14px] text-ir-t2">
+        <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[16px] text-ir-t2">
           {REASSURE.map((t) => (
             <li key={t} className="inline-flex items-center gap-1.5">
               <IconCheck width={20} height={20} className="text-ir-accent-text" />
@@ -98,6 +94,7 @@ export default function Landing() {
             </li>
           ))}
         </ul>
+
       </section>
 
       {/* ── The deliverable, revealed on scroll: centred and large, away from the CTA ── */}
@@ -106,8 +103,8 @@ export default function Landing() {
           <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ตัวอย่าง</span><span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">สิ่งที่คุณจะได้</span>
           </h2>
-          <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
-            Moodboard ที่ระบบสรุปจากคำตอบ: แนวทาง สี ตัวอักษร ภาพ สิ่งที่คุณเลือก และโครงหน้าแรก
+          <p className="mx-auto mt-3 max-w-[40rem] text-[17px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
+            ภาพรวมแนวทางการออกแบบที่สรุปจากคำตอบของคุณ: แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
             {shown.trim() && <> · แสดงด้วยชื่อ <span className="font-semibold text-ir-t1">{shown.trim()}</span></>}
           </p>
         </div>
@@ -134,8 +131,8 @@ export default function Landing() {
             <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
               <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
             </h2>
-            <p className="mx-auto mt-3 max-w-[40rem] text-[16px] leading-relaxed text-ir-t2" style={balance}>
-              ทีม IR Plus ได้รับ Requirement ที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
+            <p className="mx-auto mt-3 max-w-[40rem] text-[17px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
+              ทีม IR Plus ได้รับสรุปความต้องการที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
             </p>
           </div>
           <div className="sc-reveal mt-8"><BriefFlow /></div>
@@ -148,16 +145,16 @@ export default function Landing() {
           <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">อยากรู้<span className="ir-grad-text px-[0.02em] py-[0.15em]">รายละเอียด</span></span>{" "}<span className="whitespace-nowrap">ก่อนเริ่ม</span>
           </h2>
-          <p className="mt-3 text-[16px] text-ir-t2" style={balance}>คำตอบสั้นๆ ของคำถามที่ลูกค้าถามบ่อย</p>
+          <p className="mt-3 text-[17px] sm:text-[18px] text-ir-t2" style={balance}>คำตอบสั้นๆ ของคำถามที่ลูกค้าถามบ่อย</p>
         </div>
         {/* One card per question, two columns from lg, so the full width reads as a grid
             rather than one very long accordion. */}
         <div className="sc-reveal mt-10 grid items-start gap-3 lg:grid-cols-2">
           <Fold title="ต้องเตรียมอะไรบ้าง">
-            <p className="text-[15px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
+            <p className="text-[17px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
             <ul className="mt-3 grid gap-2 pb-5">
               {PREP.map((p) => (
-                <li key={p} className="flex items-start gap-2 text-[15px] text-ir-t1">
+                <li key={p} className="flex items-start gap-2 text-[17px] text-ir-t1">
                   <IconCheck width={20} height={20} className="mt-0.5 shrink-0 text-ir-accent-text" />{p}
                 </li>
               ))}
@@ -165,7 +162,7 @@ export default function Landing() {
           </Fold>
           {FAQ.map((f) => (
             <Fold key={f.q} title={f.q}>
-              <p className="pb-5 text-[15px] leading-relaxed text-ir-t2">{f.a}</p>
+              <p className="pb-5 text-[17px] leading-relaxed text-ir-t2">{f.a}</p>
             </Fold>
           ))}
         </div>
@@ -177,14 +174,14 @@ export default function Landing() {
           <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ยังมี<span className="ir-grad-text px-[0.02em] py-[0.15em]">คำถาม?</span></span>
           </h2>
-          <p className="mt-3 text-[16px] text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+          <p className="mt-3 text-[17px] sm:text-[18px] text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
         </div>
         <div className="sc-reveal mt-10"><HomeContact /></div>
       </section>
 
       {/* ── Closing banner — start (or resume) right here, no scrolling back up ── */}
       <section className="relative mx-auto max-w-[1320px] px-5 sm:px-8 pt-16 sm:pt-20 pb-16">
-        <div className="sc-reveal relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
+        <div id="final-cta" className="sc-reveal relative overflow-hidden rounded-[32px] bg-ir-dark px-6 py-14 sm:px-12 sm:py-16">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-[-220px] h-[440px] w-[760px] -translate-x-1/2 rounded-full"
@@ -216,10 +213,45 @@ export default function Landing() {
             </ul>
           </div>
         </div>
-        <p className="mt-10 text-center text-[13px] text-ir-t3">IR Plus by efin · Website Requirement System</p>
+        <p className="mt-10 text-center text-[14px] text-ir-t3">IR Plus by efin · Website Requirement System</p>
       </section>
 
+      <MobileStickyCta flow={flow} company={company} />
       <BackToTop />
+    </div>
+  );
+}
+
+// Phones: once the hero's CTA has scrolled away (and until the closing banner's own CTA is
+// on screen), the main action stays one thumb-tap away in a bar at the bottom.
+function MobileStickyCta({ flow, company }: { flow: ReturnType<typeof useStartFlow>; company: string }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const hero = document.getElementById("hero-cta");
+    const end = document.getElementById("final-cta");
+    if (!hero || typeof IntersectionObserver === "undefined") return;
+    let heroGone = false, endVisible = false;
+    const sync = () => setShow(heroGone && !endVisible);
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.target === hero) heroGone = !e.isIntersecting && e.boundingClientRect.top < 0;
+        if (e.target === end) endVisible = e.isIntersecting;
+      }
+      sync();
+    });
+    io.observe(hero);
+    if (end) io.observe(end);
+    return () => io.disconnect();
+  }, []);
+  const label = flow.inProgress ? `ทำต่อ · ขั้นที่ ${flow.step}` : "เริ่มตอบคำถาม";
+  return (
+    <div
+      inert={!show}
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-ir-bg/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md transition-[translate,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden motion-reduce:transition-none ${
+        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
+      }`}
+    >
+      <PrimaryCta block onClick={() => (flow.inProgress ? flow.resume() : flow.startWith(company))}>{label}</PrimaryCta>
     </div>
   );
 }
@@ -245,7 +277,7 @@ function BackToTop() {
       aria-label="กลับขึ้นด้านบน"
       title="กลับขึ้นด้านบน"
       inert={!show}
-      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-[0_10px_30px_rgba(20,22,19,0.25)] transition-[opacity,transform,background-color] duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 motion-reduce:transition-none ${
+      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-[0_10px_30px_rgba(20,22,19,0.25)] transition-[opacity,transform,background-color] duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 motion-reduce:transition-none ${
         show ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-3"
       }`}
     >
@@ -259,29 +291,29 @@ function BackToTop() {
 function StartForm({ value, onChange, onStart, inputId = "company-input", dark }: {
   value: string; onChange: (v: string) => void; onStart: (company: string) => void; inputId?: string; dark?: boolean;
 }) {
-  const [hint, setHint] = useState(false);
+  // The company name is optional here (step 1 asks for it anyway): nothing stands between
+  // a hesitant visitor and the first question.
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (value.trim().length < 2) { setHint(true); return; }
     onStart(value);
   };
   return (
     <form onSubmit={submit} noValidate>
-      <label htmlFor={inputId} className={`block text-[15px] font-semibold ${dark ? "text-white" : "text-ir-t1"}`}>เริ่มจากชื่อบริษัทของคุณ</label>
-      <div className="mt-2.5 flex flex-col gap-2.5 sm:flex-row">
-        <input
-          id={inputId}
-          value={value}
-          onChange={(e) => { onChange(e.target.value); if (hint) setHint(false); }}
-          placeholder="เช่น บริษัท ตัวอย่าง จำกัด (มหาชน)"
-          autoComplete="organization"
-          aria-invalid={hint}
-          aria-describedby={hint ? `${inputId}-hint` : undefined}
-          className="h-[56px] w-full min-w-0 flex-none sm:flex-1 rounded-full border border-black/10 bg-white px-6 text-[16px] text-ir-t1 shadow-sm outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
-        />
-        <PrimaryCta type="submit" onDark={dark}>ต่อไป</PrimaryCta>
+      <label htmlFor={inputId} className={`block text-[16px] font-semibold ${dark ? "text-white" : "text-ir-t1"}`}>
+        ชื่อบริษัทของคุณ <span className={`font-normal ${dark ? "text-white/70" : "text-ir-t3"}`}>(ไม่บังคับ)</span>
+      </label>
+      <input
+        id={inputId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="เช่น บริษัท ตัวอย่าง จำกัด (มหาชน)"
+        autoComplete="organization"
+        className="mt-2 h-[58px] w-full rounded-full border border-black/10 bg-white px-6 text-[17px] text-ir-t1 shadow-sm outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
+      />
+      <div className="mt-3">
+        <PrimaryCta type="submit" onDark={dark} block>เริ่มตอบคำถาม</PrimaryCta>
       </div>
-      {hint && <p id={`${inputId}-hint`} role="alert" className={`mt-2 pl-6 text-[14px] ${dark ? "text-red-300" : "text-red-700"}`}>พิมพ์ชื่อบริษัทก่อน แล้วกดต่อไป</p>}
+      <p className={`mt-2.5 text-center text-[15px] ${dark ? "text-white/75" : "text-ir-t2"}`}>ใช้เวลาประมาณ 15–20 นาที</p>
     </form>
   );
 }
@@ -299,7 +331,7 @@ function ResumeCard({ flow }: { flow: ReturnType<typeof useStartFlow> }) {
             <span key={name} className={`h-1.5 flex-1 rounded-full transition-colors ${i < flow.step ? "ir-grad-fill" : "bg-ir-border"}`} />
           ))}
         </div>
-        <span className="shrink-0 text-[13px] text-ir-t2">ขั้นที่ {flow.step}/{FLOW_STEPS.length} · {flow.stepName}</span>
+        <span className="shrink-0 text-[14px] text-ir-t2">ขั้นที่ {flow.step}/{FLOW_STEPS.length} · {flow.stepName}</span>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <PrimaryCta onClick={flow.resume}>ทำต่อ</PrimaryCta>
@@ -318,12 +350,12 @@ function ResumeCard({ flow }: { flow: ReturnType<typeof useStartFlow> }) {
 }
 
 // Black pill with a lime arrow disc (production WRS hero CTA).
-function PrimaryCta({ children, onClick, type = "button", onDark }: { children: ReactNode; onClick?: () => void; type?: "button" | "submit"; onDark?: boolean }) {
+function PrimaryCta({ children, onClick, type = "button", onDark, block }: { children: ReactNode; onClick?: () => void; type?: "button" | "submit"; onDark?: boolean; block?: boolean }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className={`group inline-flex h-[56px] shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 text-[16px] font-semibold transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+      className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-[18px]" : "h-[56px] text-[16px]"} transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
         onDark ? "ir-grad-fill text-ir-on-accent shadow-[0_10px_40px_rgba(215,224,39,0.25)] hover:brightness-105" : "bg-ir-dark text-white shadow-[0_10px_30px_rgba(20,22,19,0.18)] hover:bg-neutral-800"
       }`}
     >

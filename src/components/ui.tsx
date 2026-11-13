@@ -26,8 +26,8 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
               {current}/{steps.length}
             </span>
           </div>
-          <span className="absolute right-0 hidden sm:flex items-center gap-1.5 text-[14px] font-medium text-ir-t3">
-            <span className="w-1.5 h-1.5 rounded-full bg-ir-accent" aria-hidden="true" />
+          <span className="absolute right-0 hidden items-center gap-1.5 text-[14px] font-medium text-ir-t3 sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-ir-accent" aria-hidden="true" />
             บันทึกอัตโนมัติ
           </span>
         </div>

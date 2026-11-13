@@ -20,6 +20,9 @@ export const RULES: Record<string, SelectionRule> = {
 // very bottom — everything the user picks lives in between and stays freely reorderable.
 // Shared by the Structure picker (flow2) and the live workspace list (PreviewPanel) so both
 // agree on which rows are locked and where.
+// What a client can say they like about a reference site / image (step 5).
+export const REFERENCE_LIKES = ["สี", "ตัวอักษร", "การจัดวาง", "ภาพ", "ความเรียบง่าย", "การนำเสนอข้อมูล"];
+
 export const LEADING_REQUIRED_IDS = ["header", "hero"];
 export const TRAILING_REQUIRED_IDS = ["footer"];
 export const REQUIRED_SECTION_IDS = [...LEADING_REQUIRED_IDS, ...TRAILING_REQUIRED_IDS];

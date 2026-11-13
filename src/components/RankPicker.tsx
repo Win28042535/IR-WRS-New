@@ -1,20 +1,29 @@
 "use client";
 // ── RankPicker: pick and rank (production WRS #story DNA) ───────────────────────────
 // Tap a card to pick it; the order you pick in is the rank (the first pick is #1, marked
-// "★ สำคัญที่สุด"). Tap a picked card again to drop it; the ranks below move up. Drag a
-// picked card onto another picked card to swap their ranks: with a mouse, drag the card
-// itself; on touch, drag the grip (⋮⋮) so the page still scrolls under your thumb.
-// Keyboard: Enter/Space picks or drops; on a picked card, ← / ↑ moves it up one rank and
-// → / ↓ moves it down.
-//   idle    — near-white, faint border, icon at 60%, grey title
-//   picked  — lime tint, lime border + 2px glow, icon becomes a black numbered disc (pops)
-//   #1      — lime ribbon on the top-right corner
-//   drag    — lifted (scale, shadow), follows the pointer; the card under it gets a dashed ring
-import { useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SVGProps } from "react";
+// "★ สำคัญที่สุด"). Tap a picked card again to drop it; the ranks below move up.
+// Re-rank by dragging a picked card toward another picked card: the nearest one is the
+// target and every number updates live. Mouse: drag the card or its grip. Touch (any
+// screen size): drag the grip (⋮⋮), so the card body still scrolls the page.
+// Keyboard: Enter/Space picks or drops; ← / ↑ moves a picked card up a rank, → / ↓ down.
+//   idle     — near-white, faint border, icon at 60%, grey title
+//   picked   — lime tint, lime border + 2px glow, icon becomes a black numbered disc (pops)
+//   #1       — lime ribbon on the top-right corner
+//   lifted   — card follows the pointer, tilted and enlarged with a deep shadow; its slot
+//              shows a dashed outline; other picked cards fade a little; a light buzz on
+//              phones that support it
+//   target   — dashed lime ring + "วางที่นี่" on the card it will take the place of
+//   dropped  — the card glides back into its slot, glows once, a buzz, and a line under the
+//              grid says what moved where (also read out by screen readers)
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SVGProps } from "react";
 
 export type RankItem = { id: string; label: string; desc?: string; icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element };
 
 type Drag = { id: string; dx: number; dy: number; over: string | null };
+// A light buzz on phones — only after a real tap (Chrome blocks it otherwise).
+export const buzz = (ms: number) => {
+  try { if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(ms); } catch { /* not supported */ }
+};
 
 export function RankPicker({
   items, selected: rawSelected, onChange, max, title = "เลือกและจัดลำดับความสำคัญ", hint = "การ์ดแรกที่กดคือลำดับที่ 1",
@@ -35,46 +44,86 @@ export function RankPicker({
   const full = selected.length >= limit;
   const [drag, setDrag] = useState<Drag | null>(null);
   const press = useRef<{ id: string; x: number; y: number; moved: boolean; touchGrip: boolean } | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [flash, setFlash] = useState<string | null>(null);      // card that just landed
+  const [moved, setMoved] = useState<string>("");               // "ย้าย … ไปลำดับที่ … แล้ว"
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const label = (id: string) => items.find((it) => it.id === id)?.label ?? id;
+  // after any re-rank: glow the card once and say what happened
+  const landed = (id: string, next: string[]) => {
+    timers.current.forEach(clearTimeout);
+    setFlash(id);
+    setMoved(`ย้าย “${label(id)}” ไปลำดับที่ ${next.indexOf(id) + 1} แล้ว`);
+    timers.current = [setTimeout(() => setFlash(null), 900), setTimeout(() => setMoved(""), 2600)];
+  };
 
   const toggle = (id: string) => {
     if (selected.includes(id)) onChange(selected.filter((x) => x !== id));
     else if (!full) onChange([...selected, id]);
   };
-  const swap = (a: string, b: string) => {
-    const next = [...selected];
-    const i = next.indexOf(a), j = next.indexOf(b);
-    if (i < 0 || j < 0) return;
-    [next[i], next[j]] = [next[j], next[i]];
-    onChange(next);
+  // Move `id` to another card's rank (the cards in between shift by one).
+  const moveTo = (list: string[], id: string, target: string) => {
+    const next = list.filter((x) => x !== id);
+    const j = list.indexOf(target);
+    if (j < 0) return list;
+    next.splice(j, 0, id);
+    return next;
   };
   const shift = (id: string, by: number) => {
     const i = selected.indexOf(id), j = i + by;
     if (i < 0 || j < 0 || j >= selected.length) return;
-    swap(id, selected[j]);
+    const next = [...selected];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+    landed(id, next);
   };
 
   const onDown = (e: ReactPointerEvent<HTMLElement>, id: string, fromGrip = false) => {
     if (e.button !== 0) return;
     const canDrag = selected.includes(id) && (e.pointerType === "mouse" || fromGrip);
     press.current = { id, x: e.clientX, y: e.clientY, moved: false, touchGrip: fromGrip };
-    if (canDrag) e.currentTarget.setPointerCapture(e.pointerId);
+    if (canDrag) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ } }
   };
   const onMove = (e: ReactPointerEvent<HTMLElement>) => {
     const p = press.current;
     if (!p || !selected.includes(p.id) || !(e.pointerType === "mouse" || p.touchGrip)) return;
     const dx = e.clientX - p.x, dy = e.clientY - p.y;
     if (!p.moved && Math.hypot(dx, dy) < 6) return;
+    if (!p.moved) buzz(8);
     p.moved = true;
-    const under = document.elementsFromPoint(e.clientX, e.clientY)
-      .map((el) => (el as HTMLElement).closest?.("[data-rank-id]") as HTMLElement | null)
-      .find((el) => el && el.dataset.rankId !== p.id && selected.includes(el.dataset.rankId!));
-    setDrag({ id: p.id, dx, dy, over: under?.dataset.rankId ?? null });
+    // The drop target is the nearest other picked card — no need to land exactly on it.
+    let over: string | null = null, best = Infinity;
+    for (const id of selected) {
+      if (id === p.id) continue;
+      const r = (e.currentTarget.closest("[data-rank-root]") ?? document).querySelector<HTMLElement>(`[data-rank-id="${id}"]`)?.getBoundingClientRect();
+      if (!r) continue;
+      const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      if (d < best) { best = d; over = id; }
+    }
+    setDrag({ id: p.id, dx, dy, over });
   };
   const onUp = () => {
     const p = press.current;
     press.current = null;
     if (!p) return;
-    if (p.moved) { if (drag?.over) swap(p.id, drag.over); setDrag(null); return; }
+    if (p.moved) {
+      const el = cardRefs.current[p.id];
+      if (el && drag && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        el.animate(
+          [{ transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` }, { transform: "none" }],
+          { duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+        );
+      }
+      if (drag?.over) {
+        const next = moveTo(selected, p.id, drag.over);
+        onChange(next);
+        landed(p.id, next);
+        buzz(14);
+      }
+      setDrag(null);
+      return;
+    }
     if (!p.touchGrip) toggle(p.id);
   };
   const onCancel = () => { press.current = null; setDrag(null); };
@@ -86,7 +135,7 @@ export function RankPicker({
   };
 
   return (
-    <div>
+    <div data-rank-root>
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[15px] font-semibold text-ir-t1">{title}</p>
@@ -99,15 +148,19 @@ export function RankPicker({
 
       <div className={`mt-3 grid gap-2.5 ${cols}`}>
         {items.map((it, i) => {
-          const rank = selected.indexOf(it.id) + 1;
+          const order = drag?.over ? moveTo(selected, drag.id, drag.over) : selected;
+          const rank = order.indexOf(it.id) + 1;
           const on = rank > 0;
           const dim = full && !on;
           const dragging = drag?.id === it.id;
           const target = drag?.over === it.id;
+          const resting = !!drag && on && !dragging && !target;
           const Icon = it.icon;
           return (
+            // The slot: while its card is lifted it shows where the card came from.
+            <div key={it.id} className={`relative flex min-w-0 rounded-[18px] ${dragging ? "border-2 border-dashed border-ir-select/70 bg-primary-50/50" : ""} ${itemClassName?.(it.id, i) ?? ""}`}>
             <div
-              key={it.id}
+              ref={(el) => { cardRefs.current[it.id] = el; }}
               role="button"
               data-rank-id={it.id}
               tabIndex={dim ? -1 : 0}
@@ -119,20 +172,22 @@ export function RankPicker({
               onPointerUp={onUp}
               onPointerCancel={onCancel}
               onKeyDown={(e) => !dim && onKey(e, it.id)}
-              style={dragging ? { transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.03)` } : undefined}
+              style={dragging ? { transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` } : undefined}
               className={[
-                "rk-card group relative flex min-h-[80px] select-none items-center gap-3 rounded-[18px] border px-3.5 py-3 text-left outline-none",
+                "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-[18px] border px-3.5 py-3 text-left outline-none",
                 "focus-visible:ring-3 focus-visible:ring-ir-ring/50",
-                dragging ? "z-20 cursor-grabbing shadow-[0_22px_44px_-18px_rgba(20,22,19,0.35)]" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-200",
+                dragging ? "z-30 cursor-grabbing shadow-[0_28px_56px_-18px_rgba(20,22,19,0.45)] ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-200",
+                resting ? "opacity-70" : "",
+                flash === it.id ? "rk-landed" : "",
                 on
                   ? `cursor-grab border-ir-select bg-primary-50 shadow-[0_0_0_2px_rgba(215,224,39,0.22)] ${e2(dragging)}`
                   : dim
                     ? "cursor-not-allowed border-[#ECECEA] bg-[#FCFCFB] opacity-45"
                     : "cursor-pointer border-[#ECECEA] bg-[#FCFCFB] hover:border-ir-select-soft hover:bg-white active:scale-[0.99]",
                 target ? "outline-2 outline-dashed outline-offset-2 outline-ir-select" : "",
-                itemClassName?.(it.id, i) ?? "",
               ].join(" ")}
             >
+              {target && <span className="rk-drop-hint pointer-events-none absolute -top-3 left-4 z-10 rounded-full bg-ir-dark px-2.5 py-0.5 text-[13px] font-semibold text-ir-accent">วางที่นี่</span>}
               {on ? (
                 <span key={rank} className="rk-no grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-[15px] font-bold text-white">{rank}</span>
               ) : (
@@ -143,27 +198,35 @@ export function RankPicker({
                 {it.desc && <span className={`mt-0.5 block text-[13px] leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
               </span>
               {on && (
-                // Touch drag handle: the card body scrolls the page, the grip drags.
+                <>
+                {/* Drag handle — every screen size; on touch this is where a drag starts. */}
                 <span
                   aria-hidden="true"
                   onPointerDown={(e) => { e.stopPropagation(); onDown(e, it.id, true); }}
-                  className="grid h-11 w-8 shrink-0 cursor-grab touch-none place-items-center rounded-[10px] text-ir-t3 hover:bg-black/[0.04]"
+                  className={`grid h-12 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-[12px] text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07] ${rank === 1 ? "mt-4" : ""}`}
                 >
                   <svg width={14} height={20} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                 </span>
+                </>
               )}
               {rank === 1 && (
-                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-[0_18px_0_12px] bg-ir-accent py-1 pl-2.5 pr-3.5 text-[12px] font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
+                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-[0_18px_0_12px] bg-ir-accent py-1 pl-2.5 pr-3.5 text-[13px] font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
               )}
+            </div>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-2.5 min-h-5 text-center text-[13px] text-ir-t3" aria-live="polite">
-        {full && limit < items.length
+      <p className="mt-3 flex min-h-8 items-center justify-center text-center text-[14px] text-ir-t3" aria-live="polite">
+        {moved ? (
+          <span key={moved} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent-soft px-3 py-1 font-semibold text-ir-t1">
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-accent-text"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+            {moved}
+          </span>
+        ) : full && limit < items.length
           ? `เลือกครบ ${limit} แล้ว · กดการ์ดที่เลือกไว้เพื่อเอาออกก่อน ถ้าต้องการเปลี่ยน`
-          : selected.length > 1 ? "ลากการ์ดที่เลือกไว้เพื่อสลับลำดับ" : ""}
+          : selected.length > 1 ? "ลากที่ ⋮⋮ เพื่อสลับลำดับ" : ""}
       </p>
     </div>
   );

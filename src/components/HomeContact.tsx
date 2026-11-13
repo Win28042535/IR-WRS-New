@@ -38,7 +38,7 @@ export function HomeContact() {
   const reset = () => { setSentId(null); setMessage(""); setTried(false); };
 
   const field = "h-11 w-full rounded-full border border-black/10 bg-white px-4 text-[15px] text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30";
-  const label = "text-[13px] font-medium text-ir-t2";
+  const label = "text-[14px] font-medium text-ir-t2";
 
   const shell = (children: ReactNode) => (
     <div className="rounded-[24px] border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 lg:p-8">{children}</div>
@@ -81,7 +81,7 @@ export function HomeContact() {
             aria-describedby={tried && contactErr ? "contact-msg-err" : undefined}
             className={`mt-1 ${field} ${tried && contactErr ? "border-red-400" : ""}`}
           />
-          {tried && contactErr && <span id="contact-msg-err" role="alert" className="mt-1 block pl-4 text-[13px] text-red-700">{contactErr}</span>}
+          {tried && contactErr && <span id="contact-msg-err" role="alert" className="mt-1 block pl-4 text-[14px] text-red-700">{contactErr}</span>}
         </label>
         <label className="block sm:col-span-2 lg:col-span-3">
           <span className={label}>ข้อความ (ไม่บังคับ)</span>

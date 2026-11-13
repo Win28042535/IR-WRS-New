@@ -1032,3 +1032,24 @@ input:focus, textarea:focus, select:focus {
 @media (prefers-reduced-motion: no-preference) {
   .sb-land { animation: sb-land 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 }
+
+/* Print / "บันทึกสรุปเป็น PDF": just the summary — no site chrome, no motion. */
+@media print {
+  header, nav, .no-print, .ai-guide-card { display: none !important; }
+  body { background: #fff !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .sc-reveal, .sc-show, .sc-rise { opacity: 1 !important; transform: none !important; }
+}
+
+/* RankPicker / StructureBuilder drag feedback: the card that lands glows once, the
+   "วางที่นี่" hint and the "ย้าย … แล้ว" line pop in. */
+@keyframes rk-landed {
+  0%   { box-shadow: 0 0 0 0 rgba(215, 224, 39, 0.75); }
+  45%  { box-shadow: 0 0 0 7px rgba(215, 224, 39, 0.35); }
+  100% { box-shadow: 0 0 0 2px rgba(215, 224, 39, 0.22); }
+}
+@keyframes rk-hint-in { from { opacity: 0; translate: 0 4px; scale: 0.9; } }
+@media (prefers-reduced-motion: no-preference) {
+  .rk-landed { animation: rk-landed 0.9s ease-out; }
+  .rk-drop-hint, .rk-moved { animation: rk-hint-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+}
