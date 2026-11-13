@@ -215,7 +215,8 @@ export interface Requirement {
   // corporate identity — does the company have existing brand guidelines
   // (logo, colors, fonts) it wants the AI to reference while designing?
   hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered
-  // read from their current website (/api/brand-colors) when they keep the existing colours
+  // brand colours captured earlier (older drafts); the colour reader has been removed, the
+  // Design DNA card still shows them if present
   brandColors?: string[];  // hex, most prominent first
   brandPrimary?: string;   // the one they confirmed as the main colour
   brandFonts?: string[];   // font families found on the site
