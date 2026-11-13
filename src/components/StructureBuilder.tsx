@@ -198,16 +198,16 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
       <div className={`sb-rec grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${showRec ? "mb-5 grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"}`} aria-hidden={!showRec}>
         <div className="overflow-hidden">
           <div className="flex flex-wrap items-center gap-3 rounded-xl bg-ir-sunken p-3 sm:flex-nowrap">
-            <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-[16px] text-ir-on-accent">✦</span>
-            <div className="min-w-0 flex-1 text-[14px] leading-snug">
+            <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
+            <div className="min-w-0 flex-1 text-small leading-snug">
               <p className="font-semibold text-ir-t1">มีชุดเนื้อหาที่แนะนำจากคำตอบก่อนหน้า</p>
-              <p className="mt-0.5 text-[13px] text-ir-t3">อิงจากกลุ่มเป้าหมายและเป้าหมายที่คุณจัดลำดับไว้ · {recList.length} เรื่อง</p>
+              <p className="mt-0.5 text-caption text-ir-t3">อิงจากกลุ่มเป้าหมายและเป้าหมายที่คุณจัดลำดับไว้ · {recList.length} เรื่อง</p>
             </div>
             <button
               type="button"
               tabIndex={showRec ? 0 : -1}
               onClick={applyRec}
-              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ir-dark px-4 text-[13px] font-semibold text-white transition-transform duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${recPress ? "scale-[0.93]" : ""}`}
+              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-transform duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${recPress ? "scale-[0.93]" : ""}`}
             >
               ✦ ใช้คำแนะนำ
             </button>
@@ -231,13 +231,13 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 disabled={dim}
                 aria-pressed={used}
                 title={sectionById(id)?.desc}
-                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-[15px] transition-[background-color,border-color,opacity,transform] duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
                   used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
                 }`}
               >
                 <span className="min-w-0 flex-1 truncate font-semibold text-ir-t1">{shortName(id)}</span>
-                {recSet.has(id) && <span className="shrink-0 rounded-full bg-ir-accent-soft px-2 py-0.5 text-[13px] font-semibold text-ir-accent-text">แนะนำ</span>}
-                <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[13px] font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-[16px] font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
+                {recSet.has(id) && <span className="shrink-0 rounded-full bg-ir-accent-soft px-2 py-0.5 text-caption font-semibold text-ir-accent-text">แนะนำ</span>}
+                <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-body font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
               </button>
             );
           })}
@@ -246,8 +246,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
         {/* outline */}
         <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-24">
           <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
-            <p className="text-[15px] font-semibold text-ir-t1">ลำดับเนื้อหาบนเว็บไซต์</p>
-            <span className="rounded-full bg-white px-2 py-0.5 font-mono text-[13px] text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
+            <p className="text-body font-semibold text-ir-t1">ลำดับเนื้อหาบนเว็บไซต์</p>
+            <span className="rounded-full bg-white px-2 py-0.5 font-mono text-caption text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
           </div>
           <FixedRow label="เมนูหลัก · ส่วนเปิดหน้าเว็บ" />
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
@@ -255,8 +255,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               const id = optional[i];
               if (!id) {
                 return (
-                  <li key={`empty-${i}`} ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-[14px] text-ir-disabled">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi font-mono text-[13px]">{i + 1}</span>
+                  <li key={`empty-${i}`} ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-small text-ir-disabled">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi font-mono text-caption">{i + 1}</span>
                     ว่าง
                   </li>
                 );
@@ -286,14 +286,14 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     ...(delay !== undefined ? { animationDelay: `${delay}ms` } : null),
                   }}
                   className={[
-                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-[14.5px] font-bold text-ir-t1 outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-small font-bold text-ir-t1 outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
                     dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "cursor-grab",
                     drag && !dragging ? "transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
                   ].join(" ")}
                 >
-                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[13px] ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
+                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
                   <span className="min-w-0 flex-1 truncate">{shortName(id)}</span>
                   {/* drag handle — every screen size; on touch this is where a drag starts */}
                   <span
@@ -316,7 +316,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             })}
           </ol>
           <FixedRow label="ส่วนท้ายเว็บ" />
-          <p className="flex min-h-8 items-center px-1.5 pt-2 text-[14px] font-semibold text-ir-t1" aria-live="polite">
+          <p className="flex min-h-8 items-center px-1.5 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
             {movedMsg && (
               <span key={movedMsg} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent-soft px-3 py-1">
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-accent-text"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
@@ -324,7 +324,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               </span>
             )}
           </p>
-          <p className="px-1.5 pb-1 pt-1 text-[14px] text-ir-t3">
+          <p className="px-1.5 pb-1 pt-1 text-small text-ir-t3">
             {optional.length < MIN_OPT ? `เลือกอย่างน้อย ${MIN_OPT} เรื่อง · ` : optional.length > 1 ? "ลากที่ ⋮⋮ เพื่อเลื่อนลำดับ · " : null}
             เมนู ส่วนเปิดหน้า และส่วนท้าย ระบบจัดให้
           </p>
@@ -337,12 +337,12 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 }
 
 const FixedRow = ({ label }: { label: string }) => (
-  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 text-[13.5px] font-medium text-ir-t3">
-    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-[13px]" aria-hidden="true">
+  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 text-small font-medium text-ir-t3">
+    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-caption" aria-hidden="true">
       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
     </span>
     <span className="min-w-0 flex-1 truncate">{label}</span>
-    <span className="pr-2 text-[13px]">ระบบจัดให้</span>
+    <span className="pr-2 text-caption">ระบบจัดให้</span>
   </div>
 );
 
@@ -371,8 +371,8 @@ function FlightPill({ f, delay, onDone }: { f: Flight; delay: number; onDone: (k
   }, []);
   return (
     <div ref={ref} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center gap-2 whitespace-nowrap rounded-full border border-ir-border-soft bg-white py-1.5 pl-1.5 pr-3.5 opacity-0 shadow-e3">
-      <span className="grid h-6 w-6 place-items-center rounded-full bg-ir-accent font-mono text-[13px] font-semibold text-ir-on-accent">{f.n}</span>
-      <span className="text-[13px] font-semibold text-ir-t1">{f.title}</span>
+      <span className="grid h-6 w-6 place-items-center rounded-full bg-ir-accent font-mono text-caption font-semibold text-ir-on-accent">{f.n}</span>
+      <span className="text-caption font-semibold text-ir-t1">{f.title}</span>
     </div>
   );
 }

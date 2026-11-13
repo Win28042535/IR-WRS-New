@@ -16,17 +16,17 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
       <div className="max-w-[1000px] mx-auto px-5 lg:px-7 pt-3 pb-3">
         <div className="relative flex items-center justify-center min-h-9">
           <div
-            className="flex items-center gap-2 max-w-[calc(100%-7rem)] rounded-full border border-ir-border bg-ir-card px-4 py-2 shadow-e1"
+            className="flex items-center gap-2 max-w-full sm:max-w-[calc(100%-7rem)] rounded-full border border-ir-border bg-ir-card px-4 py-2 shadow-e1"
             aria-label={`ขั้นตอนที่ ${current} จาก ${steps.length}: ${steps[current - 1]}`}
             title={stepsEn?.[current - 1]}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0" aria-hidden="true" />
-            <span className="text-[16px] font-medium text-ir-t1 truncate">{steps[current - 1]}</span>
-            <span className="font-mono text-[14px] text-ir-t3 tabular-nums shrink-0" aria-hidden="true">
+            <span className="text-body font-medium text-ir-t1 truncate">{steps[current - 1]}</span>
+            <span className="font-mono text-small text-ir-t3 tabular-nums shrink-0" aria-hidden="true">
               {current}/{steps.length}
             </span>
           </div>
-          <span className="absolute right-0 hidden items-center gap-1.5 text-[14px] font-medium text-ir-t3 sm:flex">
+          <span className="absolute right-0 hidden items-center gap-1.5 text-small font-medium text-ir-t3 sm:flex">
             <span className="h-1.5 w-1.5 rounded-full bg-ir-accent" aria-hidden="true" />
             บันทึกอัตโนมัติ
           </span>
@@ -111,7 +111,7 @@ export function OptionCard({
         className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']"
       >
         {rank ? (
-          <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-[16px] font-bold">
+          <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-body font-bold">
             {rank}
           </span>
         ) : Icon ? (
@@ -120,8 +120,8 @@ export function OptionCard({
           </span>
         ) : null}
         <span className="flex-1 min-w-0">
-          <span className="block text-[17px] font-semibold text-ir-t1 leading-snug">{title}</span>
-          {desc && <span className="block text-[15px] text-ir-t3 leading-snug mt-0.5">{desc}</span>}
+          <span className="block text-lead font-semibold text-ir-t1 leading-snug">{title}</span>
+          {desc && <span className="block text-body text-ir-t3 leading-snug mt-0.5">{desc}</span>}
           {tag}
         </span>
         <SelectDot on={selected} />
@@ -134,7 +134,7 @@ export function OptionCard({
 /** Small lime pill under an option card title — e.g. "กลุ่มเป้าหมายหลัก". */
 export function OptionTag({ children }: { children: ReactNode }) {
   return (
-    <span className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[14px] font-semibold bg-ir-accent-soft text-ir-accent-text">
+    <span className="mt-1.5 inline-flex rounded-full px-2 py-0.5 text-small font-semibold bg-ir-accent-soft text-ir-accent-text">
       {children}
     </span>
   );
@@ -147,7 +147,7 @@ export function RuleBadge({ ruleKey, count }: { ruleKey: keyof typeof RULES; cou
   const full = count >= rule.max;
   return (
     <span
-      className={`text-[14px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
+      className={`text-small font-semibold px-2 py-0.5 rounded-full transition-colors ${
         ok ? "bg-ir-accent/12 text-ir-accent-text" : "bg-black/[0.05] text-ir-t3"
       }`}
       title={`เลือกได้ ${rule.min}-${rule.max} รายการ`}
@@ -169,7 +169,7 @@ export function ProgressBar({ value }: { value: number }) {
 export function Chip({ children, dark }: { children: ReactNode; dark?: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[14px] px-2.5 py-1 rounded-full ${
+      className={`inline-flex items-center gap-1.5 text-small px-2.5 py-1 rounded-full ${
         dark ? "bg-ir-accent/10 text-ir-accent-text" : "bg-ir-bg border border-ir-border text-ir-t2"
       }`}
     >
@@ -242,7 +242,7 @@ export function NextButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-[17px] font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
+      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-lead font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
     >
       {children}
       {!accent && (
@@ -256,7 +256,7 @@ export function BackButton({ children, onClick }: { children: ReactNode; onClick
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-[17px] font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200"
+      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-lead font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200"
     >
       <IconArrowLeft width={24} height={24} />
       {children}

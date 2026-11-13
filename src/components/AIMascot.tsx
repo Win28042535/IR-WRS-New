@@ -117,7 +117,7 @@ export function LumaLoader({ label = "กำลังเตรียมข้อ
         <rect x="2" y="2" width="32" height="32" rx="7.4" fill="#BCC416" />
         <rect x="2" y="2" width="32" height="32" rx="7.4" fill="url(#luma-loader-grad)" />
       </svg>
-      <p className="text-[12px] text-ir-t3" aria-hidden>{label}</p>
+      <p className="text-caption text-ir-t3" aria-hidden>{label}</p>
     </div>
   );
 }

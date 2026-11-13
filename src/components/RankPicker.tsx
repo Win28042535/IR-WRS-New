@@ -138,10 +138,10 @@ export function RankPicker({
     <div data-rank-root>
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold text-ir-t1">{title}</p>
-          <p className="mt-0.5 text-[13px] text-ir-t3">{hint}</p>
+          <p className="text-body font-semibold text-ir-t1">{title}</p>
+          <p className="mt-0.5 text-caption text-ir-t3">{hint}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-ir-muted px-2.5 py-1 text-[13px] font-medium text-ir-t2 tabular-nums" role="status">
+        <span className="shrink-0 rounded-full bg-ir-muted px-2.5 py-1 text-caption font-medium text-ir-t2 tabular-nums" role="status">
           เลือกแล้ว {selected.length}/{limit}
         </span>
       </div>
@@ -187,15 +187,15 @@ export function RankPicker({
                 target ? "outline-2 outline-dashed outline-offset-2 outline-ir-select" : "",
               ].join(" ")}
             >
-              {target && <span className="rk-drop-hint pointer-events-none absolute -top-3 left-4 z-10 rounded-full bg-ir-dark px-2.5 py-0.5 text-[13px] font-semibold text-ir-accent">วางที่นี่</span>}
+              {target && <span className="rk-drop-hint pointer-events-none absolute -top-3 left-4 z-10 rounded-full bg-ir-dark px-2.5 py-0.5 text-caption font-semibold text-ir-accent">วางที่นี่</span>}
               {on ? (
-                <span key={rank} className="rk-no grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-[15px] font-bold text-white">{rank}</span>
+                <span key={rank} className="rk-no grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-body font-bold text-white">{rank}</span>
               ) : (
                 <span className="grid h-10 w-10 shrink-0 place-items-center opacity-60">{Icon && <Icon width={24} height={24} className="text-ir-t1" />}</span>
               )}
               <span className="min-w-0 flex-1">
-                <span className={`block text-[15.5px] font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{it.label}</span>
-                {it.desc && <span className={`mt-0.5 block text-[13px] leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
+                <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{it.label}</span>
+                {it.desc && <span className={`mt-0.5 block text-caption leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
               </span>
               {on && (
                 <>
@@ -210,7 +210,7 @@ export function RankPicker({
                 </>
               )}
               {rank === 1 && (
-                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-[13px] font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
+                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-caption font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
               )}
             </div>
             </div>
@@ -218,7 +218,7 @@ export function RankPicker({
         })}
       </div>
 
-      <p className="mt-3 flex min-h-8 items-center justify-center text-center text-[14px] text-ir-t3" aria-live="polite">
+      <p className="mt-3 flex min-h-8 items-center justify-center text-center text-small text-ir-t3" aria-live="polite">
         {moved ? (
           <span key={moved} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent-soft px-3 py-1 font-semibold text-ir-t1">
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-accent-text"><path d="M5 12.5 9.5 17 19 7.5" /></svg>

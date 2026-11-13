@@ -27,9 +27,9 @@ const Tile = ({ label, step, d, dark, bg, className = "", children }: { label: s
     <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-xl border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-e2 ${
       dark ? "border-transparent text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
     }`} style={bg ? { background: bg } : undefined}>
-      <p className={`text-[14px] font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
+      <p className={`text-small font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
       {/* Sits on the top edge so it never takes layout space. */}
-      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-[14px] font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
+      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-small font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
         จากขั้นที่ {step} · {FLOW_STEPS[step - 1]}
       </span>
       <div className="mt-3 flex flex-1 flex-col">{children}</div>
@@ -69,12 +69,12 @@ export function Moodboard({ company }: { company: string }) {
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
         {/* Direction — the lead tile, in the Direction's own colours and heading font */}
         <Tile label="แนวทางการออกแบบ" step={3} d={0} dark bg={d.bg} className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
-          <p className="mb-item text-[14px] text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
-          <p className="mb-item mt-auto pt-8 text-[clamp(2.1rem,4vw,3.4rem)] font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
-          <p className="mb-item mt-3 text-[16px] text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
+          <p className="mb-item text-small text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
+          <p className="mb-item mt-auto pt-8 text-display-lg font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
+          <p className="mb-item mt-3 text-body text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
           <div className="mt-5 flex flex-wrap gap-1.5">
             {[...d.mood, ...d.tags].map((t, j) => (
-              <span key={t} className="mb-item rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-[14px] font-medium text-white/90" style={v({ j: 3 + j * 0.5 })}>{t}</span>
+              <span key={t} className="mb-item rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-1 text-small font-medium text-white/90" style={v({ j: 3 + j * 0.5 })}>{t}</span>
             ))}
           </div>
         </Tile>
@@ -85,7 +85,7 @@ export function Moodboard({ company }: { company: string }) {
             {d.colors.slice(0, 3).map((c, j) => (
               <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
                 <span className="mb-swatch block flex-1 rounded-md ring-1 ring-inset ring-black/10" style={{ background: c, transformOrigin: "bottom" }} />
-                <span className="mb-item mt-1.5 font-mono text-[13px] text-ir-t2">{c}</span>
+                <span className="mb-item mt-1.5 font-mono text-caption text-ir-t2">{c}</span>
               </div>
             ))}
           </div>
@@ -94,11 +94,11 @@ export function Moodboard({ company }: { company: string }) {
         {/* Type */}
         <Tile label="ตัวอักษร" step={3} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
           <div className="flex flex-1 items-end gap-2 text-ir-t1">
-            <span className="mb-item text-[clamp(2.6rem,4vw,3.4rem)] leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
-            <span className="mb-item text-[clamp(2.3rem,3.6vw,3rem)] leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
+            <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
+            <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
           </div>
-          <p className="mb-item mt-3 text-[14px] font-semibold text-ir-t1" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
-          <p className="mb-item mt-0.5 text-[14px] leading-snug text-ir-t3" style={v({ j: 3 })}>{pair.note}</p>
+          <p className="mb-item mt-3 text-small font-semibold text-ir-t1" style={v({ j: 2 })}>{pair.heading} + {pair.thai}</p>
+          <p className="mb-item mt-0.5 text-small leading-snug text-ir-t3" style={v({ j: 3 })}>{pair.note}</p>
         </Tile>
 
         {/* Imagery */}
@@ -110,7 +110,7 @@ export function Moodboard({ company }: { company: string }) {
               </div>
             ))}
           </div>
-          <p className="mb-item mt-2.5 text-[14px] leading-snug text-ir-t2" style={v({ j: 3 })}>{style.mood}</p>
+          <p className="mb-item mt-2.5 text-small leading-snug text-ir-t2" style={v({ j: 3 })}>{style.mood}</p>
         </Tile>
 
         {/* The five picks behind the Direction */}
@@ -122,9 +122,9 @@ export function Moodboard({ company }: { company: string }) {
               return (
                 <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
                   <span className="mb-swatch h-7 w-10 shrink-0 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
-                  <span className="mb-item min-w-0 flex-1 truncate text-[14px] text-ir-t2">{q.topic}</span>
-                  <span className="mb-item shrink-0 text-[14px] font-semibold text-ir-t1">{opt.label}</span>
-                  <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-[13px] font-bold text-ir-accent-text">{pick}</span>
+                  <span className="mb-item min-w-0 flex-1 truncate text-small text-ir-t2">{q.topic}</span>
+                  <span className="mb-item shrink-0 text-small font-semibold text-ir-t1">{opt.label}</span>
+                  <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-caption font-bold text-ir-accent-text">{pick}</span>
                 </li>
               );
             })}
@@ -133,11 +133,11 @@ export function Moodboard({ company }: { company: string }) {
 
         {/* Who it is for */}
         <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={1} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
-          <p className="mb-item text-[17px] font-semibold leading-tight text-ir-t1">{audience.label}</p>
-          <p className="mb-item mt-1 text-[14px] leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
+          <p className="mb-item text-lead font-semibold leading-tight text-ir-t1">{audience.label}</p>
+          <p className="mb-item mt-1 text-small leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
           <ul className="mt-3 grid gap-1.5">
             {goals.map((g, j) => (
-              <li key={g.id} className="flex items-center gap-2 text-[14px] font-medium text-ir-t1" style={v({ j: 2 + j })}>
+              <li key={g.id} className="flex items-center gap-2 text-small font-medium text-ir-t1" style={v({ j: 2 + j })}>
                 <span className="mb-num ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>
                 <span className="mb-item min-w-0 truncate">{g.label}</span>
               </li>
@@ -149,14 +149,14 @@ export function Moodboard({ company }: { company: string }) {
         <Tile label="โครงหน้าแรก" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
           <ol className="grid gap-1">
             {SAMPLE_SECTIONS.map((s, j) => (
-              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-sm px-2 text-[14px] font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
+              <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-sm px-2 text-small font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
                 <span className="font-mono opacity-70">{j + 1}</span><span className="truncate">{s}</span>
               </li>
             ))}
           </ol>
         </Tile>
       </div>
-      <figcaption className="mt-4 text-center text-[14px] text-ir-t3" style={{ textWrap: "balance" }}>
+      <figcaption className="mt-4 text-center text-small text-ir-t3" style={{ textWrap: "balance" }}>
         หมายเหตุ: ไม่ใช่ Moodboard จริง เป็นภาพอ้างอิงแนวทางที่สรุปจากคำตอบ งานออกแบบจริงเริ่มหลังทีมคุยรายละเอียดกับคุณ
       </figcaption>
     </figure>
@@ -170,7 +170,7 @@ const Frame = ({ children }: { children: ReactNode }) => (
   <div className="flex h-[184px] flex-col items-center justify-center overflow-hidden rounded-lg border border-ir-border bg-ir-bg px-5" aria-hidden="true">{children}</div>
 );
 const Chip = ({ on, t, children }: { on?: boolean; t?: number; children: ReactNode }) => (
-  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium ${on ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={t === undefined ? undefined : v({ t })}>
+  <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-caption font-medium ${on ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={t === undefined ? undefined : v({ t })}>
     {on && <Tick className="sg-check h-3 w-3 text-ir-accent-text" />}{children}
   </span>
 );
@@ -179,7 +179,7 @@ const Chip = ({ on, t, children }: { on?: boolean; t?: number; children: ReactNo
 function MockUnderstand() {
   return (
     <Frame>
-      <div className="w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-[13px] text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด</span></div>
+      <div className="w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-caption text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด</span></div>
       <div className="mt-3 flex gap-1.5">
         <Chip on t={3}>{IR_AUDIENCES[1].label}</Chip>
         <Chip>{IR_AUDIENCES[0].label}</Chip>
@@ -194,7 +194,7 @@ function MockDefine() {
       <div className="grid w-full max-w-[230px] gap-2">
         {goals.map((g, i) => (
           <div key={g.id} className={`flex items-center justify-between rounded-md border px-3.5 py-2.5 ${i === 0 ? "sg-pick border-ir-select bg-primary-50" : "border-ir-border bg-white"}`} style={v({ t: i })}>
-            <span className="truncate text-[13px] font-semibold text-ir-t1">{g.label}</span>
+            <span className="truncate text-caption font-semibold text-ir-t1">{g.label}</span>
             {i === 0 && <span className="sg-check ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>}
           </div>
         ))}
@@ -228,7 +228,7 @@ function MockStructure() {
           // Row 2 is dragged up past row 3, which drops back into place.
           <div key={r} className={`flex items-center gap-2 rounded-sm border border-ir-border bg-white px-3 py-2 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-e2" : i === 2 ? "sg-drop" : ""}`}>
             <span className="text-[12px] leading-none text-ir-t3">⋮⋮</span>
-            <span className="truncate text-[13px] font-medium text-ir-t1">{r}</span>
+            <span className="truncate text-caption font-medium text-ir-t1">{r}</span>
           </div>
         ))}
       </div>
@@ -256,11 +256,11 @@ function MockDeliver() {
       <div className="sg-a flex w-full max-w-[230px] items-center gap-2.5 rounded-md border border-ir-border bg-white px-3 py-2.5" style={v({ t: 0 })}>
         <span className="h-7 w-7 shrink-0 rounded-full" style={{ background: d.bg }} />
         <span className="min-w-0">
-          <span className="block truncate text-[13px] font-semibold text-ir-t1">{d.label}</span>
+          <span className="block truncate text-caption font-semibold text-ir-t1">{d.label}</span>
           <span className="block text-[12px] text-ir-t3">{SAMPLE_SECTIONS.length} Section</span>
         </span>
       </div>
-      <div className="sg-press mt-3 w-full max-w-[230px] rounded-full bg-ir-dark py-2 text-center text-[13px] font-semibold text-white" style={v({ t: 1.5 })}>ส่งให้ทีม IR Plus</div>
+      <div className="sg-press mt-3 w-full max-w-[230px] rounded-full bg-ir-dark py-2 text-center text-caption font-semibold text-white" style={v({ t: 1.5 })}>ส่งให้ทีม IR Plus</div>
     </Frame>
   );
 }
@@ -314,11 +314,11 @@ function StepCard({ i, name }: { i: number; name: string }) {
         <Mock key={run} />
         <div className="px-1.5 pt-4 pb-1.5">
           <div className="flex items-center gap-2.5">
-            <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-[13px] font-bold text-ir-accent transition-colors duration-300 group-hover:bg-ir-accent group-hover:text-ir-dark">{i + 1}</span>
-            <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-ir-t1">{name}</h3>
-            <span className={`ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-[14px] font-medium ${s.optional ? "bg-ir-muted text-ir-t2" : "bg-ir-accent-soft text-ir-accent-text"}`}>{s.how}</span>
+            <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-caption font-bold text-ir-accent transition-colors duration-300 group-hover:bg-ir-accent group-hover:text-ir-dark">{i + 1}</span>
+            <h3 className="text-lead font-semibold tracking-[-0.01em] text-ir-t1">{name}</h3>
+            <span className={`ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-small font-medium ${s.optional ? "bg-ir-muted text-ir-t2" : "bg-ir-accent-soft text-ir-accent-text"}`}>{s.how}</span>
           </div>
-          <p className="mt-2 text-[15px] leading-relaxed text-ir-t2">{s.todo}</p>
+          <p className="mt-2 text-body leading-relaxed text-ir-t2">{s.todo}</p>
         </div>
       </div>
     </li>
@@ -362,7 +362,7 @@ const Tick = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
 const ColHead = ({ n, title, sub, tone = "light" }: { n: string; title: string; sub: string; tone?: "light" | "lime" }) => (
   <div className="flex items-center gap-2.5">
     <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-[12px] font-bold ${tone === "lime" ? "ir-grad-fill text-ir-on-accent" : "bg-white/10 text-white"}`}>{n}</span>
-    <p className="min-w-0 text-[14px] leading-tight"><span className={`font-semibold ${tone === "lime" ? "text-ir-accent" : "text-white"}`}>{title}</span><span className="text-white/55"> · {sub}</span></p>
+    <p className="min-w-0 text-small leading-tight"><span className={`font-semibold ${tone === "lime" ? "text-ir-accent" : "text-white"}`}>{title}</span><span className="text-white/55"> · {sub}</span></p>
   </div>
 );
 
@@ -451,7 +451,7 @@ export function BriefFlow() {
   const blocks: { label: string; body: ReactNode }[] = [
     { label: "ผู้อ่านหลัก", body: (
       <div>
-        <p className="text-[15px] font-semibold text-ir-t1">{audiences[0].label}</p>
+        <p className="text-body font-semibold text-ir-t1">{audiences[0].label}</p>
         <div className="mt-2 grid gap-1.5">
           {audiences.map((a, j) => (
             <div key={a.id} className="grid grid-cols-[88px_1fr] items-center gap-2 text-[11px] text-ir-t2">
@@ -465,7 +465,7 @@ export function BriefFlow() {
     { label: "สิ่งที่เว็บต้องทำได้", body: (
       <ul className="grid gap-1">
         {goals.slice(0, 2).map((g) => (
-          <li key={g.id} className="flex items-center gap-1.5 text-[13px] font-medium text-ir-t1">
+          <li key={g.id} className="flex items-center gap-1.5 text-caption font-medium text-ir-t1">
             <span className="ir-grad-fill grid h-5 w-5 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-3 w-3" /></span>{g.label}
           </li>
         ))}
@@ -474,8 +474,8 @@ export function BriefFlow() {
     { label: "แนวทางดีไซน์", body: (
       <div className="flex items-center gap-3">
         <div className="flex -space-x-1.5">{d.colors.slice(0, 3).map((c) => <span key={c} className="h-8 w-8 rounded-full ring-2 ring-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]" style={{ background: c }} />)}</div>
-        <span className="text-[24px] leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa<span style={{ fontFamily: fontStack(pair.thai) }}> กข</span></span>
-        <span className="min-w-0 truncate text-[13px] font-semibold text-ir-t1">{d.label}</span>
+        <span className="text-heading leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa<span style={{ fontFamily: fontStack(pair.thai) }}> กข</span></span>
+        <span className="min-w-0 truncate text-caption font-semibold text-ir-t1">{d.label}</span>
       </div>
     ) },
     { label: "โครงหน้าแรก", body: (
@@ -507,7 +507,7 @@ export function BriefFlow() {
                 className="bm-in flex items-start gap-2.5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-2">
                 <div className="bm-in-body min-w-0 flex-1">
                   <p className="text-[11px] text-white/50">ขั้นที่ {i + 1} · {x.name}</p>
-                  <p className="mt-0.5 text-[13px] font-semibold text-white">{x.q}</p>
+                  <p className="mt-0.5 text-caption font-semibold text-white">{x.q}</p>
                   <div className="mt-1.5">{x.body}</div>
                 </div>
                 {/* reserved slot: the tick appears in place, nothing shifts */}
@@ -547,9 +547,9 @@ export function BriefFlow() {
               <div className="flex items-center justify-between gap-3 border-b border-ir-border pb-2.5">
                 <div>
                   <p className="font-mono text-[11px] font-semibold tracking-[0.12em] text-ir-t3">REQUIREMENT</p>
-                  <p className="text-[15px] font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
+                  <p className="text-body font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
                 </div>
-                <span data-on={step === 5} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-[13px] font-semibold">
+                <span data-on={step === 5} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-caption font-semibold">
                   <span className="bm-ready-dot grid h-6 w-6 place-items-center rounded-full"><Tick /></span>
                   {step === 5 ? "พร้อมส่ง" : "รอเรียบเรียง"}
                 </span>
@@ -665,7 +665,7 @@ export function HeroFragments() {
       {/* ── right: 10 / 36 / 62 / 88 % (offset from the left) ── */}
       <F i={4} plane="mid" r={5} className="right-[2%] top-[10%]">
         <div className={`${glass} px-2.5 py-1.5`}>
-          <span className="text-[22px] leading-none text-ir-t2" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span></span>
+          <span className="text-heading leading-none text-ir-t2" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span></span>
         </div>
       </F>
       <F i={5} plane="near" r={-5} className="right-[7%] top-[36%] hidden xl:block">

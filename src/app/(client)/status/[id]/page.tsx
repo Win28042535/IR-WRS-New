@@ -31,8 +31,8 @@ export default function SubmittedPage() {
             <line x1="31" y1="17" x2="17" y2="31" stroke="#A0A3AB" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         </div>
-        <h2 className="text-[20px] font-medium text-ir-t2 mb-2">ไม่พบ Requirement</h2>
-        <Link href="/" className="text-ir-accent-text text-[16px] underline">กลับหน้าหลัก</Link>
+        <h2 className="text-title font-medium text-ir-t2 mb-2">ไม่พบ Requirement</h2>
+        <Link href="/" className="text-ir-accent-text text-body underline">กลับหน้าหลัก</Link>
       </div>
     );
   }
@@ -53,18 +53,18 @@ export default function SubmittedPage() {
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
           </div>
-          <h1 className="text-white text-[26px] font-semibold mb-2">
+          <h1 className="text-white text-heading font-semibold mb-2">
             {frozen ? "โครงการพร้อมเริ่มต้นแล้ว 🚀" : "ส่งข้อมูลสำเร็จแล้ว!"}
           </h1>
-          <p className="text-white/80 text-[17px] max-w-sm mx-auto mb-1 leading-relaxed">
+          <p className="text-white/80 text-lead max-w-sm mx-auto mb-1 leading-relaxed">
             IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว
           </p>
-          <p className="text-white/70 text-[16px] max-w-xs mx-auto mb-6">
+          <p className="text-white/70 text-body max-w-xs mx-auto mb-6">
             ทีมงานจะติดต่อกลับภายใน 1–2 วันทำการ
           </p>
           <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/15 rounded-full pl-3.5 pr-4 py-1.5">
-            <span className="text-[14px] text-white/70">หมายเลขอ้างอิง</span>
-            <span className="font-mono text-white font-medium tracking-wider text-[15px]">{req.id}</span>
+            <span className="text-small text-white/70">หมายเลขอ้างอิง</span>
+            <span className="font-mono text-white font-medium tracking-wider text-body">{req.id}</span>
           </div>
         </div>
 
@@ -81,9 +81,9 @@ export default function SubmittedPage() {
           <div className="sc-reveal rounded-xl border border-ir-select-soft bg-primary-50 px-5 py-5 mb-6">
             <div className="flex items-center gap-2.5">
               <LumaChip type="celebrate" size={16} />
-              <h2 className="text-[18px] font-semibold text-ir-t1">สิ่งที่จะเกิดขึ้นต่อจากนี้</h2>
+              <h2 className="text-lead font-semibold text-ir-t1">สิ่งที่จะเกิดขึ้นต่อจากนี้</h2>
             </div>
-            <p className="mt-1 text-[16px] text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+            <p className="mt-1 text-body text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
             <dl className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
                 ["ใครจะติดต่อ", "ผู้ดูแลโครงการจากทีม IR Plus"],
@@ -91,8 +91,8 @@ export default function SubmittedPage() {
                 ["ทางไหน", req.phone || req.email ? [req.phone, req.email].filter(Boolean).join(" · ") : "ข้อมูลติดต่อที่ให้ไว้"],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-md bg-white px-4 py-3">
-                  <dt className="text-[14px] text-ir-t3">{k}</dt>
-                  <dd className="mt-0.5 text-[16px] font-semibold text-ir-t1 break-words">{v}</dd>
+                  <dt className="text-small text-ir-t3">{k}</dt>
+                  <dd className="mt-0.5 text-body font-semibold text-ir-t1 break-words">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -118,10 +118,10 @@ export default function SubmittedPage() {
                 <div className="px-4 py-4 flex items-start gap-3">
                   <div className="shrink-0 w-10 h-10 rounded-full bg-ir-muted text-ir-t2 grid place-items-center"><IconPalette width={24} height={24} /></div>
                   <div className="flex-1">
-                    <div className="text-[16px] font-semibold text-ir-t1 mb-1">
+                    <div className="text-body font-semibold text-ir-t1 mb-1">
                       Moodboard จะถูกจัดทำและส่งให้ทางอีเมล
                     </div>
-                    <p className="text-[15px] text-ir-t2 leading-relaxed">
+                    <p className="text-body text-ir-t2 leading-relaxed">
                       ทีม IR Plus จะนำ Direction{dir ? ` "${dir.label}"` : ""} · Palette
                       {colors.length > 0 && ` (${dir?.palette ?? ""})`} · และ Sections ที่คุณเลือก
                       มาจัดทำ Moodboard พร้อมส่งไปที่{" "}
@@ -137,15 +137,15 @@ export default function SubmittedPage() {
 
       {/* actions — keep a copy (browser print → PDF), or go home */}
       <div className="no-print flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <button type="button" onClick={() => window.print()} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-dark px-8 text-[17px] font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] sm:w-auto">
+        <button type="button" onClick={() => window.print()} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-dark px-8 text-lead font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] sm:w-auto">
           บันทึกสรุปเป็น PDF
         </button>
-        <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-muted px-8 text-[17px] font-medium text-ir-t1 transition-colors hover:bg-ir-border sm:w-auto">
+        <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-muted px-8 text-lead font-medium text-ir-t1 transition-colors hover:bg-ir-border sm:w-auto">
           กลับหน้าหลัก
         </Link>
       </div>
       <div className="text-center mt-4">
-        <p className="text-ir-t3 text-[15px]">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
+        <p className="text-ir-t3 text-body">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
       </div>
     </div>
   );
@@ -154,8 +154,8 @@ export default function SubmittedPage() {
 function Field({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return (
     <div className="bg-ir-bg border border-ir-border rounded-sm px-3.5 py-2.5">
-      <div className="text-[14px] uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
-      <div className={`text-[15px] font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
+      <div className="text-small uppercase tracking-wide text-ir-t3 mb-0.5">{k}</div>
+      <div className={`text-body font-medium ${accent ? "text-ir-accent-text" : "text-ir-t1"}`}>{v || "-"}</div>
     </div>
   );
 }

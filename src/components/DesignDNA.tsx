@@ -42,7 +42,7 @@ function spectrum(req: Requirement) {
 
 const Block = ({ label, children, className = "" }: { label: string; children: ReactNode; className?: string }) => (
   <div className={`min-w-0 rounded-lg border border-ir-border bg-white p-4 ${className}`}>
-    <p className="text-[13px] font-semibold text-ir-t3">{label}</p>
+    <p className="text-caption font-semibold text-ir-t3">{label}</p>
     <div className="mt-2.5">{children}</div>
   </div>
 );
@@ -75,12 +75,12 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
     <section aria-label="Design DNA" className={`rounded-2xl border border-ir-border bg-ir-bg p-3 sm:p-4 ${className}`}>
       {/* header: the Direction in its own colours and heading face */}
       <div className="rounded-xl p-5 text-white" style={{ background: own && req.brandPrimary ? `linear-gradient(135deg, ${req.brandPrimary}, #141613)` : dir.bg }}>
-        <p className="font-mono text-[13px] font-semibold tracking-[0.14em] text-white/70">DESIGN DNA</p>
-        <p className="mt-2 text-[clamp(1.6rem,3vw,2.2rem)] font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{dir.label}</p>
-        <p className="mt-1 text-[15px] text-white/85">{dir.tagline}</p>
+        <p className="font-mono text-caption font-semibold tracking-[0.14em] text-white/70">DESIGN DNA</p>
+        <p className="mt-2 text-display-sm font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{dir.label}</p>
+        <p className="mt-1 text-body text-white/85">{dir.tagline}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {[...dir.mood, ...(keepOwn ? ["ใช้ชุดสีเดิมของแบรนด์"] : [])].map((m) => (
-            <span key={m} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[13px] font-medium">{m}</span>
+            <span key={m} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-caption font-medium">{m}</span>
           ))}
         </div>
       </div>
@@ -91,7 +91,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
           <Block label="บุคลิก" className="md:col-span-2">
             <ul className="grid gap-3">
               {rows.map((r) => (
-                <li key={r.axis} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-3 text-[13px]">
+                <li key={r.axis} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-3 text-caption">
                   <span className={`truncate text-right ${r.pos! < 0.5 ? "font-semibold text-ir-t1" : "text-ir-t3"}`}>{r.left}</span>
                   <span className="relative h-2 rounded-full bg-ir-muted" aria-label={`${r.topic}: ${r.pos! < 0.5 ? r.left : r.pos! > 0.5 ? r.right : "กลาง ๆ"}`}>
                     <span className="absolute left-1/2 top-1/2 h-3 w-px -translate-y-1/2 bg-ir-border-hi" aria-hidden="true" />
@@ -111,15 +111,15 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
               <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-ir-accent-soft text-ir-accent-text">
                 <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.4-.9.2-1.9 1.2-1.9H17a4 4 0 0 0 4-4c0-5-4-10.3-9-10.3Z" /><circle cx="7.5" cy="11" r="1" /><circle cx="10.5" cy="7.5" r="1" /><circle cx="15" cy="8" r="1" /></svg>
               </span>
-              <p className="text-[15px] leading-relaxed text-ir-t1"><span className="font-semibold">ใช้ชุดสีเดิมของแบรนด์</span><br /><span className="text-[14px] text-ir-t2">ทีมจะอ้างอิงจากเว็บไซต์และโลโก้ปัจจุบัน</span></p>
+              <p className="text-body leading-relaxed text-ir-t1"><span className="font-semibold">ใช้ชุดสีเดิมของแบรนด์</span><br /><span className="text-small text-ir-t2">ทีมจะอ้างอิงจากเว็บไซต์และโลโก้ปัจจุบัน</span></p>
             </div>
           ) : (
           <div className="flex gap-2">
             {(own ? ownColors : dir.colors.slice(0, 3)).map((c, i) => (
               <div key={c} className="min-w-0 flex-1">
                 <span className="block h-14 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: c }} />
-                <span className="mt-1 block truncate font-mono text-[13px] text-ir-t2">{c}</span>
-                <span className="block text-[13px] text-ir-t3">{own ? (i === 0 ? "หลัก" : "") : roles[i]}</span>
+                <span className="mt-1 block truncate font-mono text-caption text-ir-t2">{c}</span>
+                <span className="block text-caption text-ir-t3">{own ? (i === 0 ? "หลัก" : "") : roles[i]}</span>
               </div>
             ))}
           </div>
@@ -128,12 +128,12 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
 
         {/* type */}
         <Block label="ตัวอักษร">
-          <p className="text-[34px] leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>
+          <p className="text-display-sm leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>
             Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span>
           </p>
-          <p className="mt-2 text-[14px] font-semibold text-ir-t1">{pair.heading} + {pair.thai}</p>
-          <p className="mt-0.5 text-[13px] leading-snug text-ir-t3">{pair.note}</p>
-          {(req.brandFonts?.length ?? 0) > 0 && <p className="mt-1.5 text-[13px] text-ir-t2">ฟอนต์บนเว็บไซต์เดิม: {req.brandFonts!.join(", ")}</p>}
+          <p className="mt-2 text-small font-semibold text-ir-t1">{pair.heading} + {pair.thai}</p>
+          <p className="mt-0.5 text-caption leading-snug text-ir-t3">{pair.note}</p>
+          {(req.brandFonts?.length ?? 0) > 0 && <p className="mt-1.5 text-caption text-ir-t2">ฟอนต์บนเว็บไซต์เดิม: {req.brandFonts!.join(", ")}</p>}
         </Block>
 
         {/* imagery */}
@@ -145,25 +145,25 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
                 <img key={p.id} src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" className="aspect-[4/3] w-full rounded-sm object-cover" />
               ))}
             </div>
-            <p className="mt-2 text-[13px] leading-snug text-ir-t2">{style.mood}</p>
+            <p className="mt-2 text-caption leading-snug text-ir-t2">{style.mood}</p>
           </Block>
         )}
 
         {/* motion + priorities */}
         <Block label="การเคลื่อนไหว · ลำดับความสำคัญ">
           {motion && (
-            <p className="text-[14px] text-ir-t1"><span className="font-semibold">{motion.label}</span> <span className="text-ir-t3">· {motion.note}</span></p>
+            <p className="text-small text-ir-t1"><span className="font-semibold">{motion.label}</span> <span className="text-ir-t3">· {motion.note}</span></p>
           )}
           {audiences.length > 0 && (
             <ol className="mt-2.5 grid gap-1">
               {audiences.map((a, i) => (
-                <li key={a} className="flex items-center gap-2 text-[13px] text-ir-t1">
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-[13px] text-white">{i + 1}</span>{a}
+                <li key={a} className="flex items-center gap-2 text-caption text-ir-t1">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-caption text-white">{i + 1}</span>{a}
                 </li>
               ))}
             </ol>
           )}
-          {goals.length > 0 && <p className="mt-2 text-[13px] text-ir-t2">เป้าหมาย: {goals.join(" · ")}</p>}
+          {goals.length > 0 && <p className="mt-2 text-caption text-ir-t2">เป้าหมาย: {goals.join(" · ")}</p>}
         </Block>
 
         {/* what they like in their references */}
@@ -171,8 +171,8 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
           <Block label="สิ่งที่ชอบจากเว็บอ้างอิง" className="md:col-span-2">
             <div className="flex flex-wrap gap-1.5">
               {likeCount.map(({ l, n }) => (
-                <span key={l} className="inline-flex items-center gap-1.5 rounded-full border border-ir-select-soft bg-ir-accent-soft px-3 py-1 text-[13px] font-medium text-ir-t1">
-                  {l}{n > 1 && <span className="font-mono text-[13px] text-ir-accent-text">×{n}</span>}
+                <span key={l} className="inline-flex items-center gap-1.5 rounded-full border border-ir-select-soft bg-ir-accent-soft px-3 py-1 text-caption font-medium text-ir-t1">
+                  {l}{n > 1 && <span className="font-mono text-caption text-ir-accent-text">×{n}</span>}
                 </span>
               ))}
             </div>

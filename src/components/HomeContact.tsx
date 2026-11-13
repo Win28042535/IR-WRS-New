@@ -37,8 +37,8 @@ export function HomeContact() {
 
   const reset = () => { setSentId(null); setMessage(""); setTried(false); };
 
-  const field = "h-11 w-full rounded-full border border-black/10 bg-white px-4 text-[15px] text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30";
-  const label = "text-[14px] font-medium text-ir-t2";
+  const field = "h-11 w-full rounded-full border border-black/10 bg-white px-4 text-body text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30";
+  const label = "text-small font-medium text-ir-t2";
 
   const shell = (children: ReactNode) => (
     <div className="rounded-2xl border border-ir-select-soft/70 bg-ir-accent-soft/45 p-5 sm:p-7 lg:p-8">{children}</div>
@@ -49,11 +49,11 @@ export function HomeContact() {
       <div role="status" className="flex items-start gap-3 rounded-xl bg-white px-5 py-5">
         <span className="ir-grad-fill grid w-9 h-9 shrink-0 place-items-center rounded-full text-ir-on-accent"><IconCheck width={20} height={20} className="sel-check" /></span>
         <div className="min-w-0">
-          <p className="text-[16px] font-semibold text-ir-t1">รับเรื่องไว้แล้ว</p>
-          <p className="mt-0.5 text-[14px] leading-relaxed text-ir-t2" style={balance}>
-            ทีม IR Plus จะติดต่อกลับทาง <span className="font-semibold text-ir-t1">{c}</span> ภายใน 1–2 วันทำการ · <span className="font-mono text-[13px] text-ir-t3">{sentId}</span>
+          <p className="text-body font-semibold text-ir-t1">รับเรื่องไว้แล้ว</p>
+          <p className="mt-0.5 text-small leading-relaxed text-ir-t2" style={balance}>
+            ทีม IR Plus จะติดต่อกลับทาง <span className="font-semibold text-ir-t1">{c}</span> ภายใน 1–2 วันทำการ · <span className="font-mono text-caption text-ir-t3">{sentId}</span>
           </p>
-          <button type="button" onClick={reset} className="mt-1 min-h-10 text-[14px] font-medium text-ir-t2 underline underline-offset-4 hover:text-ir-t1">ฝากเรื่องอื่นเพิ่ม</button>
+          <button type="button" onClick={reset} className="mt-1 min-h-10 text-small font-medium text-ir-t2 underline underline-offset-4 hover:text-ir-t1">ฝากเรื่องอื่นเพิ่ม</button>
         </div>
       </div>
     );
@@ -81,7 +81,7 @@ export function HomeContact() {
             aria-describedby={tried && contactErr ? "contact-msg-err" : undefined}
             className={`mt-1 ${field} ${tried && contactErr ? "border-red-400" : ""}`}
           />
-          {tried && contactErr && <span id="contact-msg-err" role="alert" className="mt-1 block pl-4 text-[14px] text-red-700">{contactErr}</span>}
+          {tried && contactErr && <span id="contact-msg-err" role="alert" className="mt-1 block pl-4 text-small text-red-700">{contactErr}</span>}
         </label>
         <label className="block sm:col-span-2 lg:col-span-3">
           <span className={label}>ข้อความ (ไม่บังคับ)</span>
@@ -90,7 +90,7 @@ export function HomeContact() {
             onChange={(e) => setMessage(e.target.value)}
             rows={2}
             placeholder="เช่น อยากทราบระยะเวลาและงบประมาณโดยประมาณ"
-            className="mt-1 w-full resize-y rounded-lg border border-black/10 bg-white px-4 py-2.5 text-[15px] leading-relaxed text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
+            className="mt-1 w-full resize-y rounded-lg border border-black/10 bg-white px-4 py-2.5 text-body leading-relaxed text-ir-t1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
           />
         </label>
       </div>
@@ -99,7 +99,7 @@ export function HomeContact() {
         <button
           type="submit"
           disabled={sending}
-          className="inline-flex min-h-11 items-center rounded-full border border-ir-border-hi bg-white px-5 text-[14px] font-semibold text-ir-t1 transition-[border-color,background-color,scale] duration-200 hover:border-ir-t1 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex min-h-11 items-center rounded-full border border-ir-border-hi bg-white px-5 text-small font-semibold text-ir-t1 transition-[border-color,background-color,scale] duration-200 hover:border-ir-t1 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 disabled:cursor-wait disabled:opacity-70"
         >
           {sending ? "กำลังส่ง..." : "ฝากเรื่อง"}
         </button>

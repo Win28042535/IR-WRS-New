@@ -69,16 +69,16 @@ export default function Landing() {
       {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
       <section className="relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 pt-10 sm:pt-20 pb-6 text-center ir-fade-up">
         <HeroFragments />
-        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-[14px] font-medium leading-snug text-ir-t2 shadow-e1 backdrop-blur">
-          <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-[14px] font-semibold text-white">IR Plus</span>
+        <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-small font-medium leading-snug text-ir-t2 shadow-e1 backdrop-blur">
+          <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-small font-semibold text-white">IR Plus</span>
           <span className="whitespace-nowrap">สำหรับบริษัทจดทะเบียน</span>
         </span>
-        <h1 className="mx-auto mt-6 max-w-[920px] text-[clamp(2.2rem,5.6vw,4.4rem)] font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
+        <h1 className="mx-auto mt-6 max-w-[920px] text-hero font-semibold leading-[1.15] tracking-[-0.035em]" style={balance}>
           <span className="whitespace-nowrap">ออกแบบเว็บไซต์</span>{" "}
           <span className="whitespace-nowrap">นักลงทุนสัมพันธ์</span>{" "}
           <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">ให้ตรงใจองค์กรคุณ</span>
         </h1>
-        <p className="mx-auto mt-5 max-w-[38rem] text-[18px] sm:text-[20px] leading-relaxed text-ir-t2" style={balance}>
+        <p className="mx-auto mt-5 max-w-[38rem] text-lead sm:text-title leading-relaxed text-ir-t2" style={balance}>
           ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับภายใน 1–2 วันทำการ
         </p>
 
@@ -86,7 +86,7 @@ export default function Landing() {
           {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
         </div>
 
-        <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[16px] text-ir-t2">
+        <ul className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-body text-ir-t2">
           {REASSURE.map((t) => (
             <li key={t} className="inline-flex items-center gap-1.5">
               <IconCheck width={20} height={20} className="text-ir-accent-text" />
@@ -100,10 +100,10 @@ export default function Landing() {
       {/* ── The deliverable, revealed on scroll: centred and large, away from the CTA ── */}
       <section id="example" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-28">
         <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+          <h2 className="mx-auto max-w-[24ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ตัวอย่าง</span><span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">สิ่งที่คุณจะได้</span>
           </h2>
-          <p className="mx-auto mt-3 max-w-[40rem] text-[17px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
+          <p className="mx-auto mt-3 max-w-[40rem] text-lead leading-relaxed text-ir-t2" style={balance}>
             ภาพรวมแนวทางการออกแบบที่สรุปจากคำตอบของคุณ: แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก
             {shown.trim() && <> · แสดงด้วยชื่อ <span className="font-semibold text-ir-t1">{shown.trim()}</span></>}
           </p>
@@ -116,10 +116,10 @@ export default function Landing() {
       {/* ── Each step, previewed ── */}
       <section id="steps" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+          <h2 className="mx-auto max-w-[24ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">{FLOW_STEPS.length} ขั้นตอน</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">แต่ละขั้นทำอะไร</span>
           </h2>
-          <p className="mt-3 text-[16px] text-ir-t2">หน้าตาจริงของแต่ละขั้น ชื่อตรงกับแถบด้านบนตอนกรอก</p>
+          <p className="mt-3 text-body text-ir-t2">หน้าตาจริงของแต่ละขั้น ชื่อตรงกับแถบด้านบนตอนกรอก</p>
         </div>
         <div className="mt-10"><StepGallery /></div>
       </section>
@@ -128,10 +128,10 @@ export default function Landing() {
       {SHOW_BRIEF && (
         <section id="brief" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-16 sm:pt-20">
           <div className="sc-reveal text-center">
-            <h2 className="mx-auto max-w-[22ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+            <h2 className="mx-auto max-w-[22ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
               <span className="whitespace-nowrap">ทุกคำตอบ</span>{" "}<span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">กลายเป็นโจทย์</span>{" "}<span className="whitespace-nowrap">ให้นักออกแบบ</span>
             </h2>
-            <p className="mx-auto mt-3 max-w-[40rem] text-[17px] sm:text-[18px] leading-relaxed text-ir-t2" style={balance}>
+            <p className="mx-auto mt-3 max-w-[40rem] text-lead leading-relaxed text-ir-t2" style={balance}>
               ทีม IR Plus ได้รับสรุปความต้องการที่บอกว่าเว็บไซต์ของคุณคุยกับใคร ต้องทำอะไรได้ และควรออกมาแนวไหน พร้อม Moodboard เป็นภาพอ้างอิง
             </p>
           </div>
@@ -142,19 +142,19 @@ export default function Landing() {
       {/* ── More detail, folded — for those who want to read first ── */}
       <section id="faq" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+          <h2 className="mx-auto max-w-[24ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">อยากรู้<span className="ir-grad-text px-[0.02em] py-[0.15em]">รายละเอียด</span></span>{" "}<span className="whitespace-nowrap">ก่อนเริ่ม</span>
           </h2>
-          <p className="mt-3 text-[17px] sm:text-[18px] text-ir-t2" style={balance}>คำตอบสั้นๆ ของคำถามที่ลูกค้าถามบ่อย</p>
+          <p className="mt-3 text-lead text-ir-t2" style={balance}>คำตอบสั้นๆ ของคำถามที่ลูกค้าถามบ่อย</p>
         </div>
         {/* One card per question, two columns from lg, so the full width reads as a grid
             rather than one very long accordion. */}
         <div className="sc-reveal mt-10 grid items-start gap-3 lg:grid-cols-2">
           <Fold title="ต้องเตรียมอะไรบ้าง">
-            <p className="text-[17px] text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
+            <p className="text-lead text-ir-t2">ไม่ต้องเตรียมเอกสารหรือ Brief แค่รู้ข้อมูลเหล่านี้</p>
             <ul className="mt-3 grid gap-2 pb-5">
               {PREP.map((p) => (
-                <li key={p} className="flex items-start gap-2 text-[17px] text-ir-t1">
+                <li key={p} className="flex items-start gap-2 text-lead text-ir-t1">
                   <IconCheck width={20} height={20} className="mt-0.5 shrink-0 text-ir-accent-text" />{p}
                 </li>
               ))}
@@ -162,7 +162,7 @@ export default function Landing() {
           </Fold>
           {FAQ.map((f) => (
             <Fold key={f.q} title={f.q}>
-              <p className="pb-5 text-[17px] leading-relaxed text-ir-t2">{f.a}</p>
+              <p className="pb-5 text-lead leading-relaxed text-ir-t2">{f.a}</p>
             </Fold>
           ))}
         </div>
@@ -171,10 +171,10 @@ export default function Landing() {
       {/* ── Still have a question? Same title DNA as the FAQ; a quiet form below it ── */}
       <section id="contact" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-20 sm:pt-24">
         <div className="sc-reveal text-center">
-          <h2 className="mx-auto max-w-[24ch] text-[clamp(1.8rem,3.4vw,2.7rem)] font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
+          <h2 className="mx-auto max-w-[24ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ยังมี<span className="ir-grad-text px-[0.02em] py-[0.15em]">คำถาม?</span></span>
           </h2>
-          <p className="mt-3 text-[17px] sm:text-[18px] text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+          <p className="mt-3 text-lead text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
         </div>
         <div className="sc-reveal mt-10"><HomeContact /></div>
       </section>
@@ -188,32 +188,32 @@ export default function Landing() {
             style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.24), rgba(215,224,39,0) 70%)" }}
           />
           <div className="relative mx-auto max-w-[640px] text-center">
-            <h2 className="mt-5 text-[clamp(1.9rem,3.8vw,3rem)] font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
+            <h2 className="mt-5 text-display font-semibold leading-[1.2] tracking-[-0.03em] text-white" style={balance}>
               <span className="whitespace-nowrap">พร้อมเริ่มเว็บไซต์ IR</span>{" "}<span className="ir-grad-text-dark whitespace-nowrap px-[0.02em] py-[0.15em]">ใหม่ขององค์กรคุณ</span>
             </h2>
-            <p className="mt-4 text-[16px] text-white/75">คำตอบบันทึกอัตโนมัติ ปิดแล้วกลับมาทำต่อจากจุดเดิมได้</p>
+            <p className="mt-4 text-body text-white/75">คำตอบบันทึกอัตโนมัติ ปิดแล้วกลับมาทำต่อจากจุดเดิมได้</p>
             <div className="mx-auto mt-8 max-w-[34rem] text-left">
               {flow.inProgress ? (
                 <div className="flex flex-col items-center gap-2">
                   <PrimaryCta onClick={flow.resume} onDark>ทำต่อ · ขั้นที่ {flow.step} {flow.stepName}</PrimaryCta>
-                  {flow.company && <p className="text-[14px] text-white/70">{flow.company}</p>}
+                  {flow.company && <p className="text-small text-white/70">{flow.company}</p>}
                 </div>
               ) : (
                 <StartForm value={company} onChange={setCompany} onStart={flow.startWith} inputId="company-input-bottom" dark />
               )}
             </div>
-            <ul className="mt-10 flex flex-wrap items-baseline justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-[14px] text-white/70">
+            <ul className="mt-10 flex flex-wrap items-baseline justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-small text-white/70">
               {STATS.map((st) => (
                 <li key={st.post} className="inline-flex items-baseline gap-1.5">
                   {st.pre && <span>{st.pre}</span>}
-                  <span className="ir-grad-text-dark text-[20px] font-semibold tabular-nums">{st.n}</span>
+                  <span className="ir-grad-text-dark text-title font-semibold tabular-nums">{st.n}</span>
                   <span>{st.post}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
-        <p className="mt-10 text-center text-[14px] text-ir-t3">IR Plus by efin · Website Requirement System</p>
+        <p className="mt-10 text-center text-small text-ir-t3">IR Plus by efin · Website Requirement System</p>
       </section>
 
       <MobileStickyCta flow={flow} company={company} />
@@ -299,7 +299,7 @@ function StartForm({ value, onChange, onStart, inputId = "company-input", dark }
   };
   return (
     <form onSubmit={submit} noValidate>
-      <label htmlFor={inputId} className={`block text-[16px] font-semibold ${dark ? "text-white" : "text-ir-t1"}`}>
+      <label htmlFor={inputId} className={`block text-body font-semibold ${dark ? "text-white" : "text-ir-t1"}`}>
         ชื่อบริษัทของคุณ <span className={`font-normal ${dark ? "text-white/70" : "text-ir-t3"}`}>(ไม่บังคับ)</span>
       </label>
       <input
@@ -308,12 +308,12 @@ function StartForm({ value, onChange, onStart, inputId = "company-input", dark }
         onChange={(e) => onChange(e.target.value)}
         placeholder="เช่น บริษัท ตัวอย่าง จำกัด (มหาชน)"
         autoComplete="organization"
-        className="mt-2 h-[58px] w-full rounded-full border border-black/10 bg-white px-6 text-[17px] text-ir-t1 shadow-e1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
+        className="mt-2 h-[58px] w-full rounded-full border border-black/10 bg-white px-6 text-lead text-ir-t1 shadow-e1 outline-none transition-[border-color,box-shadow] placeholder:text-ir-t3 focus:border-ir-select focus:ring-3 focus:ring-ir-ring/30"
       />
       <div className="mt-3">
         <PrimaryCta type="submit" onDark={dark} block>เริ่มตอบคำถาม</PrimaryCta>
       </div>
-      <p className={`mt-2.5 text-center text-[15px] ${dark ? "text-white/75" : "text-ir-t2"}`}>ใช้เวลาประมาณ 15–20 นาที</p>
+      <p className={`mt-2.5 text-center text-body ${dark ? "text-white/75" : "text-ir-t2"}`}>ใช้เวลาประมาณ 15–20 นาที</p>
     </form>
   );
 }
@@ -323,26 +323,26 @@ function ResumeCard({ flow }: { flow: ReturnType<typeof useStartFlow> }) {
   const [confirmNew, setConfirmNew] = useState(false);
   return (
     <div className="rounded-2xl border border-black/[0.06] bg-white/85 p-5 shadow-e1 backdrop-blur">
-      <p className="text-[14px] text-ir-t3">คุณทำค้างไว้</p>
-      <p className="mt-0.5 text-[18px] font-semibold text-ir-t1">{flow.company || "เว็บไซต์ IR ของคุณ"}</p>
+      <p className="text-small text-ir-t3">คุณทำค้างไว้</p>
+      <p className="mt-0.5 text-lead font-semibold text-ir-t1">{flow.company || "เว็บไซต์ IR ของคุณ"}</p>
       <div className="mt-3 flex items-center gap-3">
         <div className="flex flex-1 gap-1" aria-hidden="true">
           {FLOW_STEPS.map((name, i) => (
             <span key={name} className={`h-1.5 flex-1 rounded-full transition-colors ${i < flow.step ? "ir-grad-fill" : "bg-ir-border"}`} />
           ))}
         </div>
-        <span className="shrink-0 text-[14px] text-ir-t2">ขั้นที่ {flow.step}/{FLOW_STEPS.length} · {flow.stepName}</span>
+        <span className="shrink-0 text-small text-ir-t2">ขั้นที่ {flow.step}/{FLOW_STEPS.length} · {flow.stepName}</span>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <PrimaryCta onClick={flow.resume}>ทำต่อ</PrimaryCta>
         {confirmNew ? (
           <span className="flex flex-wrap items-center gap-2">
-            <span className="text-[14px] text-ir-t2">ข้อมูลที่กรอกไว้จะหายไป</span>
-            <button type="button" onClick={flow.startNew} className="min-h-11 rounded-full bg-red-600 px-4 text-[14px] font-semibold text-white hover:bg-red-700">ยืนยันเริ่มใหม่</button>
-            <button type="button" onClick={() => setConfirmNew(false)} className="min-h-11 rounded-full px-3 text-[14px] font-medium text-ir-t1">ยกเลิก</button>
+            <span className="text-small text-ir-t2">ข้อมูลที่กรอกไว้จะหายไป</span>
+            <button type="button" onClick={flow.startNew} className="min-h-11 rounded-full bg-red-600 px-4 text-small font-semibold text-white hover:bg-red-700">ยืนยันเริ่มใหม่</button>
+            <button type="button" onClick={() => setConfirmNew(false)} className="min-h-11 rounded-full px-3 text-small font-medium text-ir-t1">ยกเลิก</button>
           </span>
         ) : (
-          <button type="button" onClick={() => setConfirmNew(true)} className="min-h-11 px-2 text-[14px] font-medium text-ir-t2 underline underline-offset-4">เริ่มใหม่ตั้งแต่ต้น</button>
+          <button type="button" onClick={() => setConfirmNew(true)} className="min-h-11 px-2 text-small font-medium text-ir-t2 underline underline-offset-4">เริ่มใหม่ตั้งแต่ต้น</button>
         )}
       </div>
     </div>
@@ -355,7 +355,7 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
     <button
       type={type}
       onClick={onClick}
-      className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-[18px]" : "h-[56px] text-[16px]"} transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+      className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-lead" : "h-[56px] text-body"} transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
         onDark ? "ir-grad-fill text-ir-on-accent shadow-glow hover:brightness-105" : "bg-ir-dark text-white shadow-e2 hover:bg-neutral-800"
       }`}
     >
@@ -370,9 +370,9 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
     <details className="group rounded-xl border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-200 open:border-ir-select-soft open:shadow-e2">
-      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md px-3 text-[16px] font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
+      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md px-3 text-body font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
         {title}
-        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-[18px] text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
+        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-lead text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
       </summary>
       {children}
     </details>

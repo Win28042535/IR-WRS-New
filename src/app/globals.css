@@ -87,6 +87,19 @@
   --shadow-selected: 0 0 0 2px rgba(215,224,39,0.2);                          /* selected card halo */
   --shadow-glow: 0 10px 32px rgba(215,224,39,0.3);                            /* brand CTA glow */
 
+  /* ── Type scale — no other sizes outside mock illustrations (mocks may go below 13).
+     No line-height here: leading-* sets it, otherwise it inherits like before. ── */
+  --text-caption: 13px;   /* meta, labels, mono tags, number discs */
+  --text-small: 14px;     /* secondary text, helper lines, chips */
+  --text-body: 16px;      /* body, buttons, inputs, nav */
+  --text-lead: 18px;      /* lead paragraphs, large inputs, menu rows, card titles in lists */
+  --text-title: 20px;     /* card / panel titles */
+  --text-heading: 24px;   /* step and sub-section headings */
+  --text-display-sm: 32px;                          /* big numbers, specimens */
+  --text-display: clamp(1.8rem, 3.4vw, 2.7rem);     /* section H2 */
+  --text-display-lg: clamp(2.2rem, 4vw, 3.4rem);    /* closing / feature headlines */
+  --text-hero: clamp(2.2rem, 5.6vw, 4.4rem);        /* homepage H1 only */
+
   /* --font-plex is injected by next/font as a CSS variable on <html> */
   --font-display: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", sans-serif;
   --font-sans: var(--font-plex), "IBM Plex Sans Thai", "Leelawadee UI", sans-serif;

@@ -40,8 +40,8 @@ export function Header() {
         <img src="/irplus-logo.jpg" alt="IR PLUS by efin" width={32} height={32} className="rounded-sm shrink-0" />
         {/* Narrow phones show the logo only, so the menu and start buttons fit. */}
         <div className="min-w-0 border-l border-ir-border pl-3 leading-none max-[479px]:hidden">
-          <div className="truncate text-ir-t1 text-[14px] font-semibold tracking-[-0.01em]">Website Requirement System</div>
-          <div className="text-ir-t3 text-[13px] mt-1">IR Plus by efin</div>
+          <div className="truncate text-ir-t1 text-small font-semibold tracking-[-0.01em]">Website Requirement System</div>
+          <div className="text-ir-t3 text-caption mt-1">IR Plus by efin</div>
         </div>
       </Link>
 
@@ -52,7 +52,7 @@ export function Header() {
             <a
               key={n.id}
               href={href(n.id)}
-              className="inline-flex min-h-11 items-center rounded-full px-3.5 text-[15px] font-medium text-ir-t1 underline-offset-[6px] decoration-ir-select decoration-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
+              className="inline-flex min-h-11 items-center rounded-full px-3.5 text-body font-medium text-ir-t1 underline-offset-[6px] decoration-ir-select decoration-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
             >
               {n.label}
             </a>
@@ -83,7 +83,7 @@ export function Header() {
               key={n.id}
               href={href(n.id)}
               onClick={() => setOpen(false)}
-              className="flex min-h-[52px] items-center justify-between rounded-md px-4 text-[18px] font-semibold text-ir-t1 active:bg-white"
+              className="flex min-h-[52px] items-center justify-between rounded-md px-4 text-lead font-semibold text-ir-t1 active:bg-white"
             >
               {n.label}
               <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-t3"><path d="M9 6l6 6-6 6" /></svg>
@@ -109,7 +109,7 @@ function HeaderStart() {
     <button
       type="button"
       onClick={flow.inProgress ? flow.resume : start}
-      className="inline-flex h-11 items-center rounded-full bg-ir-dark px-4 sm:px-5 text-[15px] font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
+      className="inline-flex h-11 items-center rounded-full bg-ir-dark px-4 sm:px-5 text-body font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
     >
       {flow.inProgress ? "ทำต่อ" : "เริ่มเลย"}
     </button>

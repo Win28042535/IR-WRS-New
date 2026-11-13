@@ -7,7 +7,7 @@ export function SitemapView({ sections, compact }: { sections: string[]; compact
 
   if (items.length === 0) {
     return (
-      <div className="bg-ir-bg border border-dashed border-ir-border rounded-md p-6 text-center text-ir-t3 text-[14px]">
+      <div className="bg-ir-bg border border-dashed border-ir-border rounded-md p-6 text-center text-ir-t3 text-small">
         ยังไม่ได้เลือก Section เลือกด้านล่างเพื่อดูโครงสร้างเว็บไซต์แบบเรียลไทม์
       </div>
     );
@@ -42,7 +42,7 @@ export function SitemapView({ sections, compact }: { sections: string[]; compact
             <div key={it.id}>
               <div className="flex items-center gap-2.5 bg-ir-bg border border-ir-border rounded-sm px-3 py-2">
                 <span className="w-5 h-5 rounded-sm bg-ir-accent/12 text-ir-accent-text text-[10px] font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
-                <span className="text-[14px] text-ir-t1 flex-1 leading-tight">{it.name}</span>
+                <span className="text-small text-ir-t1 flex-1 leading-tight">{it.name}</span>
                 <span className="text-[9px] text-ir-t3 shrink-0">{it.cat}</span>
               </div>
               {i < items.length - 1 && <div className="w-px h-1.5 bg-ir-border mx-auto" />}
