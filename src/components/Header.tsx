@@ -35,7 +35,7 @@ export function Header() {
     // Page-colored bar with no rule line (production WRS) — the step pill below carries the
     // separation, so a border here would just be a second horizontal line.
     <header ref={menuRef} className="h-14 sticky top-0 z-50 bg-ir-bg/85 backdrop-blur-md flex items-center justify-between gap-3 px-5 lg:px-7">
-      <Link href="/" className="flex min-h-11 min-w-0 items-center gap-3 group rounded-sm -ml-1.5 px-1.5">
+      <Link href="/" className="flex min-h-11 min-w-0 items-center gap-3 group focus-ring rounded-sm -ml-1.5 px-1.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/irplus-logo.jpg" alt="IR PLUS by efin" width={32} height={32} className="rounded-sm shrink-0" />
         {/* Narrow phones show the logo only, so the menu and start buttons fit. */}
@@ -52,7 +52,7 @@ export function Header() {
             <a
               key={n.id}
               href={href(n.id)}
-              className="inline-flex min-h-11 items-center rounded-full px-3.5 text-body font-medium text-ir-t1 underline-offset-[6px] decoration-ir-select decoration-2 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
+              className="inline-flex min-h-11 items-center rounded-full px-3.5 text-body font-medium text-ir-t1 underline-offset-[6px] decoration-ir-select decoration-2 transition-colors hover:underline focus-ring"
             >
               {n.label}
             </a>
@@ -66,7 +66,7 @@ export function Header() {
           aria-expanded={open}
           aria-controls="site-menu"
           aria-label={open ? "ปิดเมนู" : "เปิดเมนู"}
-          className="grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white/70 text-ir-t1 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 md:hidden"
+          className="grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white/70 text-ir-t1 transition-colors hover:bg-white focus-ring md:hidden"
         >
           <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
@@ -77,7 +77,7 @@ export function Header() {
       </div>
 
       {open && (
-        <nav id="site-menu" aria-label="เมนูหลัก" className="absolute inset-x-0 top-14 border-b border-black/[0.06] bg-ir-bg/95 px-4 pb-4 pt-2 shadow-e3 backdrop-blur-md md:hidden">
+        <nav id="site-menu" aria-label="เมนูหลัก" className="menu-in absolute inset-x-0 top-14 border-b border-black/[0.06] bg-ir-bg/95 px-4 pb-4 pt-2 shadow-e3 backdrop-blur-md md:hidden">
           {NAV.map((n) => (
             <a
               key={n.id}
@@ -109,7 +109,7 @@ function HeaderStart() {
     <button
       type="button"
       onClick={flow.inProgress ? flow.resume : start}
-      className="inline-flex h-11 items-center rounded-full bg-ir-dark px-4 sm:px-5 text-body font-semibold text-white transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50"
+      className="inline-flex h-11 items-center rounded-full bg-ir-dark px-4 sm:px-5 text-body font-semibold text-white transition-colors hover:bg-neutral-800 focus-ring"
     >
       {flow.inProgress ? "ทำต่อ" : "เริ่มเลย"}
     </button>

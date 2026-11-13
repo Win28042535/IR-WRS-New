@@ -180,7 +180,7 @@ function FloatingCard({
                   type="button"
                   onClick={() => onAction(key)}
                   className={[
-                    "min-h-10 text-small px-3 rounded-full transition-colors duration-100 ai-guide-chip-in",
+                    "min-h-10 text-small px-3 rounded-full transition-colors duration-instant ai-guide-chip-in",
                     active === key
                       ? "font-medium"
                       : "text-ir-t3 hover:text-ir-t2 hover:bg-black/[0.04]",

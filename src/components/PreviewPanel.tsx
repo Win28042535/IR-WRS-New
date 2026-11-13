@@ -249,7 +249,7 @@ export function PreviewPanel({ hidden = false, dominant = false, embedded = fals
   // dominant + closed → 44px collapsed strip
   // sidebar  + any   → fixed pixel width from store
   const panelPx = open ? width : 44;
-  const cssTransition = isDragging ? "none" : "width 280ms cubic-bezier(0.16, 1, 0.3, 1)";
+  const cssTransition = isDragging ? "none" : "width var(--motion-base) var(--motion-ease-out)";
 
   const outerClass = embedded
     ? "flex flex-col h-full w-full relative"
@@ -275,8 +275,8 @@ export function PreviewPanel({ hidden = false, dominant = false, embedded = fals
             onMouseDown={onResizeMouseDown}
             aria-label="Resize preview panel"
           >
-            <div className="w-full h-full rounded-l-lg group-hover:bg-ir-accent/20 transition-colors duration-150" />
-            <div className="absolute text-white/15 group-hover:text-ir-accent/60 transition-colors duration-150 pointer-events-none">
+            <div className="w-full h-full rounded-l-lg group-hover:bg-ir-accent/20 transition-colors duration-instant" />
+            <div className="absolute text-white/15 group-hover:text-ir-accent/60 transition-colors duration-instant pointer-events-none">
               <IconGrip />
             </div>
           </div>
@@ -348,7 +348,7 @@ function OpenPanel({
           {embedded && (
             <button
               onClick={toggleWsCollapsed}
-              className={`hidden md:flex w-6 h-6 items-center justify-center rounded-sm transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
+              className={`hidden md:flex w-6 h-6 items-center justify-center rounded-sm transition-colors duration-instant ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
               title="ซ่อน Workspace"
             >
               <IconChevronRight />
@@ -357,7 +357,7 @@ function OpenPanel({
           {!embedded && (
             <button
               onClick={toggle}
-              className={`w-6 h-6 flex items-center justify-center rounded-sm transition-colors duration-150 ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
+              className={`w-6 h-6 flex items-center justify-center rounded-sm transition-colors duration-instant ${theme.actionBase} ${theme.actionHover} ${theme.actionActive}`}
               title="ซ่อน"
             >
               <IconChevronRight />
@@ -384,7 +384,7 @@ function CollapsedStrip({ toggle, theme }: { toggle: () => void; theme: PanelThe
   return (
     <button
       onClick={toggle}
-      className={`w-full h-full flex flex-col items-center py-4 gap-2 transition-colors duration-200 group ${theme.collapseText}`}
+      className={`w-full h-full flex flex-col items-center py-4 gap-2 transition-colors duration-fast group ${theme.collapseText}`}
       title="เปิด Preview"
     >
       <IconChevronLeft className={`transition-colors group-hover:${theme.collapseHover}`} />
@@ -570,7 +570,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
       {/* List — drag to reorder, expand to preview content. Gets a soft, transient accent
           wash while a ghost is inbound from the picker, so the destination reads as "about
           to receive something" before the item actually lands. */}
-      <div className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 transition-colors duration-200 ${inboundFlight ? "wrs-list-inbound" : ""}`}>
+      <div className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 transition-colors duration-fast ${inboundFlight ? "wrs-list-inbound" : ""}`}>
         {sections.length === 0 ? (
           <div className="flex flex-col items-center gap-3 text-center py-6 px-4">
             <div
@@ -664,7 +664,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                   ref={(el) => { rowRefs.current[id] = el; }}
                   data-section-row={id}
                   style={!isDragging && shiftPx !== 0 ? { transform: `translateY(${shiftPx}px)` } : undefined}
-                  className={`relative rounded-sm border transition-all duration-150 ${theme.listItemBase} ${
+                  className={`relative rounded-sm border transition-all duration-instant ${theme.listItemBase} ${
                     isDragging ? theme.listItemDragging : ""
                   } ${isOver ? theme.listItemTarget : ""} ${
                     isLanded || reorderedId === id ? "wrs-row-landed" : ""
@@ -725,7 +725,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                           </p>
                         )}
                       </div>
-                      <span className={`shrink-0 transition-transform duration-150 ${theme.text3}`} style={{ transform: expanded ? "rotate(180deg)" : "none" }}>
+                      <span className={`shrink-0 transition-transform duration-instant ${theme.text3}`} style={{ transform: expanded ? "rotate(180deg)" : "none" }}>
                         <svg width="18" height="18" viewBox="0 0 12 12" fill="none">
                           <path d="M2.5 4.5 L6 8 L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
@@ -766,7 +766,7 @@ function FullscreenOverlay({ ctx, onClose }: { ctx: ReturnType<typeof useProject
         </div>
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors duration-150 text-body"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-sm text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors duration-instant text-body"
         >
           <IconClose width={24} height={24} />
           <span>ปิด</span>

@@ -19,6 +19,8 @@ import {
 import { profileToDirection, rankDirections } from "@/lib/recommend";
 import { buzz } from "@/components/RankPicker";
 import type { Requirement } from "@/lib/types";
+import { DUR, EASE } from "@/lib/motion";
+import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
 
 const MAX_OPT = RULES.sections.max - REQUIRED_SECTION_IDS.length;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
@@ -128,7 +130,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   // step) so the gap shows exactly where it will land. Centres are measured at pick-up so
   // the sliding rows never move the target under the pointer.
   const [drag, setDrag] = useState<{ id: string; dy: number; over: number; step: number } | null>(null);
-  const press = useRef<{ id: string; y: number; moved: boolean; centres: number[]; step: number } | null>(null);
+  const press = useRef<{ id: string; y: number; lastY: number; moved: boolean; centres: number[]; step: number } | null>(null);
   const rowById = useRef<Record<string, HTMLLIElement | null>>({});
   const flip = useRef<{ id: string; top: number } | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
@@ -150,24 +152,30 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     const el = rowById.current[f.id];
     if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const delta = f.top - el.getBoundingClientRect().top;
-    el.animate([{ transform: `translateY(${delta}px) scale(1.03) rotate(0.6deg)` }, { transform: "none" }], { duration: 300, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" });
+    el.animate([{ transform: `translateY(${delta}px) scale(1.03) rotate(0.6deg)` }, { transform: "none" }], { duration: DUR.base, easing: EASE.spring });
   });
+  const auto = useDragAutoScroll();
   const rowDown = (e: ReactPointerEvent<HTMLElement>, id: string, grip = false) => {
     if (e.button !== 0 || (e.pointerType !== "mouse" && !grip)) return;
     if ((e.target as HTMLElement).closest("button")) return; // ✕ is a click, not a drag
     const rects = optional.map((_, i) => slotRefs.current[i]?.getBoundingClientRect());
     const centres = rects.map((r) => (r ? r.top + r.height / 2 : 0));
     const step = rects[1] && rects[0] ? rects[1].top - rects[0].top : (rects[0]?.height ?? 44) + 6;
-    press.current = { id, y: e.clientY, moved: false, centres, step };
+    press.current = { id, y: e.clientY, lastY: e.clientY, moved: false, centres, step };
     { try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ } }
+    auto.begin(e.currentTarget, () => { if (press.current?.moved) trackRow(press.current.lastY); });
   };
-  const rowMove = (e: ReactPointerEvent<HTMLElement>) => {
+  // Centres were measured at pick-up, so the page scroll since then is added to dy: the row
+  // stays under the finger and the target is still found in pick-up coordinates.
+  const trackRow = (clientY: number) => {
     const p = press.current;
     if (!p) return;
-    const dy = e.clientY - p.y;
+    p.lastY = clientY;
+    const dy = clientY - p.y + auto.offset();
     if (!p.moved && Math.abs(dy) < 5) return;
     if (!p.moved) { buzz(8); }
     p.moved = true;
+    auto.move(clientY);
     // target = the slot (as laid out at pick-up) whose centre is nearest the lifted row
     const from = optional.indexOf(p.id);
     const y = p.centres[from] + dy;
@@ -175,9 +183,11 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     p.centres.forEach((c, i) => { const d = Math.abs(y - c); if (d < best) { best = d; over = i; } });
     setDrag({ id: p.id, dy, over, step: p.step });
   };
+  const rowMove = (e: ReactPointerEvent<HTMLElement>) => trackRow(e.clientY);
   const rowUp = () => {
     const p = press.current;
     press.current = null;
+    auto.stop();
     if (p?.moved && drag) {
       const el = rowById.current[p.id];
       if (el) flip.current = { id: p.id, top: el.getBoundingClientRect().top };
@@ -195,7 +205,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   return (
     <div>
       {/* recommendation bar */}
-      <div className={`sb-rec grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${showRec ? "mb-5 grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"}`} aria-hidden={!showRec}>
+      <div className={`sb-rec grid transition-[grid-template-rows,opacity,margin] duration-slow ease-out ${showRec ? "mb-5 grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"}`} aria-hidden={!showRec}>
         <div className="overflow-hidden">
           <div className="flex flex-wrap items-center gap-3 rounded-xl bg-ir-sunken p-3 sm:flex-nowrap">
             <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
@@ -207,7 +217,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               type="button"
               tabIndex={showRec ? 0 : -1}
               onClick={applyRec}
-              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-transform duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${recPress ? "scale-[0.93]" : ""}`}
+              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-transform duration-fast hover:bg-neutral-800 focus-ring ${recPress ? "scale-[0.93]" : ""}`}
             >
               ✦ ใช้คำแนะนำ
             </button>
@@ -231,7 +241,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 disabled={dim}
                 aria-pressed={used}
                 title={sectionById(id)?.desc}
-                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
                   used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
                 }`}
               >
@@ -279,16 +289,16 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   onPointerDown={(e) => rowDown(e, id)}
                   onPointerMove={rowMove}
                   onPointerUp={rowUp}
-                  onPointerCancel={() => { press.current = null; setDrag(null); }}
+                  onPointerCancel={() => { press.current = null; auto.stop(); setDrag(null); }}
                   onKeyDown={(e) => rowKey(e, id)}
                   style={{
                     ...(dragging ? { transform: `translateY(${drag!.dy}px) scale(1.03) rotate(0.6deg)` } : shift ? { transform: `translateY(${shift * drag!.step}px)` } : null),
                     ...(delay !== undefined ? { animationDelay: `${delay}ms` } : null),
                   }}
                   className={[
-                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-small font-bold text-ir-t1 outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-small font-bold text-ir-t1 outline-none focus-ring",
                     dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "cursor-grab",
-                    drag && !dragging ? "transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" : "",
+                    drag && !dragging ? "transition-transform duration-fast ease-out" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
                   ].join(" ")}
@@ -307,7 +317,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     type="button"
                     onClick={() => remove(id)}
                     aria-label={`เอา ${shortName(id)} ออก`}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ir-disabled transition-colors hover:bg-ir-error-soft hover:text-ir-error focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ir-disabled transition-colors hover:bg-ir-error-soft hover:text-ir-error focus-ring"
                   >
                     <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" /></svg>
                   </button>
@@ -364,7 +374,7 @@ function FlightPill({ f, delay, onDone }: { f: Flight; delay: number; onDone: (k
       { transform: `translate(${midX}px, ${midY}px) scale(1.04)`, opacity: 1, offset: 0.45 },
       { transform: `translate(${x1}px, ${y1}px) scale(1)`, opacity: 1, offset: 0.9 },
       { transform: `translate(${x1}px, ${y1}px) scale(1)`, opacity: 0 },
-    ], { duration: FLIGHT_MS, delay, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "both" });
+    ], { duration: FLIGHT_MS, delay, easing: EASE.out, fill: "both" });
     anim.onfinish = () => onDone(f.key);
     return () => anim.cancel();
   // eslint-disable-next-line react-hooks/exhaustive-deps

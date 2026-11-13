@@ -99,7 +99,7 @@ export function HomeContact() {
         <button
           type="submit"
           disabled={sending}
-          className="inline-flex min-h-11 items-center rounded-full border border-ir-border-hi bg-white px-5 text-small font-semibold text-ir-t1 transition-[border-color,background-color,scale] duration-200 hover:border-ir-t1 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex min-h-11 items-center rounded-full border border-ir-border-hi bg-white px-5 text-small font-semibold text-ir-t1 transition-[border-color,background-color,scale] duration-fast hover:border-ir-t1 active:scale-[0.97] focus-ring disabled:cursor-wait disabled:opacity-70"
         >
           {sending ? "กำลังส่ง..." : "ฝากเรื่อง"}
         </button>

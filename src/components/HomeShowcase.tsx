@@ -24,12 +24,12 @@ const v = (vars: Record<string, number>): Vars => Object.fromEntries(Object.entr
 // painted surface: no separate layer underneath that could peek out at an edge.
 const Tile = ({ label, step, d, dark, bg, className = "", children }: { label: string; step: number; d: number; dark?: boolean; bg?: string; className?: string; children: ReactNode }) => (
   <div className={`mb-tile flex min-w-0 ${className}`} style={v({ d })}>
-    <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-xl border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-e2 ${
+    <div className={`mb-card group relative flex w-full min-w-0 flex-col rounded-xl border p-4 sm:p-5 transition-[transform,box-shadow,border-color] duration-base ease-out hover:-translate-y-0.5 hover:shadow-e2 ${
       dark ? "border-transparent text-white" : "border-black/[0.06] bg-white hover:border-black/[0.1]"
     }`} style={bg ? { background: bg } : undefined}>
       <p className={`text-small font-semibold ${dark ? "text-white/60" : "text-ir-t3"}`}>{label}</p>
       {/* Sits on the top edge so it never takes layout space. */}
-      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-small font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1/2 group-hover:opacity-100">
+      <span aria-hidden="true" className="pointer-events-none absolute right-3 top-0 z-10 hidden sm:block -translate-y-[30%] whitespace-nowrap rounded-full bg-ir-dark px-2.5 py-0.5 text-small font-semibold text-white opacity-0 ring-1 ring-white/20 transition-[opacity,transform] duration-base ease-out group-hover:-translate-y-1/2 group-hover:opacity-100">
         จากขั้นที่ {step} · {FLOW_STEPS[step - 1]}
       </span>
       <div className="mt-3 flex flex-1 flex-col">{children}</div>
@@ -310,11 +310,11 @@ function StepCard({ i, name }: { i: number; name: string }) {
 
   return (
     <li ref={ref} className="sg-card flex" onMouseEnter={replay}>
-      <div className="sg-lift group flex w-full flex-col rounded-2xl border border-black/[0.06] bg-ir-card p-3.5 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:shadow-e2">
+      <div className="sg-lift group flex w-full flex-col rounded-2xl border border-black/[0.06] bg-ir-card p-3.5 transition-[transform,box-shadow] duration-base ease-out hover:-translate-y-1 hover:shadow-e2">
         <Mock key={run} />
         <div className="px-1.5 pt-4 pb-1.5">
           <div className="flex items-center gap-2.5">
-            <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-caption font-bold text-ir-accent transition-colors duration-300 group-hover:bg-ir-accent group-hover:text-ir-dark">{i + 1}</span>
+            <span className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-caption font-bold text-ir-accent transition-colors duration-base group-hover:bg-ir-accent group-hover:text-ir-dark">{i + 1}</span>
             <h3 className="text-lead font-semibold tracking-[-0.01em] text-ir-t1">{name}</h3>
             <span className={`ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-small font-medium ${s.optional ? "bg-ir-muted text-ir-t2" : "bg-ir-accent-soft text-ir-accent-text"}`}>{s.how}</span>
           </div>

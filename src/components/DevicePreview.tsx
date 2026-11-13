@@ -108,7 +108,7 @@ export function DevicePreview({
 
   const Frame = ({ sm }: { sm: boolean }) => (
     <div
-      className="mx-auto bg-white border border-ir-border rounded-md overflow-hidden shadow-e1 transition-all duration-300"
+      className="mx-auto bg-white border border-ir-border rounded-md overflow-hidden shadow-e1 transition-all duration-base"
       style={{ maxWidth: sm ? DEVICE_W.mobile : undefined, width: "100%" }}
     >
       {/* ── Utility top bar (SET-style) ── */}
@@ -239,7 +239,7 @@ export function DevicePreview({
     <div className="flex gap-1.5">
       {([["desktop", IconDesktop, "Desktop"], ["tablet", IconTablet, "Tablet"], ["mobile", IconMobile, "Mobile"]] as const).map(([m, Icon, label]) => (
         <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m} aria-label={label}
-          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+          className={`flex items-center gap-1.5 ${compact ? "px-2.5 py-1.5" : "px-3.5 py-2"} rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
             mode === m ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           <Icon /> {compact ? "" : label}
         </button>
@@ -249,7 +249,7 @@ export function DevicePreview({
 
   // framed preview + comment pins/overlay (reused inline + fullscreen)
   const stage = (maxW: number) => (
-    <div className="relative mx-auto transition-all duration-300" style={{ maxWidth: maxW, width: "100%" }}>
+    <div className="relative mx-auto transition-all duration-base" style={{ maxWidth: maxW, width: "100%" }}>
       <div className={commentMode ? "cursor-crosshair" : ""} onClick={onFrameClick}>
         <Frame sm={sm} />
       </div>
@@ -286,7 +286,7 @@ export function DevicePreview({
     <div>
       <div className="flex items-center justify-end gap-2 mb-4">
         <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>
           💬 Comment{comments.length > 0 ? ` (${comments.length})` : ""}
         </button>
         <button onClick={() => setFull(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-sm border border-ir-border bg-ir-card text-ir-t2 text-body hover:border-ir-border-hi transition-colors">
@@ -316,7 +316,7 @@ export function DevicePreview({
             <span className="text-ir-t2 text-body font-medium truncate">High-Fidelity Preview {dir?.label} · {brand.paletteName}</span>
             <div className="flex items-center gap-3">
               {deviceToggle(true)}
-              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
+              <button onClick={() => { setCommentMode(!commentMode); setDraftPin(null); }} aria-pressed={commentMode} aria-label="Comment" className={`px-2.5 py-1.5 rounded-sm border text-body transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${commentMode ? "bg-ir-accent text-ir-on-accent border-ir-accent" : "bg-ir-card text-ir-t2 border-ir-border hover:border-ir-border-hi"}`}>💬</button>
               <button onClick={() => setFull(false)} className="text-ir-t2 hover:text-ir-t1 p-1.5"><IconClose width={24} height={24} /></button>
             </div>
           </div>

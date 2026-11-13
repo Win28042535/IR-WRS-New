@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot } from "@/components/ui";
+import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
@@ -24,6 +24,7 @@ import { AIMascot } from "@/components/AIMascot";
 import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
+import { DUR, EASE } from "@/lib/motion";
 
 // Explore result screen is switched off for now: the last answer goes straight to Structure
 // (the Direction is still chosen from the answers). Flip to bring the screen back.
@@ -180,7 +181,7 @@ export default function Flow2() {
     updateDraft({ flowStep: n });
   };
 
-  const panelTransition = isResizing ? "none" : "width 260ms cubic-bezier(0.4, 0, 0.2, 1)";
+  const panelTransition = isResizing ? "none" : "width var(--motion-fast) var(--motion-ease-in-out)";
   // The shared workspace panel is only meaningful during Structure (step 4) — that's the
   // one step where a live preview of the picked sections helps. Every other step owns the
   // full width; step 6 (Deliver) builds its own right sidebar internally.
@@ -422,6 +423,9 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // RankPicker does the picking and re-ranking: first pick = primaryAudience, the rest =
   // secondaryAudiences, in rank order.
   const ok = !!(draft.company.trim() && draft.projectType && draft.primaryAudience);
+  const nudge = useNudge();
+  const companyErr = nudge.field === "company-field" && !draft.company.trim();
+  const audienceErr = nudge.field === "audience-field" && !draft.primaryAudience;
 
   // Auto-select IR as the only website type
   useEffect(() => {
@@ -593,12 +597,15 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         <div>
           <SectionLabel>ชื่อบริษัท / องค์กร <span className="text-red-500 font-normal">*</span></SectionLabel>
           <input
+            id="company-field"
             aria-label="ชื่อบริษัท / องค์กร"
+            aria-invalid={companyErr || undefined}
             value={draft.company}
             onChange={(e) => updateDraft({ company: e.target.value })}
             placeholder="เช่น บริษัท ABC จำกัด (มหาชน)"
-            className="w-full border border-ir-border rounded-md px-4 py-3 text-body outline-none focus:border-ir-accent mt-2 transition-colors"
+            className="w-full border border-ir-border rounded-md px-4 py-3 text-body outline-none focus:border-ir-accent mt-2 transition-colors aria-invalid:border-ir-error aria-invalid:focus:border-ir-error aria-invalid:bg-ir-error-soft/40"
           />
+          {companyErr && <FieldError>ใส่ชื่อบริษัทหรือองค์กรก่อน ชื่อย่อก็ได้</FieldError>}
         </div>
         <div>
           <div className="flex items-baseline gap-2">
@@ -622,8 +629,9 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
-      <div>
+      <div id="audience-field" className="scroll-mt-28">
         <SectionLabel>กลุ่มเป้าหมาย <span className="text-red-500 font-normal">*</span></SectionLabel>
+        {audienceErr && <FieldError>เลือกกลุ่มเป้าหมายอย่างน้อย 1 กลุ่ม</FieldError>}
         <p className="text-body text-ir-t3 mb-4 mt-1">เลือกและเรียงกลุ่มนักลงทุนจากสำคัญมากไปน้อย ลำดับนี้กำหนดว่าข้อมูลไหนต้องอยู่ใกล้มือที่สุดบนเว็บไซต์</p>
         <RankPicker
           items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
@@ -664,13 +672,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
       <StepNav onBack={() => router.push("/")} backLabel="หน้าหลัก" next={
-        <div onClick={() => {
-          if (ok) return;
-          if (!draft.company.trim()) g.show("ใส่ชื่อองค์กรก่อนนะครับ ชื่อย่อก็ได้เลยครับ", { mode: "tip" });
-          else g.show("เลือกกลุ่มเป้าหมายอย่างน้อย 1 กลุ่มด้วยนะครับ ช่วยให้ AI ปรับโทนและข้อมูลให้ตรงกลุ่มผู้อ่านจริงครับ", { mode: "tip" });
-        }}>
-          <NextButton onClick={() => go(2)} disabled={!ok}>ถัดไป</NextButton>
-        </div>
+        <NextButton onClick={() => go(2)} blocked={!ok} onBlocked={(b) => nudge.nudge(!draft.company.trim() ? "company-field" : "audience-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -692,6 +694,8 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   const canCollapseGoals = showAllGoals && !hasHiddenSelection;
 
   const ok = draft.businessGoals.length >= RULES.goals.min;
+  const nudge = useNudge();
+  const goalsErr = nudge.field === "goals-field" && !ok;
 
   // Objectives → timeline
   useEffect(() => {
@@ -732,8 +736,9 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       <Head n={2} title="กำหนดเป้าหมาย" sub="เว็บไซต์ IR นี้ควรตอบโจทย์อะไรบ้าง?" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
-      <div>
+      <div id="goals-field" className="scroll-mt-28">
         <SectionLabel>เป้าหมายหลัก</SectionLabel>
+        {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
         <p className="text-body text-ir-t3 mb-4 mt-1">เลือกสิ่งที่เว็บไซต์ต้องทำได้ แล้วเรียงจากสำคัญที่สุด</p>
         <RankPicker
           items={VISIBLE_GOALS.map((goal) => ({ id: goal.id, label: goal.label, desc: goal.desc, icon: OPTION_ICONS[goal.id] }))}
@@ -757,7 +762,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
             {goalsExpanded ? "ย่อรายการ" : `ดูเป้าหมายเพิ่มเติมอีก ${VISIBLE_GOALS.length - GOALS_COLLAPSE_AT} รายการ`}
             <svg
               width="24" height="24" viewBox="0 0 12 12" fill="none"
-              className={`shrink-0 transition-transform duration-200 ${goalsExpanded ? "rotate-180" : ""}`}
+              className={`shrink-0 transition-transform duration-fast ${goalsExpanded ? "rotate-180" : ""}`}
             >
               <path d="M2.5 4.5 L6 8 L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -766,12 +771,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       </div>
 
       <StepNav onBack={() => go(1)} next={
-        <div onClick={() => {
-          if (ok) return;
-          g.show(`เลือกเป้าหมายอีก ${RULES.goals.min - draft.businessGoals.length} อย่างก็ไป Explore กันได้เลยครับ`, { mode: "tip", expert: "strategy" });
-        }}>
-          <NextButton onClick={() => go(3)} disabled={!ok}>ถัดไป</NextButton>
-        </div>
+        <NextButton onClick={() => go(3)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -857,7 +857,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 flex gap-1" aria-hidden="true">
           {Array.from({ length: total }, (_, i) => (
-            <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i < idx ? "bg-ir-accent" : i === idx ? "bg-ir-dark" : "bg-ir-border"}`} />
+            <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-base ${i < idx ? "bg-ir-accent" : i === idx ? "bg-ir-dark" : "bg-ir-border"}`} />
           ))}
         </div>
         <span className="font-mono text-small text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
@@ -871,7 +871,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
             aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
-              "group/sel relative rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+              "group/sel relative rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-fast focus-ring",
               pending === letter
                 ? "wrs-quiz-selected border-ir-select bg-primary-50"
                 : pending
@@ -1098,7 +1098,7 @@ function GhostFlightLayer() {
           { transform: `translate(${dx * 0.65}px, ${dy * 0.65}px) scale(1.04)`, opacity: 1, offset: 0.6 },
           { transform: `translate(${dx}px, ${dy}px) scale(0.92)`, opacity: 0 },
         ],
-        { duration: 300, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }
+        { duration: DUR.base, easing: EASE.out }
       );
       anim.onfinish = () => {
         ghost.remove();
@@ -1272,7 +1272,7 @@ function MobileWorkspaceSheet({
       style={{
         height: currentHeight,
         paddingBottom: wsCollapsed ? "env(safe-area-inset-bottom, 0px)" : undefined,
-        transition: isDragging ? "none" : "height 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: isDragging ? "none" : "height var(--motion-base) var(--motion-ease-in-out)",
       }}
       role="dialog"
       aria-label="โครงสร้างเว็บไซต์"
@@ -1286,7 +1286,7 @@ function MobileWorkspaceSheet({
           tabIndex={0}
           aria-expanded={!wsCollapsed}
           aria-label={wsCollapsed ? "เปิดโครงสร้างเว็บไซต์" : "ย่อโครงสร้างเว็บไซต์"}
-          className="flex flex-col items-center pt-2 pb-2.5 cursor-grab active:cursor-grabbing touch-none select-none wrs-no-callout focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-inset"
+          className="flex flex-col items-center pt-2 pb-2.5 cursor-grab active:cursor-grabbing touch-none select-none wrs-no-callout focus-ring focus-visible:ring-inset"
           onPointerDown={(e) => {
             // Capture failure (e.g. an already-released pointer) must never block the drag
             // itself from starting — it's just an enhancement that stops the gesture from
@@ -1334,7 +1334,7 @@ function MobileWorkspaceSheet({
             <span className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-ir-t1/[0.06] text-ir-t2">
               <svg
                 width="24" height="24" viewBox="0 0 12 12" fill="none"
-                className={`transition-transform duration-200 ${wsCollapsed ? "" : "rotate-180"}`}
+                className={`transition-transform duration-fast ${wsCollapsed ? "" : "rotate-180"}`}
               >
                 <path d="M2.5 7.5 L6 4 L9.5 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -1366,11 +1366,16 @@ function insertBeforeTrailing(list: string[], id: string) {
 // ── S4 Structure (current) — StructureBuilder in the step frame ──
 function S4Structure({ go, draft, updateDraft }: any) {
   const optional = (draft.selectedSections ?? []).filter((id: string) => !REQUIRED_SECTION_IDS.includes(id)).length;
+  const short = STRUCTURE_MIN_OPTIONAL - optional;
+  const nudge = useNudge();
   return (
     <>
       <Head n={4} title="วางโครงสร้าง" sub="เลือกเนื้อหาที่ต้องการบนหน้าแรก แล้วเรียงลำดับจากสำคัญที่สุด" />
-      <StructureBuilder draft={draft} updateDraft={updateDraft} />
-      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} disabled={optional < STRUCTURE_MIN_OPTIONAL}>ถัดไป</NextButton>} />
+      <div id="structure-field" className="scroll-mt-28">
+        {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
+        <StructureBuilder draft={draft} updateDraft={updateDraft} />
+      </div>
+      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>ถัดไป</NextButton>} />
     </>
   );
 }
@@ -1680,7 +1685,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
           <button
             type="button"
             onClick={acceptAllRecommended}
-            className="shrink-0 flex items-center gap-1.5 text-small font-semibold text-ir-on-accent bg-ir-accent px-3.5 py-2 rounded-full hover:bg-ir-accent-hi active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 focus-visible:ring-offset-2 transition-all"
+            className="shrink-0 flex items-center gap-1.5 text-small font-semibold text-ir-on-accent bg-ir-accent px-3.5 py-2 rounded-full hover:bg-ir-accent-hi active:scale-[0.96] focus-ring focus-visible:ring-offset-2 transition-all"
           >
             ใช้คำแนะนำ
             <IconCheck width={10} height={10} />
@@ -1705,7 +1710,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                   <button
                     key={sid}
                     onClick={(e) => toggle(sid, e.currentTarget.getBoundingClientRect())}
-                    className="flex items-center gap-1 text-small font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                    className="flex items-center gap-1 text-small font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-ring"
                   >
                     <span className="text-small leading-none">{s.icon}</span>
                     {s.name.split(" / ")[0]}
@@ -1785,7 +1790,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                 <span className="md:hidden shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-ir-t1/[0.05] text-ir-t2">
                   <svg
                     width="24" height="24" viewBox="0 0 12 12" fill="none"
-                    className={`transition-transform duration-200 ${collapsedOnMobile ? "" : "rotate-180"}`}
+                    className={`transition-transform duration-fast ${collapsedOnMobile ? "" : "rotate-180"}`}
                   >
                     <path d="M2.5 4.5 L6 8 L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -1810,7 +1815,7 @@ function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any)
                         // Same selected/hover language as OptionCard (production WRS): lime-tinted
                         // fill + olive border + soft ring when picked. Kept as its own button
                         // (not OptionCard) because the ghost-flight animation needs its ref.
-                        "group/sel text-left rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-200 active:scale-[0.98] select-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40",
+                        "group/sel text-left rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-fast active:scale-[0.98] select-none focus-ring",
                         sel
                           ? "border-ir-select bg-primary-50 shadow-selected"
                           : disabled
@@ -1967,7 +1972,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
             <div
               key={s.domain}
               // Once one is picked, the others recede (sel-recede) and come back on hover.
-              className={`group/sel rounded-lg sm:rounded-xl border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-200 ${
+              className={`group/sel rounded-lg sm:rounded-xl border p-1.5 sm:p-2 transition-[background-color,border-color,box-shadow] duration-fast ${
                 isSelected
                   ? "border-ir-select bg-primary-50 shadow-selected"
                   : `border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 ${activeDomain ? "sel-recede" : ""}`
@@ -1980,7 +1985,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                 onClick={() => pick(s.domain)}
                 aria-pressed={isSelected}
                 aria-label={`เลือก ${s.name} เป็นเว็บอ้างอิง`}
-                className="relative block w-full overflow-hidden rounded-md sm:rounded-md text-left transition-[scale] duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40"
+                className="relative block w-full overflow-hidden rounded-md sm:rounded-md text-left transition-[scale] duration-fast active:scale-[0.98] focus-ring"
                 style={{ paddingTop: "56.42%", background: dir?.bg ?? "#141613" }}
               >
                 <span className="absolute inset-0 flex flex-col justify-between p-3 sm:p-4 text-white">
@@ -2008,7 +2013,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     type="button"
                     onClick={() => pick(s.domain)}
                     aria-pressed={isSelected}
-                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-body font-semibold transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-body font-semibold transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
                       isSelected ? "border-ir-select bg-ir-accent-soft text-ir-accent-text" : "border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >
@@ -2402,7 +2407,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => setNoteEditing(noteEditing === u.id ? null : u.id)}
                       aria-label={u.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-ring ${
                         noteEditing === u.id
                           ? "bg-ir-accent text-ir-on-accent opacity-100"
                           : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"
@@ -2441,7 +2446,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => setNoteEditing(noteEditing === img.id ? null : img.id)}
                       aria-label={img.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-ring ${
                         noteEditing === img.id
                           ? "bg-ir-accent text-ir-on-accent opacity-100"
                           : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"
@@ -2497,7 +2502,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                             type="button"
                             aria-pressed={on}
                             onClick={() => toggleLike(noteEditing!, like)}
-                            className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 text-small font-medium transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.95] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 ${
+                            className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 text-small font-medium transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
                               on ? "border-ir-select bg-ir-accent-soft text-ir-t1" : "border-ir-border bg-white text-ir-t2 hover:border-ir-select-soft"
                             }`}
                           >
@@ -3030,14 +3035,14 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 disabled={submitting}
                 // Same black pill + lime arrow disc as the landing CTA — this is the flow's
                 // final primary action. Disabled keeps a readable label on a gray fill.
-                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-lead font-semibold transition-[background-color,color,transform] duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+                className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-lead font-semibold transition-[background-color,color,transform] duration-fast focus-ring ${
                   !submitting
                     ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer"
                     : "bg-ir-dark/80 text-white cursor-wait"
                 }`}
               >
                 {submitting ? "กำลังส่ง..." : "ยืนยันและส่งให้ทีม IR Plus"}
-                <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-200 ${!submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-accent/70 text-ir-on-accent"}`}>
+                <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-fast ${!submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-accent/70 text-ir-on-accent"}`}>
                   <IconArrowRight width={24} height={24} />
                 </span>
               </button>

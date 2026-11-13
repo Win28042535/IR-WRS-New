@@ -247,7 +247,7 @@ function MobileStickyCta({ flow, company }: { flow: ReturnType<typeof useStartFl
   return (
     <div
       inert={!show}
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-ir-bg/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md transition-[translate,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden motion-reduce:transition-none ${
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-black/[0.06] bg-ir-bg/90 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md transition-[translate,opacity] duration-base ease-out md:hidden motion-reduce:transition-none ${
         show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
     >
@@ -277,7 +277,7 @@ function BackToTop() {
       aria-label="กลับขึ้นด้านบน"
       title="กลับขึ้นด้านบน"
       inert={!show}
-      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-e3 transition-[opacity,transform,background-color] duration-200 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 motion-reduce:transition-none ${
+      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-e3 transition-[opacity,transform,background-color] duration-fast hover:bg-neutral-800 focus-ring motion-reduce:transition-none ${
         show ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-3"
       }`}
     >
@@ -355,12 +355,12 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
     <button
       type={type}
       onClick={onClick}
-      className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-lead" : "h-[56px] text-body"} transition-[transform,background-color] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 ${
+      className={`group inline-flex shrink-0 items-center justify-center gap-3 rounded-full pl-7 pr-2 font-semibold ${block ? "h-[60px] w-full text-lead" : "h-[56px] text-body"} transition-[transform,background-color] duration-fast hover:-translate-y-0.5 focus-ring ${
         onDark ? "ir-grad-fill text-ir-on-accent shadow-glow hover:brightness-105" : "bg-ir-dark text-white shadow-e2 hover:bg-neutral-800"
       }`}
     >
       {children}
-      <span className={`grid w-10 h-10 place-items-center rounded-full transition-transform duration-200 group-hover:translate-x-1 ${onDark ? "bg-ir-dark text-ir-accent" : "ir-grad-fill text-ir-on-accent"}`}>
+      <span className={`grid w-10 h-10 place-items-center rounded-full transition-transform duration-fast group-hover:translate-x-1 ${onDark ? "bg-ir-dark text-ir-accent" : "ir-grad-fill text-ir-on-accent"}`}>
         <IconArrowRight width={24} height={24} />
       </span>
     </button>
@@ -369,10 +369,10 @@ function PrimaryCta({ children, onClick, type = "button", onDark, block }: { chi
 
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="group rounded-xl border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-200 open:border-ir-select-soft open:shadow-e2">
-      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md px-3 text-body font-semibold text-ir-t1 transition-colors duration-200 hover:bg-primary-50/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/40 [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-xl border border-black/[0.06] bg-ir-card px-6 py-1 transition-[border-color,box-shadow] duration-fast open:border-ir-select-soft open:shadow-e2">
+      <summary className="-mx-3 flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md px-3 text-body font-semibold text-ir-t1 transition-colors duration-fast hover:bg-primary-50/60 focus-ring [&::-webkit-details-marker]:hidden">
         {title}
-        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-lead text-ir-t2 transition-[rotate,background-color,color] duration-200 group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
+        <span aria-hidden="true" className="grid w-8 h-8 shrink-0 place-items-center rounded-full bg-ir-muted text-lead text-ir-t2 transition-[rotate,background-color,color] duration-fast group-open:rotate-45 group-open:bg-ir-accent-soft group-open:text-ir-accent-text">+</span>
       </summary>
       {children}
     </details>

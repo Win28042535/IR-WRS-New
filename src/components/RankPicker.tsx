@@ -16,6 +16,8 @@
 //   dropped  — the card glides back into its slot, glows once, a buzz, and a line under the
 //              grid says what moved where (also read out by screen readers)
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SVGProps } from "react";
+import { DUR, EASE } from "@/lib/motion";
+import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
 
 export type RankItem = { id: string; label: string; desc?: string; icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element };
 
@@ -43,7 +45,7 @@ export function RankPicker({
   const limit = max ?? items.length;
   const full = selected.length >= limit;
   const [drag, setDrag] = useState<Drag | null>(null);
-  const press = useRef<{ id: string; x: number; y: number; moved: boolean; touchGrip: boolean } | null>(null);
+  const press = useRef<{ id: string; x: number; y: number; lastX: number; lastY: number; moved: boolean; touchGrip: boolean; root: ParentNode } | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [flash, setFlash] = useState<string | null>(null);      // card that just landed
   const [moved, setMoved] = useState<string>("");               // "ย้าย … ไปลำดับที่ … แล้ว"
@@ -79,40 +81,55 @@ export function RankPicker({
     landed(id, next);
   };
 
-  const onDown = (e: ReactPointerEvent<HTMLElement>, id: string, fromGrip = false) => {
-    if (e.button !== 0) return;
-    const canDrag = selected.includes(id) && (e.pointerType === "mouse" || fromGrip);
-    press.current = { id, x: e.clientX, y: e.clientY, moved: false, touchGrip: fromGrip };
-    if (canDrag) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ } }
-  };
-  const onMove = (e: ReactPointerEvent<HTMLElement>) => {
+  const auto = useDragAutoScroll();
+  // The lifted card follows the pointer; near the top / bottom edge the page scrolls, and
+  // the card's offset includes that scroll so it stays under the finger.
+  const track = (clientX: number, clientY: number) => {
     const p = press.current;
-    if (!p || !selected.includes(p.id) || !(e.pointerType === "mouse" || p.touchGrip)) return;
-    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (!p) return;
+    p.lastX = clientX; p.lastY = clientY;
+    const dx = clientX - p.x, dy = clientY - p.y + auto.offset();
     if (!p.moved && Math.hypot(dx, dy) < 6) return;
     if (!p.moved) buzz(8);
     p.moved = true;
+    auto.move(clientY);
     // The drop target is the nearest other picked card — no need to land exactly on it.
     let over: string | null = null, best = Infinity;
     for (const id of selected) {
       if (id === p.id) continue;
-      const r = (e.currentTarget.closest("[data-rank-root]") ?? document).querySelector<HTMLElement>(`[data-rank-id="${id}"]`)?.getBoundingClientRect();
+      const r = p.root.querySelector<HTMLElement>(`[data-rank-id="${id}"]`)?.getBoundingClientRect();
       if (!r) continue;
-      const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+      const d = Math.hypot(clientX - (r.left + r.width / 2), clientY - (r.top + r.height / 2));
       if (d < best) { best = d; over = id; }
     }
     setDrag({ id: p.id, dx, dy, over });
   };
+  const onDown = (e: ReactPointerEvent<HTMLElement>, id: string, fromGrip = false) => {
+    if (e.button !== 0) return;
+    const canDrag = selected.includes(id) && (e.pointerType === "mouse" || fromGrip);
+    const root = e.currentTarget.closest("[data-rank-root]") ?? document;
+    press.current = { id, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, touchGrip: fromGrip, root };
+    if (canDrag) {
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
+      auto.begin(e.currentTarget, () => { const q = press.current; if (q?.moved) track(q.lastX, q.lastY); });
+    }
+  };
+  const onMove = (e: ReactPointerEvent<HTMLElement>) => {
+    const p = press.current;
+    if (!p || !selected.includes(p.id) || !(e.pointerType === "mouse" || p.touchGrip)) return;
+    track(e.clientX, e.clientY);
+  };
   const onUp = () => {
     const p = press.current;
     press.current = null;
+    auto.stop();
     if (!p) return;
     if (p.moved) {
       const el = cardRefs.current[p.id];
       if (el && drag && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
         el.animate(
           [{ transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` }, { transform: "none" }],
-          { duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" },
+          { duration: DUR.base, easing: EASE.spring },
         );
       }
       if (drag?.over) {
@@ -126,7 +143,7 @@ export function RankPicker({
     }
     if (!p.touchGrip) toggle(p.id);
   };
-  const onCancel = () => { press.current = null; setDrag(null); };
+  const onCancel = () => { press.current = null; auto.stop(); setDrag(null); };
   const onKey = (e: KeyboardEvent<HTMLElement>, id: string) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(id); return; }
     if (!selected.includes(id)) return;
@@ -175,8 +192,8 @@ export function RankPicker({
               style={dragging ? { transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` } : undefined}
               className={[
                 "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-xl border px-3.5 py-3 text-left outline-none",
-                "focus-visible:ring-3 focus-visible:ring-ir-ring/50",
-                dragging ? "z-30 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-200",
+                "focus-ring",
+                dragging ? "z-30 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-fast",
                 resting ? "opacity-70" : "",
                 flash === it.id ? "rk-landed" : "",
                 on

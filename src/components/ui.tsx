@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode, type MouseEvent as ReactMo
 import { createPortal } from "react-dom";
 import { IconArrowRight, IconArrowLeft, IconCheck } from "./icons";
 import { RULES } from "@/lib/data";
+import { DUR, EASE } from "@/lib/motion";
+import { useStore } from "@/lib/store";
 
 
 // ── Step indicator (production WRS pattern) ──
@@ -11,6 +13,7 @@ import { RULES } from "@/lib/data";
 // narrow screens. The draft persists to localStorage on every change, hence the static
 // "บันทึกอัตโนมัติ" note. Sticky so it stays in view while the step content scrolls.
 export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; stepsEn?: string[]; current: number }) {
+  const { n: saved, recent } = useSavedPulse();
   return (
     <div className="sticky top-14 md:top-0 z-30 bg-ir-bg/85 backdrop-blur-md">
       <div className="max-w-[1000px] mx-auto px-5 lg:px-7 pt-3 pb-3">
@@ -20,15 +23,21 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
             aria-label={`ขั้นตอนที่ ${current} จาก ${steps.length}: ${steps[current - 1]}`}
             title={stepsEn?.[current - 1]}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0" aria-hidden="true" />
+            {/* the dot pulses each time an answer is saved (the only save signal on phones) */}
+            <span key={saved} className={`w-1.5 h-1.5 rounded-full bg-ir-accent shrink-0 ${saved ? "save-pulse" : ""}`} aria-hidden="true" />
             <span className="text-body font-medium text-ir-t1 truncate">{steps[current - 1]}</span>
             <span className="font-mono text-small text-ir-t3 tabular-nums shrink-0" aria-hidden="true">
               {current}/{steps.length}
             </span>
           </div>
-          <span className="absolute right-0 hidden items-center gap-1.5 text-small font-medium text-ir-t3 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-ir-accent" aria-hidden="true" />
-            บันทึกอัตโนมัติ
+          <span className="absolute right-0 hidden items-center gap-1.5 text-small font-medium text-ir-t3 sm:flex" aria-live="polite">
+            {recent ? (
+              <span key={saved} className="save-note inline-flex items-center gap-1.5 text-ir-accent-text">
+                <IconCheck width={14} height={14} aria-hidden="true" />บันทึกแล้ว
+              </span>
+            ) : (
+              <><span className="h-1.5 w-1.5 rounded-full bg-ir-accent" aria-hidden="true" />บันทึกอัตโนมัติ</>
+            )}
           </span>
         </div>
 
@@ -36,7 +45,7 @@ export function StepIndicator({ steps, stepsEn, current }: { steps: string[]; st
           {steps.map((s, i) => (
             <span
               key={s}
-              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+              className={`h-1 flex-1 rounded-full transition-colors duration-base ${
                 i + 1 < current ? "bg-ir-accent" : i + 1 === current ? "bg-ir-dark" : "bg-ir-border"
               }`}
             />
@@ -60,7 +69,7 @@ export function SelectDot({ on, className = "" }: { on: boolean; className?: str
   return (
     <span
       aria-hidden="true"
-      className={`grid place-items-center w-7 h-7 shrink-0 rounded-full border-2 transition-[background-color,border-color] duration-200 ${
+      className={`grid place-items-center w-7 h-7 shrink-0 rounded-full border-2 transition-[background-color,border-color] duration-fast ${
         on ? "border-ir-accent bg-ir-accent text-ir-on-accent" : "border-ir-border-hi bg-ir-card group-hover/sel:border-ir-select"
       } ${className}`}
     >
@@ -95,7 +104,7 @@ export function OptionCard({
 }) {
   return (
     <div
-      className={`group/sel relative flex items-center gap-3 rounded-xl border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-200 has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
+      className={`group/sel relative flex items-center gap-3 rounded-xl border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-fast has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
         selected
           ? "border-ir-select bg-primary-50 shadow-selected active:scale-[0.98]"
           : disabled
@@ -108,7 +117,7 @@ export function OptionCard({
         onClick={onSelect}
         aria-pressed={selected}
         disabled={disabled}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-visible:outline-none disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']"
+        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-ring disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']"
       >
         {rank ? (
           <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-body font-bold">
@@ -161,7 +170,7 @@ export function RuleBadge({ ruleKey, count }: { ruleKey: keyof typeof RULES; cou
 export function ProgressBar({ value }: { value: number }) {
   return (
     <div className="h-1 w-full bg-ir-border rounded-full overflow-hidden">
-      <div className="h-full bg-ir-accent transition-all duration-500" style={{ width: `${Math.min(100, value)}%` }} />
+      <div className="h-full bg-ir-accent transition-all duration-slow" style={{ width: `${Math.min(100, value)}%` }} />
     </div>
   );
 }
@@ -223,6 +232,62 @@ export function PaletteSwatches({ colors, size = 16 }: { colors: string[]; size?
   );
 }
 
+// Each burst of edits to the draft (which persists on every change) bumps `n` once and
+// keeps `recent` true until 1.8 s after the last edit — so typing pulses once, not per key.
+function useSavedPulse() {
+  const [n, setN] = useState(0);
+  const [recent, setRecent] = useState(false);
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined;
+    let busy = false;
+    const unsub = useStore.subscribe((st, prev) => {
+      if (!prev.draft || st.draft === prev.draft) return;
+      if (!busy) { busy = true; setN((x) => x + 1); setRecent(true); }
+      clearTimeout(t);
+      t = setTimeout(() => { busy = false; setRecent(false); }, 1800);
+    });
+    return () => { unsub(); clearTimeout(t); };
+  }, []);
+  return { n, recent };
+}
+
+// ── Missing answers (Interaction DNA: error state) ──
+// Next stays clickable while something is missing (aria-disabled, still focusable). A click
+// shakes the button once, scrolls to the field that needs an answer and shows one short,
+// specific line under it in the error colour. The line goes away as soon as it is answered.
+export function useNudge() {
+  const [field, setField] = useState<string | null>(null);
+  const nudge = (id: string, button?: HTMLElement | null) => {
+    setField(id);
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (button && !reduce) {
+      button.animate(
+        [{ translate: "0" }, { translate: "-6px" }, { translate: "6px" }, { translate: "-4px" }, { translate: "3px" }, { translate: "0" }],
+        { duration: DUR.base + 80, easing: EASE.inOut },
+      );
+    }
+    try { navigator.vibrate?.([12, 40, 12]); } catch { /* not supported */ }
+    const el = document.getElementById(id);
+    if (!el) return;
+    // a tall block (the structure builder) is scrolled to its top, where the error line is
+    el.scrollIntoView({ block: el.offsetHeight > innerHeight * 0.6 ? "start" : "center", behavior: reduce ? "auto" : "smooth" });
+    const input = el.matches("input, textarea") ? el : el.querySelector<HTMLElement>("input, textarea");
+    input?.focus({ preventScroll: true });
+  };
+  return { field, nudge };
+}
+
+export function FieldError({ children }: { children: ReactNode }) {
+  return (
+    <p role="alert" className="field-error mt-2 flex items-start gap-1.5 text-small font-medium text-ir-error">
+      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mt-0.5 shrink-0">
+        <circle cx="12" cy="12" r="9.5" /><path d="M12 7.5v5.5M12 16.5v.01" />
+      </svg>
+      {children}
+    </p>
+  );
+}
+
 // ── Nav buttons (production WRS pattern) ──
 // Primary: near-black pill, white label. Disabled keeps a readable label on the muted fill
 // (the step's own guide explains what's missing when it's clicked) instead of fading out.
@@ -231,22 +296,28 @@ export function NextButton({
   children,
   onClick,
   disabled,
+  blocked,
+  onBlocked,
   accent,
 }: {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  /** something is missing: looks disabled but stays clickable, and a click calls onBlocked */
+  blocked?: boolean;
+  onBlocked?: (button: HTMLButtonElement) => void;
   accent?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={(e) => (blocked ? onBlocked?.(e.currentTarget) : onClick?.())}
       disabled={disabled}
-      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-lead font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200 disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100"
+      aria-disabled={blocked || undefined}
+      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-lead font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:bg-ir-border aria-disabled:text-ir-t3 aria-disabled:hover:bg-ir-border"
     >
       {children}
       {!accent && (
-        <IconArrowRight width={24} height={24} className="transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0" />
+        <IconArrowRight width={24} height={24} className="transition-transform duration-fast group-hover:translate-x-0.5 group-disabled:translate-x-0 group-aria-disabled:translate-x-0" />
       )}
     </button>
   );
@@ -256,7 +327,7 @@ export function BackButton({ children, onClick }: { children: ReactNode; onClick
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-lead font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ir-ring/50 transition-[background-color,color,transform] duration-200"
+      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-lead font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast"
     >
       <IconArrowLeft width={24} height={24} />
       {children}
@@ -303,7 +374,7 @@ export function WorkspaceDividerToggle({
 }) {
   return (
     <div
-      className={`relative shrink-0 group z-10 flex items-center justify-center ${wsCollapsed ? "w-0" : "w-px bg-ir-border hover:bg-ir-accent/30 cursor-ew-resize transition-colors duration-150"}`}
+      className={`relative shrink-0 group z-10 flex items-center justify-center ${wsCollapsed ? "w-0" : "w-px bg-ir-border hover:bg-ir-accent/30 cursor-ew-resize transition-colors duration-instant"}`}
       onMouseDown={onDividerMouseDown}
       style={{ transition: panelTransition }}
     >
@@ -316,7 +387,7 @@ export function WorkspaceDividerToggle({
           reach the 20px icon floor without an absurdly tall stretch (a plain aspect-preserving
           scale-up would have needed ~88px), so it's redrawn as the same dot grid instead. */}
       {!wsCollapsed && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none text-ir-accent-text">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-instant pointer-events-none text-ir-accent-text">
           <svg width="20" height="32" viewBox="0 0 10 16" fill="none">
             <circle cx="3" cy="4" r="1.2" fill="currentColor" />
             <circle cx="7" cy="4" r="1.2" fill="currentColor" />
@@ -334,7 +405,7 @@ export function WorkspaceDividerToggle({
           onMouseDown={(e) => e.stopPropagation()}
           onClick={toggleWsCollapsed}
           title="ซ่อน Living Workspace"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-e1 text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 transition-all duration-150 z-20"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-e1 text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-ring transition-all duration-instant z-20"
           style={{ width: 24, height: 36 }}
         >
           <WorkspaceDockIcon direction="close" />
@@ -350,7 +421,7 @@ export function WorkspaceDividerToggle({
           onClick={toggleWsCollapsed}
           title={empty ? "Living Workspace" : "เปิด Living Workspace"}
           aria-label={empty ? "Living Workspace (ยังไม่มีข้อมูล)" : "เปิด Living Workspace"}
-          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-md transition-all duration-500 active:duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ir-accent/40 z-30 animate-[wsdock-in_320ms_cubic-bezier(0.4,0,0.2,1)] ${
+          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-md transition-all duration-slow active:duration-fast focus-ring z-30 animate-[wsdock-in_var(--motion-base)_var(--motion-ease-in-out)] ${
             empty
               ? "bg-ir-card border border-r-0 border-ir-border text-ir-t3 hover:text-ir-t2 hover:border-ir-border-hi hover:scale-[1.06] active:scale-[0.98]"
               : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-glow active:scale-[0.98] active:shadow-none"
