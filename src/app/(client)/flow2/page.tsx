@@ -886,9 +886,11 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
             ].join(" ")}>
             <QuizVisual mock={o.mock} />
             <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
-              <div className="flex items-center gap-2">
+              {/* phones: the badge sits above the label so the label gets the card's full width
+                  (beside it, Thai labels broke one word per line) */}
+              <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-2">
                 <LetterBadge letter={letter} />
-                <span className="flex-1 min-w-0 text-body sm:text-lead font-semibold text-ir-t1 leading-snug">{o.label}</span>
+                <span className="w-full min-w-0 text-body sm:w-auto sm:flex-1 sm:text-lead font-semibold text-ir-t1 leading-snug">{o.label}</span>
                 <SelectDot on={pending === letter} className="hidden sm:grid" />
               </div>
               <div className="text-body text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
@@ -1970,7 +1972,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
       </p>
       {/* Always paired 2-up so all four options stay comparable at a glance (same as the
           quiz step), even on mobile. */}
-      <div className="sc-reveal grid grid-cols-2 gap-2.5 sm:gap-3">
+      <div className="sc-reveal grid grid-cols-1 min-[360px]:grid-cols-2 gap-2.5 sm:gap-3">
         {sites.map((s) => {
           const isSelected = activeDomain === s.domain;
           return (
@@ -2009,7 +2011,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     rel="noopener noreferrer"
                     title={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
                     aria-label={`เปิดเว็บ IR ของ ${s.name} ในแท็บใหม่`}
-                    className="shrink-0 inline-flex items-center justify-center gap-1 h-11 sm:h-9 min-w-11 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-body font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
+                    className="shrink-0 inline-flex items-center justify-center gap-1 h-11 min-w-11 px-2.5 sm:px-3 rounded-full bg-ir-muted text-ir-t2 text-body font-medium hover:bg-ir-border hover:text-ir-t1 transition-colors"
                   >
                     <IconExternalLink width={24} height={24} className="-my-1" />
                     <span className="hidden sm:inline">เปิดเว็บ IR</span>
@@ -2018,7 +2020,7 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
                     type="button"
                     onClick={() => pick(s.domain)}
                     aria-pressed={isSelected}
-                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 sm:h-9 rounded-full border text-body font-semibold transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
+                    className={`flex-1 inline-flex items-center justify-center gap-1 h-11 min-w-0 rounded-full border text-body font-semibold transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
                       isSelected ? "border-ir-select bg-ir-accent-soft text-ir-accent-text" : "border-ir-border text-ir-t2 hover:border-ir-select-soft hover:text-ir-t1"
                     }`}
                   >

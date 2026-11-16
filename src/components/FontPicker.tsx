@@ -240,7 +240,7 @@ export function FontPickerSheet({
                   <div role="group" aria-label="ข้อความตัวอย่าง" className="inline-flex flex-wrap rounded-full bg-ir-muted p-1">
                     {(Object.keys(SAMPLES) as SampleKey[]).map((k) => (
                       <button key={k} type="button" aria-pressed={sample === k} onClick={() => setSample(k)}
-                        className={`h-9 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${sample === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>
+                        className={`h-10 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${sample === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>
                         {SAMPLES[k].label}
                       </button>
                     ))}
@@ -401,7 +401,7 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
           <div role="group" aria-label="เปรียบเทียบฟอนต์" className="inline-flex rounded-full bg-ir-muted p-1">
             {([["this", font.family], ["team", `ทีมแนะนำ: ${teamFont}`]] as const).map(([k, l]) => (
               <button key={k} type="button" aria-pressed={compare === k} onClick={() => setCompare(k)}
-                className={`h-9 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${compare === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>{l}</button>
+                className={`h-10 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${compare === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>{l}</button>
             ))}
           </div>
         ) : null}>
@@ -414,7 +414,7 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
           <div role="group" aria-label="รูปแบบ" className="inline-flex rounded-full bg-ir-muted p-1">
             {(Object.keys(PRESETS) as PresetKey[]).map((k) => (
               <button key={k} type="button" aria-pressed={preset === k} onClick={() => pick(k)}
-                className={`h-9 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${preset === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>{PRESETS[k].label}</button>
+                className={`h-10 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${preset === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>{PRESETS[k].label}</button>
             ))}
           </div>
           <label className="flex items-center gap-2 text-small text-ir-t3">
@@ -426,7 +426,7 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
         <div role="group" aria-label="ความหนา" className="mt-3 flex flex-wrap gap-1.5">
           {weights.map((w) => (
             <button key={w} type="button" aria-pressed={weight === w} onClick={() => setWeight(w)}
-              className={`h-9 rounded-full border px-3 text-small transition-colors focus-ring ${weight === w ? "border-ir-dark bg-ir-dark text-white" : "border-ir-border text-ir-t2 hover:border-ir-border-hi"}`}
+              className={`h-10 rounded-full border px-3 text-small transition-colors focus-ring ${weight === w ? "border-ir-dark bg-ir-dark text-white" : "border-ir-border text-ir-t2 hover:border-ir-border-hi"}`}
               style={{ fontFamily: stack, fontWeight: w }}>{WEIGHT_NAME[w]}</button>
           ))}
         </div>
@@ -571,7 +571,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
 function IconBtn({ label, onClick, disabled, className = "", children }: { label: string; onClick: () => void; disabled?: boolean; className?: string; children: ReactNode }) {
   return (
     <button type="button" aria-label={label} onClick={onClick} disabled={disabled}
-      className={`grid h-11 w-11 place-items-center rounded-full text-ir-t2 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring disabled:opacity-30 disabled:hover:bg-transparent ${className}`}>
+      className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-ir-t2 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring disabled:opacity-30 disabled:hover:bg-transparent ${className}`}>
       {children}
     </button>
   );
