@@ -12,6 +12,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { BUSINESS_GOALS, IR_AUDIENCES, QUIZ, REFERENCE_LIKES, VISUAL_STYLES, directionById, unsplashUrl } from "@/lib/data";
 import { DEFAULT_PAIRING, FONT_PAIRINGS, fontStack } from "@/lib/fonts";
+import { SOURCE_LABEL, chosenThaiFont, familyStack } from "@/lib/fontCatalog";
+import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, Requirement } from "@/lib/types";
 
 type Axis = keyof DesignProfile;
@@ -49,6 +51,9 @@ const Block = ({ label, children, className = "" }: { label: string; children: R
 
 export function DesignDNACard({ req, className = "" }: { req: Requirement; className?: string }) {
   const dir = directionById(req.selectedDirection);
+  // the Thai face: their own pick (step 5), else the Direction pairing
+  const thai = chosenThaiFont(req);
+  useGoogleFont(thai.source === "selected" ? thai.family : undefined, [400, 700]);
   if (!dir) return null;
   const pair = FONT_PAIRINGS[dir.id] ?? DEFAULT_PAIRING;
   const style = VISUAL_STYLES[dir.id];
@@ -129,10 +134,12 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
         {/* type */}
         <Block label="ตัวอักษร">
           <p className="text-display-sm leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>
-            Aa <span style={{ fontFamily: fontStack(pair.thai) }}>กข</span>
+            Aa <span style={{ fontFamily: thai.source === "selected" ? familyStack(thai.family) : fontStack(thai.family) }}>กข</span>
           </p>
-          <p className="mt-2 text-small font-semibold text-ir-t1">{pair.heading} + {pair.thai}</p>
-          <p className="mt-0.5 text-caption leading-snug text-ir-t3">{pair.note}</p>
+          <p className="mt-2 text-small font-semibold text-ir-t1">{pair.heading} + {thai.family}</p>
+          <p className="mt-0.5 text-caption leading-snug text-ir-t3">
+            {thai.source === "team" ? pair.note : thai.source === "selected" ? `ฟอนต์ภาษาไทย: ${SOURCE_LABEL.selected}` : `${SOURCE_LABEL.website} · ตัวอย่างนี้เป็นฟอนต์ที่ทีมแนะนำไว้ก่อน`}
+          </p>
           {(req.brandFonts?.length ?? 0) > 0 && <p className="mt-1.5 text-caption text-ir-t2">ฟอนต์บนเว็บไซต์เดิม: {req.brandFonts!.join(", ")}</p>}
         </Block>
 

@@ -1,6 +1,7 @@
 // Requirement Intelligence auto-summarise what the client selected so sales / design /
 // PM understand intent at a glance without re-reading the whole questionnaire.
 
+import { SOURCE_LABEL, chosenThaiFont } from "./fontCatalog";
 import type { Requirement, RequirementStatus } from "./types";
 import { directionById } from "./data";
 
@@ -32,6 +33,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Industry", value: r.industry || "-" },
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
+    { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },
     { label: "Approval Status", value: approvalSummary(r) },

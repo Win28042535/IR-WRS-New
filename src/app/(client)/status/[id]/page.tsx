@@ -9,6 +9,7 @@ import { IconCheck, IconPalette } from "@/components/icons";
 import { LumaLoader, LumaChip } from "@/components/AIMascot";
 import { directionById } from "@/lib/data";
 import { DesignDNACard } from "@/components/DesignDNA";
+import { BackToTop } from "@/components/BackToTop";
 
 // ── Requirement Submitted clean success/confirmation page only ──
 export default function SubmittedPage() {
@@ -41,6 +42,7 @@ export default function SubmittedPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
+      <BackToTop threshold={600} />
       {/* success header */}
       {/* overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside. */}
       <div className="bg-ir-card border border-ir-border rounded-3xl overflow-clip shadow-e1 mb-6">

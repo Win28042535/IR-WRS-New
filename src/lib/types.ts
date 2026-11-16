@@ -220,6 +220,10 @@ export interface Requirement {
   brandColors?: string[];  // hex, most prominent first
   brandPrimary?: string;   // the one they confirmed as the main colour
   brandFonts?: string[];   // font families found on the site
+  // website font (step 5): "team" (default) = the Direction pairing, "website" = keep the
+  // fonts on their current site, "selected" = a Google font they picked (selectedFont = family)
+  fontMode?: "team" | "website" | "selected";
+  selectedFont?: string;
 
   // design decisions
   selectedMoods: string[];

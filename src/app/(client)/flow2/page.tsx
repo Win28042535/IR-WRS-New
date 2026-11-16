@@ -12,6 +12,10 @@ import { RankPicker } from "@/components/RankPicker";
 import { DesignDNACard } from "@/components/DesignDNA";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
+import { FontChoice } from "@/components/FontPicker";
+import { BackToTop } from "@/components/BackToTop";
+import { chosenThaiFont } from "@/lib/fontCatalog";
+import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
@@ -246,6 +250,7 @@ export default function Flow2() {
       <StepIndicator steps={STEPS} stepsEn={STEPS_EN} current={step} />
 
       {/* ── Full-width split workspace ── */}
+      <BackToTop scrollRef={leftPanelRef} threshold={600} />
       <div ref={containerRef} className="flex-1 min-h-0 flex md:overflow-hidden">
 
         {/* ── Left: scrollable questionnaire ── */}
@@ -2628,6 +2633,9 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         </div>
       )}
 
+      <SectionDivider />
+      <FontChoice draft={draft} updateDraft={updateDraft} dir={dir} />
+
       <StepNav
         onBack={() => go(4)}
         next={<NextButton onClick={() => go(6)}>ถัดไป</NextButton>}
@@ -2720,7 +2728,13 @@ function ConceptIcon({ directionId, color }: { directionId?: string; color: stri
 // rounded surfaces, one clear hierarchy — not its literal colors/fonts. ──
 function ConceptBoard({ draft }: { draft: any }) {
   const dir = directionById(draft.selectedDirection);
-  const pairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
+  // the Thai face follows their step-5 choice when they picked one themselves
+  const basePairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
+  const thaiPick = chosenThaiFont(draft);
+  useGoogleFont(thaiPick.source === "selected" ? thaiPick.family : undefined, [400, 500, 600, 700]);
+  const pairing = thaiPick.source === "selected"
+    ? { ...basePairing, thai: thaiPick.family, note: `ฟอนต์ภาษาไทยที่เลือกเอง คู่กับ ${basePairing.heading}` }
+    : basePairing;
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;

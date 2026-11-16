@@ -1,5 +1,6 @@
 "use client";
 
+import { BackToTop } from "@/components/BackToTop";
 import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { FLOW_STEPS } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
@@ -258,34 +259,6 @@ function MobileStickyCta({ flow, company }: { flow: ReturnType<typeof useStartFl
 
 // Appears once the hero is out of view; back to the top in one tap. Smooth unless the
 // visitor prefers reduced motion. Hidden copies are inert so they're never tabbed to.
-function BackToTop() {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 700);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const toTop = () => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  };
-  return (
-    <button
-      type="button"
-      onClick={toTop}
-      aria-label="กลับขึ้นด้านบน"
-      title="กลับขึ้นด้านบน"
-      inert={!show}
-      className={`fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] max-md:bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] z-40 grid w-12 h-12 place-items-center rounded-full bg-ir-dark text-ir-accent shadow-e3 transition-[opacity,transform,background-color] duration-fast hover:bg-neutral-800 focus-ring motion-reduce:transition-none ${
-        show ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-3"
-      }`}
-    >
-      <IconArrowRight width={24} height={24} className="-rotate-90" />
-    </button>
-  );
-}
-
 // The flow's first question, asked on the homepage. Enter or ต่อไป starts step 1 with
 // the name already filled in.
 function StartForm({ value, onChange, onStart, inputId = "company-input", dark }: {
