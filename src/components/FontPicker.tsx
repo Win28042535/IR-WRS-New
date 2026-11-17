@@ -13,8 +13,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   FONT_CATALOG, FONT_GROUPS, FONT_STRUCTURES, ROLE_LABEL, WEIGHT_NAME,
-  familyStack, fontByFamily, groupLabel, structureLabel, webWeights,
-  type CatalogFont, type FontStructure,
+  FONT_COLLECTIONS, familyStack, fontByFamily, groupLabel, inCollection, previewFamily, structureLabel, webWeights,
+  type CatalogFont, type FontCollection, type FontStructure,
 } from "@/lib/fontCatalog";
 import { loadGoogleFont, useGoogleFont } from "@/lib/useGoogleFont";
 import { DEFAULT_PAIRING, FONT_PAIRINGS } from "@/lib/fonts";
@@ -45,7 +45,7 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
   const chosen = fontByFamily(draft.selectedFont);
   const website = (draft.website ?? "").trim();
   const [sheet, setSheet] = useState<null | { family?: string }>(null);
-  useGoogleFont(chosen?.family, [400, 600]);
+  useGoogleFont(chosen ? previewFamily(chosen.family) : undefined, [400, 600]);
   useGoogleFont(team, [400, 600]);
 
   return (
@@ -55,7 +55,7 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
         <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
       </div>
       <p className="mb-3 mt-1 text-body text-ir-t3">จะให้ทีมเลือกให้ ใช้ฟอนต์เดิม หรือเลือกเองจากตัวอย่างก็ได้</p>
-      <div className="grid gap-2.5 md:grid-cols-3">
+      <div className="grid gap-2.5 lg:grid-cols-3">
         <OptionCard
           icon={IconUsers}
           title="ให้ทีมแนะนำ"
@@ -66,9 +66,8 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
         <OptionCard
           icon={IconGlobe}
           title="ใช้ฟอนต์จากเว็บไซต์เดิม"
-          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : "ใส่เว็บไซต์ปัจจุบันในขั้นที่ 1 ก่อน"}
+          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : "ยังไม่มี URL · กดเพื่อกรอกที่นี่ได้เลย"}
           selected={mode === "website"}
-          disabled={!website}
           onSelect={() => updateDraft({ fontMode: "website" })}
         />
         <OptionCard
@@ -77,7 +76,33 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
           desc={chosen ? <>เลือกไว้: <span style={{ fontFamily: familyStack(chosen.family) }} className="font-semibold text-ir-t1">{chosen.family}</span></> : `ดูตัวอย่างและเลือกจาก ${FONT_CATALOG.length} ฟอนต์`}
           selected={mode === "selected"}
           onSelect={() => (chosen ? updateDraft({ fontMode: "selected" }) : setSheet({}))}
+          className="max-lg:order-last"
         />
+
+      {/* "ใช้ฟอนต์จากเว็บไซต์เดิม" without a URL yet: fill it in right here instead of
+          sending them back to step 1. It writes the same `website` field step 1 uses.
+          Phones and tablets stack the cards, so this follows the website card directly (the third card
+          moves after it); lg+ (three across) puts it under the whole row. */}
+      {mode === "website" && (
+        <div className="rounded-xl border border-ir-border bg-ir-card p-4 lg:order-last lg:col-span-3">
+          <label htmlFor="font-website-url" className="text-body font-semibold text-ir-t1">URL เว็บไซต์ปัจจุบัน</label>
+          <p className="mt-0.5 text-small text-ir-t3">ทีมจะดูฟอนต์จากเว็บไซต์นี้ · ช่องนี้เป็นช่องเดียวกับในขั้นที่ 1</p>
+          <div className="relative mt-2.5">
+            <IconGlobe width={18} height={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3" aria-hidden />
+            <input
+              id="font-website-url"
+              type="url"
+              inputMode="url"
+              autoFocus={!website}
+              value={draft.website ?? ""}
+              onChange={(e) => updateDraft({ website: e.target.value })}
+              placeholder="https://www.irplus.in.th"
+              className="w-full rounded-md border border-ir-border py-3 pl-10 pr-4 text-body outline-none transition-colors focus:border-ir-accent"
+            />
+          </div>
+          {!website && <p className="mt-2 text-small text-ir-t3">ยังไม่ได้กรอก หากไม่มีเว็บไซต์เดิม เลือก «ให้ทีมแนะนำ» แทนได้</p>}
+        </div>
+      )}
       </div>
 
       {mode === "selected" && chosen && (
@@ -119,15 +144,17 @@ export function FontPickerSheet({
   initialFamily?: string; value?: string; teamFont: string; company: string; dir?: Direction | null;
   onClose: () => void; onChoose: (family: string) => void;
 }) {
+  const [collection, setCollection] = useState<FontCollection>("all");
   const [structure, setStructure] = useState<"all" | FontStructure>("all");
   const [group, setGroup] = useState<string | null>(null);
+  const inSource = FONT_CATALOG.filter((f) => inCollection(f, collection));
   const [sample, setSample] = useState<SampleKey>("heading");
   const [open, setOpen] = useState<string | null>(initialFamily ?? null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const groups = FONT_GROUPS.filter((g) => structure === "all" || g.structure === structure);
-  const visible = FONT_CATALOG.filter((f) => (structure === "all" || f.structure === structure) && (!group || f.group === group));
+  const visible = inSource.filter((f) => (structure === "all" || f.structure === structure) && (!group || f.group === group));
   const font = open ? fontByFamily(open) : undefined;
   const idx = font ? visible.findIndex((f) => f.family === font.family) : -1;
   const nav = font && idx >= 0 ? { prev: visible[idx - 1], next: visible[idx + 1] } : null;
@@ -209,10 +236,27 @@ export function FontPickerSheet({
               <Specimen key={font.family} font={font} company={company} teamFont={teamFont} dir={dir} />
             ) : (
               <div className="px-4 pb-8 pt-4 sm:px-6">
+                {/* level 0: where the font comes from — IR Plus's licensed set or free Google Fonts */}
+                <div role="group" aria-label="ที่มาของฟอนต์" className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+                  {FONT_COLLECTIONS.map((c) => {
+                    const n = FONT_CATALOG.filter((f) => inCollection(f, c.id)).length;
+                    const on = collection === c.id;
+                    return (
+                      <button key={c.id} type="button" aria-pressed={on} onClick={() => { setCollection(c.id); setStructure("all"); setGroup(null); }}
+                        className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 sm:px-4 text-small sm:text-body font-semibold transition-colors focus-ring ${on ? "border-ir-dark bg-ir-dark text-white" : "border-ir-border bg-ir-card text-ir-t2 hover:border-ir-border-hi hover:text-ir-t1"}`}>
+                        {c.id === "irplus" && <span aria-hidden className={on ? "text-ir-accent" : "text-ir-accent-text"}>★</span>}
+                        <span className="sm:hidden">{c.short}</span><span className="max-sm:hidden">{c.label}</span><span className={`font-mono text-caption ${on ? "text-white/70" : "text-ir-t3"}`}>{n}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {collection === "irplus" && (
+                  <p className="-mt-1 mb-3 max-w-[64ch] text-small leading-relaxed text-ir-t3">ฟอนต์ลิขสิทธิ์ที่ทีม IR Plus มีไว้ใช้กับงานเว็บไซต์ · บนหน้านี้แสดงเป็นตัวอย่างโดยประมาณ</p>
+                )}
                 {/* level 1: structure */}
                 <div role="group" aria-label="โครงสร้างตัวอักษร" className="inline-flex rounded-full bg-ir-muted p-1">
                   {([{ id: "all", label: "ทั้งหมด" }, ...FONT_STRUCTURES] as { id: "all" | FontStructure; label: string }[]).map((s) => {
-                    const n = s.id === "all" ? FONT_CATALOG.length : FONT_CATALOG.filter((f) => f.structure === s.id).length;
+                    const n = s.id === "all" ? inSource.length : inSource.filter((f) => f.structure === s.id).length;
                     const on = structure === s.id;
                     return (
                       <button key={s.id} type="button" aria-pressed={on} onClick={() => { setStructure(s.id); setGroup(null); }}
@@ -306,7 +350,7 @@ function FontCard({ f, text, weight, showNumbers, team, chosen, onOpen }: {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { loadGoogleFont(f.family, [400, 500, 600]); io.disconnect(); } }, { rootMargin: "200px" });
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { loadGoogleFont(previewFamily(f.family), [400, 500, 600]); io.disconnect(); } }, { rootMargin: "200px" });
     io.observe(el);
     return () => io.disconnect();
   }, [f.family]);
@@ -316,9 +360,11 @@ function FontCard({ f, text, weight, showNumbers, team, chosen, onOpen }: {
       <div className="flex min-h-6 items-center gap-1.5">
         <span className="rounded-full bg-ir-muted px-2 py-0.5 text-caption font-medium text-ir-t2">{ROLE_LABEL[f.role]}</span>
         {team && <span className="rounded-full bg-ir-accent-soft px-2 py-0.5 text-caption font-semibold text-ir-accent-text">★ ทีมแนะนำ</span>}
+        {f.collection === "irplus" && <span className="rounded-full bg-ir-dark px-2 py-0.5 text-caption font-semibold text-white">IR Plus</span>}
         {chosen && <span className="ml-auto grid h-6 w-6 place-items-center rounded-full bg-ir-dark text-white"><IconCheck width={14} height={14} /></span>}
       </div>
       <div className="pb-4">
+      {f.collection === "irplus" && <p className="mt-2 text-caption text-ir-t3">ตัวอย่างโดยประมาณ</p>}
       <p className="mt-3 line-clamp-2 text-[28px] leading-[1.25] text-ir-t1 sm:text-[30px]" style={{ fontFamily: familyStack(f.family), fontWeight: weight }}>{text}</p>
       {showNumbers && <p className="mt-1.5 truncate text-lead text-ir-t2 tabular-nums" style={{ fontFamily: familyStack(f.family), fontWeight: 500 }}>฿12,450.75 ล้าน ▲ 8.2%</p>}
       </div>
@@ -332,7 +378,7 @@ function FontCard({ f, text, weight, showNumbers, team, chosen, onOpen }: {
 }
 
 function ListItem({ f, active, chosen, onClick }: { f: CatalogFont; active: boolean; chosen: boolean; onClick: () => void }) {
-  useGoogleFont(f.family, [400, 500, 600]);
+  useGoogleFont(previewFamily(f.family), [400, 500, 600]);
   return (
     <button type="button" onClick={onClick} aria-current={active || undefined}
       className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left transition-colors focus-ring ${active ? "bg-ir-card shadow-e1" : "hover:bg-ir-card/70"}`}>
@@ -345,7 +391,7 @@ function ListItem({ f, active, chosen, onClick }: { f: CatalogFont; active: bool
 // ── Specimen page ───────────────────────────────────────────────────────────────────
 function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company: string; teamFont: string; dir?: Direction | null }) {
   const weights = webWeights(font);
-  useGoogleFont(font.family, weights);
+  useGoogleFont(previewFamily(font.family), webWeights(fontByFamily(previewFamily(font.family)) ?? font));
   useGoogleFont(teamFont, [400, 500, 600, 700]);
   const stack = familyStack(font.family);
 
@@ -384,9 +430,10 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
         <Tag>{groupLabel(font.group)}</Tag>
         <Tag>{ROLE_LABEL[font.role]}</Tag>
         {font.family === teamFont && <Tag accent>★ ทีมแนะนำสำหรับแนวทางนี้</Tag>}
+        {font.collection === "irplus" && <Tag accent>★ ชุดของ IR Plus (ลิขสิทธิ์)</Tag>}
       </div>
       <h2 className="mt-3 text-display leading-tight text-ir-t1" style={{ fontFamily: stack, fontWeight: 600 }}>{font.family}</h2>
-      <p className="mt-1 text-small text-ir-t3">ออกแบบโดย {font.designer} · {weights.length} น้ำหนักสำหรับเว็บ · ใช้ฟรี (Google Fonts)</p>
+      <p className="mt-1 text-small text-ir-t3">ออกแบบโดย {font.designer} · {weights.length} น้ำหนักสำหรับเว็บ · {font.collection === "irplus" ? `ตัวอย่างโดยประมาณ (แสดงด้วย ${font.preview})` : "ใช้ฟรี (Google Fonts)"}</p>
       <p className="mt-3 max-w-[60ch] text-body leading-relaxed text-ir-t2">{font.note}</p>
 
       {/* 2. their name */}

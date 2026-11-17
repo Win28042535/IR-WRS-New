@@ -29,7 +29,7 @@ export const buzz = (ms: number) => {
 
 export function RankPicker({
   items, selected: rawSelected, onChange, max, title = "เลือกและจัดลำดับความสำคัญ", hint = "การ์ดแรกที่กดคือลำดับที่ 1",
-  cols = "sm:grid-cols-2", itemClassName,
+  cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด",
 }: {
   items: RankItem[];
   selected: string[];
@@ -39,6 +39,8 @@ export function RankPicker({
   hint?: string;
   cols?: string;
   itemClassName?: (id: string, i: number) => string;
+  /** Badge on the #1 card, e.g. "เป้าหมายหลัก". */
+  topLabel?: string;
 }) {
   // Only ids that are on the list count (a stale id in an old draft is ignored).
   const selected = rawSelected.filter((id) => items.some((it) => it.id === id));
@@ -210,7 +212,8 @@ export function RankPicker({
               ) : (
                 <span className="grid h-10 w-10 shrink-0 place-items-center opacity-60">{Icon && <Icon width={24} height={24} className="text-ir-t1" />}</span>
               )}
-              <span className="min-w-0 flex-1">
+              {/* phones: the #1 badge sits over the title's line, so drop the text below it */}
+              <span className={`min-w-0 flex-1 ${rank === 1 ? "max-sm:pt-5" : ""}`}>
                 <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{it.label}</span>
                 {it.desc && <span className={`mt-0.5 block text-caption leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
               </span>
@@ -227,7 +230,7 @@ export function RankPicker({
                 </>
               )}
               {rank === 1 && (
-                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-caption font-semibold text-ir-on-accent">★ สำคัญที่สุด</span>
+                <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-caption font-semibold text-ir-on-accent">★ {topLabel}</span>
               )}
             </div>
             </div>

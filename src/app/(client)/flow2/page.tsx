@@ -14,7 +14,7 @@ import { StructureBuilder, STRUCTURE_MIN_OPTIONAL } from "@/components/Structure
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { FontChoice } from "@/components/FontPicker";
 import { BackToTop } from "@/components/BackToTop";
-import { chosenThaiFont } from "@/lib/fontCatalog";
+import { chosenThaiFont, familyStack, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -749,6 +749,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
           items={VISIBLE_GOALS.map((goal) => ({ id: goal.id, label: goal.label, desc: goal.desc, icon: OPTION_ICONS[goal.id] }))}
           selected={draft.businessGoals}
           max={RULES.goals.max}
+          topLabel="เป้าหมายหลัก"
           cols="md:grid-cols-2"
           onChange={(next) => updateDraft({ businessGoals: next })}
           itemClassName={(_id, i) => (i >= GOALS_COLLAPSE_AT && !goalsExpanded ? "max-md:hidden" : "")}
@@ -2668,6 +2669,18 @@ function namedPalette(dir: any): { hex: string; name: string; main: boolean }[] 
 
 const NEUTRAL_RAMP = ["#F5F5F5", "#D9DBDE", "#B4B7BD", "#8A8F99", "#5A5F6B", "#33383F", "#151823"];
 
+// WCAG contrast ratio between two hex colours (1–21).
+function contrastRatio(a: string, b: string) {
+  const lum = (hex: string) => {
+    const h = hex.replace("#", "");
+    const ch = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  };
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
 // Typography specimen figures — a spread of numeral punctuation (comma, decimal, %, ฿,
 // hyphen) so the heading font's numeral rendering actually gets exercised, not just its
 // letterforms. Illustrative only, not real figures for the client's company.
@@ -2733,18 +2746,47 @@ function ConceptBoard({ draft }: { draft: any }) {
   // the Thai face follows their step-5 choice when they picked one themselves
   const basePairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
   const thaiPick = chosenThaiFont(draft);
-  useGoogleFont(thaiPick.source === "selected" ? thaiPick.family : undefined, [400, 500, 600, 700]);
+  useGoogleFont(thaiPick.source === "selected" ? previewFamily(thaiPick.family) : undefined, [400, 500, 600, 700]);
   const pairing = thaiPick.source === "selected"
     ? { ...basePairing, thai: thaiPick.family, note: `ฟอนต์ภาษาไทยที่เลือกเอง คู่กับ ${basePairing.heading}` }
     : basePairing;
+  // a picked catalog font (incl. an IR Plus face drawn by its preview) vs a pairing var font
+  const thaiStack = thaiPick.source === "selected" ? familyStack(pairing.thai) : fontStack(pairing.thai);
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;
   const swatches = namedPalette(dir);
   const primary = swatches[0]?.hex ?? "#151823";
-  // 6-swatch palette card: the 3 named brand colors plus ink/neutral/surface, echoing the
-  // reference layout's mixed brand + support-tone grid rather than only the brand 3.
-  const paletteSwatches = [...swatches.map((s) => s.hex), NEUTRAL_RAMP[6], NEUTRAL_RAMP[3], "#FFFFFF"];
+  const accent = swatches[1]?.hex ?? "#BCC416";
+  const surface = swatches[2]?.hex ?? "#FFFFFF";
+  const ink = NEUTRAL_RAMP[6];
+  const muted = NEUTRAL_RAMP[3];
+  // Five colours, each with the job it does on the site — so the palette reads as a plan
+  // for the page, not just a row of hex codes.
+  const paletteRoles = [
+    { hex: primary, role: "Primary", use: "หัวเว็บ ปุ่มหลัก หัวข้อสำคัญ" },
+    { hex: accent, role: "Accent", use: "ไฮไลต์ ตัวเลขเด่น เส้นกราฟ" },
+    { hex: surface, role: "Background", use: "พื้นหลังหน้าและการ์ด" },
+    { hex: ink, role: "Text", use: "ตัวหนังสือหลัก" },
+    { hex: muted, role: "Muted", use: "คำบรรยาย เส้นแบ่ง" },
+  ];
+  // 60 / 30 / 10 — how much of a page each brand colour covers
+  const paletteMix = [
+    { hex: surface, role: "Background", pct: 60 },
+    { hex: primary, role: "Primary", pct: 30 },
+    { hex: accent, role: "Accent", pct: 10 },
+  ];
+  const onPrimary = isLightHex(primary) ? ink : "#FFFFFF";
+  const onAccent = isLightHex(accent) ? ink : "#FFFFFF";
+  const contrastPairs = [
+    { label: "ตัวหนังสือบนพื้นหลัง", fg: ink, bg: surface },
+    { label: "ตัวหนังสือบนสีหลัก", fg: onPrimary, bg: primary },
+    { label: "ตัวหนังสือบนสีเน้น", fg: onAccent, bg: accent },
+  ].map((c) => ({ ...c, ratio: contrastRatio(c.fg, c.bg) }));
+  // Mood: one main feeling, the second only supports it — two equal words left the client
+  // unsure which one the site is really about.
+  const moods: string[] = dir?.mood ?? ["Professional & Clean"];
+  const [mainMood, ...supportMoods] = moods;
 
   // The exact structure picked in "วางโครงสร้าง" (Structure step), in the order the
   // client arranged it — this board should mirror that decision, not restate it.
@@ -2813,10 +2855,13 @@ function ConceptBoard({ draft }: { draft: any }) {
             <span className={`text-small font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
               Mood · {prefersLight ? "Light" : "Dark"}
             </span>
-            <div className="flex flex-col gap-0.5 my-2">
-              {(dir?.mood ?? ["Professional & Clean"]).map((m) => (
-                <span key={m} className={`text-heading leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{m}</span>
-              ))}
+            <div className="flex flex-col gap-1 my-2">
+              <span className={`text-heading leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{mainMood}</span>
+              {supportMoods.length > 0 && (
+                <span className={`text-body leading-snug ${prefersLight ? "text-ir-t2" : "text-white/75"}`}>
+                  เสริมด้วยความ <span className={`font-semibold ${prefersLight ? "text-ir-t1" : "text-white"}`}>{supportMoods.join(" · ")}</span>
+                </span>
+              )}
             </div>
             {dir?.tagline && <span className={`text-body leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
             <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
@@ -2825,15 +2870,89 @@ function ConceptBoard({ draft }: { draft: any }) {
           </div>
         </div>
 
-        {/* ── Colors — solid swatch + hex only, no ramp bar / name chips ── */}
+        {/* ── Colors — each swatch with its job, the 60/30/10 mix, then the palette applied to
+            a small IR page (like the Typography specimen) plus a readability check. ── */}
         <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="sc-reveal grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-          {paletteSwatches.map((hex, i) => (
-            <div key={`${hex}-${i}`} className="rounded-md overflow-hidden ring-1 ring-black/[0.06]">
-              <div style={{ background: hex, aspectRatio: "1/1" }} />
-              <p className="text-small font-mono text-ir-t3 text-center py-1.5">{hex}</p>
+        <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
+          {/* phones: a compact list (swatch left, role right); sm+: five swatch cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-2.5">
+            {paletteRoles.map((c) => (
+              <div key={c.role} className="flex sm:block rounded-md overflow-hidden ring-1 ring-black/[0.06] bg-ir-card">
+                <div className="w-16 shrink-0 border-r border-black/[0.06] sm:w-auto sm:aspect-[16/10] sm:border-r-0 sm:border-b" style={{ background: c.hex }} />
+                <div className="min-w-0 px-2.5 py-2">
+                  <p className="text-small font-semibold text-ir-t1 leading-tight">{c.role}</p>
+                  <p className="text-caption font-mono text-ir-t3 mt-0.5">{c.hex.toUpperCase()}</p>
+                  <p className="text-caption text-ir-t2 leading-snug mt-1">{c.use}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* proportion */}
+          <div className="mt-4">
+            <span className={eyebrow}>สัดส่วนบนหน้าเว็บ</span>
+            {/* 1px gaps on a grey track, so a white Background segment still reads */}
+            <div className="mt-1.5 flex h-3 gap-px rounded-full overflow-hidden bg-ir-border ring-1 ring-black/10" aria-hidden="true">
+              {paletteMix.map((m) => <span key={m.role} style={{ background: m.hex, width: `${m.pct}%` }} />)}
             </div>
-          ))}
+            <p className="mt-1.5 text-small text-ir-t3">{paletteMix.map((m) => `${m.role} ${m.pct}%`).join(" · ")}</p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4">
+            {/* applied: a small IR page in this palette */}
+            <div>
+              <span className={eyebrow}>ตัวอย่างการใช้สี</span>
+              <div className="mt-1.5 rounded-md overflow-hidden ring-1 ring-black/10" style={{ background: surface }} aria-label="ตัวอย่างหน้าเว็บ IR ที่ใช้ชุดสีนี้">
+                <div className="flex items-center gap-3 px-3 py-2" style={{ background: primary, color: onPrimary }}>
+                  <span className="text-small font-bold tracking-wide">LOGO</span>
+                  <span className="ml-auto hidden sm:flex gap-3 text-caption opacity-80"><span>ข้อมูลการเงิน</span><span>ราคาหุ้น</span><span>เอกสาร</span></span>
+                </div>
+                <div className="p-3">
+                  <p className="text-lead font-semibold leading-tight" style={{ color: ink, fontFamily: thaiStack }}>ข้อมูลสำคัญทางการเงิน</p>
+                  <p className="text-caption mt-0.5" style={{ color: muted }}>หน่วย: ล้านบาท · ข้อมูล ณ 30 ก.ย. 2569</p>
+                  <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2">
+                    <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white">
+                      <p className="text-caption" style={{ color: muted }}>รายได้รวม</p>
+                      <p className="text-title font-bold leading-tight" style={{ color: primary, fontFamily: fontStack(pairing.heading) }}>12,450</p>
+                      <span className="mt-1 inline-block h-1 w-8 rounded-full" style={{ background: accent }} />
+                    </div>
+                    <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white flex items-end gap-1.5" aria-hidden="true">
+                      {[38, 52, 46, 64, 80].map((h, i, arr) => (
+                        <span key={i} className="flex-1 rounded-t-[2px]" style={{ height: `${h * 0.6}px`, background: i === arr.length - 1 ? accent : primary, opacity: i === arr.length - 1 ? 1 : 0.85 }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <span className="text-caption font-semibold px-3 py-1.5 rounded-full" style={{ background: primary, color: onPrimary }}>ดาวน์โหลดรายงาน</span>
+                    <span className="text-caption font-semibold px-3 py-1.5 rounded-full" style={{ background: accent, color: onAccent }}>ราคาหุ้นวันนี้</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* readability */}
+            <div>
+              <span className={eyebrow}>ความอ่านง่าย</span>
+              <ul className="mt-1.5 grid gap-2">
+                {contrastPairs.map((c) => {
+                  const pass = c.ratio >= 4.5;
+                  const large = !pass && c.ratio >= 3;
+                  return (
+                    <li key={c.label} className="flex items-center gap-2.5 rounded-md border border-ir-border px-2.5 py-2">
+                      <span className="w-9 h-9 rounded-sm grid place-items-center text-small font-bold shrink-0 ring-1 ring-black/[0.06]" style={{ background: c.bg, color: c.fg }}>Aa</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-small text-ir-t1 leading-tight">{c.label}</span>
+                        <span className="block text-caption font-mono text-ir-t3">{c.ratio.toFixed(1)} : 1</span>
+                      </span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-caption font-semibold ${pass ? "bg-ir-accent-soft text-ir-accent-text" : large ? "bg-ir-muted text-ir-t2" : "bg-red-50 text-red-700"}`}>
+                        {pass ? "ผ่าน AA" : large ? "เฉพาะตัวใหญ่" : "ไม่ผ่าน"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-2 text-caption text-ir-t3 leading-snug">ตามเกณฑ์ WCAG 2.1 · ตัวหนังสือปกติต้องได้ 4.5 : 1 ขึ้นไป</p>
+            </div>
+          </div>
         </div>
 
         {/* ── Typography — font pairing + description, then a real-content specimen
@@ -2846,7 +2965,7 @@ function ConceptBoard({ draft }: { draft: any }) {
               {pairing.heading}
             </p>
             <span className="text-ir-t3 text-body">+</span>
-            <p className="text-heading text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700 }} title={pairing.thai}>
+            <p className="text-heading text-ir-t1 leading-tight" style={{ fontFamily: thaiStack, fontWeight: 700 }} title={pairing.thai}>
               {pairing.thai}
             </p>
             <span className="text-ir-t3 text-body">+</span>
@@ -2859,12 +2978,12 @@ function ConceptBoard({ draft }: { draft: any }) {
           </p>
           <div className="mt-2"><GoogleTag /></div>
 
-          <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[1.1fr,1.3fr] gap-4">
+          <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1.3fr)] gap-4">
             <div>
               <span className={eyebrow}>ตัวอย่าง</span>
               {/* Thai headline in the pairing's Thai face; body copy stays on the app's
                   IBM Plex Sans Thai (Inter, the body pairing, has no Thai glyphs). */}
-              <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: fontStack(pairing.thai), fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
+              <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: thaiStack, fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
                 นักลงทุนสัมพันธ์
               </p>
               <p className="text-body text-ir-t2 leading-relaxed mt-1.5">

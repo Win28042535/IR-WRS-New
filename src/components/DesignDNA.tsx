@@ -9,10 +9,10 @@
 //   motion      — from the "expression" axis
 //   priorities  — ranked audiences and goals
 //   references  — what they said they like about the sites they attached
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { BUSINESS_GOALS, IR_AUDIENCES, QUIZ, REFERENCE_LIKES, VISUAL_STYLES, directionById, unsplashUrl } from "@/lib/data";
 import { DEFAULT_PAIRING, FONT_PAIRINGS, fontStack } from "@/lib/fonts";
-import { SOURCE_LABEL, chosenThaiFont, familyStack } from "@/lib/fontCatalog";
+import { SOURCE_LABEL, chosenThaiFont, familyStack, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, Requirement } from "@/lib/types";
 
@@ -53,7 +53,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
   const dir = directionById(req.selectedDirection);
   // the Thai face: their own pick (step 5), else the Direction pairing
   const thai = chosenThaiFont(req);
-  useGoogleFont(thai.source === "selected" ? thai.family : undefined, [400, 700]);
+  useGoogleFont(thai.source === "selected" ? previewFamily(thai.family) : undefined, [400, 700]);
   if (!dir) return null;
   const pair = FONT_PAIRINGS[dir.id] ?? DEFAULT_PAIRING;
   const style = VISUAL_STYLES[dir.id];
@@ -83,28 +83,33 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
         <p className="font-mono text-caption font-semibold tracking-[0.14em] text-white/70">DESIGN DNA</p>
         <p className="mt-2 text-display-sm font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{dir.label}</p>
         <p className="mt-1 text-body text-white/85">{dir.tagline}</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {[...dir.mood, ...(keepOwn ? ["ใช้ชุดสีเดิมของแบรนด์"] : [])].map((m) => (
-            <span key={m} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-caption font-medium">{m}</span>
-          ))}
+        {/* one main mood, the rest only support it */}
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-caption text-white/70">Mood หลัก</span>
+          <span className="rounded-full bg-white px-2.5 py-1 text-caption font-semibold text-ir-t1">{dir.mood[0]}</span>
+          {dir.mood.length > 1 && <span className="text-caption text-white/70">เสริมด้วย {dir.mood.slice(1).join(" · ")}</span>}
+          {keepOwn && <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-caption font-medium">ใช้ชุดสีเดิมของแบรนด์</span>}
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         {/* personality spectrum */}
         {rows.length > 0 && (
-          <Block label="บุคลิก" className="md:col-span-2">
-            <ul className="grid gap-3">
-              {rows.map((r) => (
-                <li key={r.axis} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)_minmax(0,1fr)] items-center gap-3 text-caption">
-                  <span className={`truncate text-right ${r.pos! < 0.5 ? "font-semibold text-ir-t1" : "text-ir-t3"}`}>{r.left}</span>
-                  <span className="relative h-2 rounded-full bg-ir-muted" aria-label={`${r.topic}: ${r.pos! < 0.5 ? r.left : r.pos! > 0.5 ? r.right : "กลาง ๆ"}`}>
-                    <span className="absolute left-1/2 top-1/2 h-3 w-px -translate-y-1/2 bg-ir-border-hi" aria-hidden="true" />
-                    <span className="dna-dot ir-grad-fill absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white shadow-e1" style={{ left: `${Math.round(r.pos! * 100)}%` } as CSSProperties} />
-                  </span>
-                  <span className={`truncate ${r.pos! > 0.5 ? "font-semibold text-ir-t1" : "text-ir-t3"}`}>{r.right}</span>
-                </li>
-              ))}
+          // Result only: what they chose per topic. The side they didn't pick isn't shown.
+          <Block label="บุคลิกที่คุณเลือก" className="md:col-span-2">
+            <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              {rows.map((r) => {
+                const result = r.pos! < 0.5 ? r.left : r.pos! > 0.5 ? r.right : `กลาง ๆ ระหว่าง ${r.left} กับ ${r.right}`;
+                return (
+                  <li key={r.axis} className="flex min-w-0 items-center gap-2 rounded-md border border-ir-select-soft bg-ir-accent-soft/60 px-2.5 py-2 sm:gap-2.5 sm:px-3">
+                    <span className="ir-grad-fill h-2.5 w-2.5 shrink-0 rounded-full" aria-hidden="true" />
+                    <span className="min-w-0">
+                      <span className="block text-caption text-ir-t3">{r.topic}</span>
+                      <span className="block text-small font-semibold leading-snug text-ir-t1">{result}</span>
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </Block>
         )}
@@ -170,7 +175,15 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
               ))}
             </ol>
           )}
-          {goals.length > 0 && <p className="mt-2 text-caption text-ir-t2">เป้าหมาย: {goals.join(" · ")}</p>}
+          {goals.length > 0 && (
+            <div className="mt-2.5 text-caption text-ir-t2">
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                <span className="rounded-full bg-ir-accent px-2 py-0.5 font-semibold text-ir-on-accent">★ เป้าหมายหลัก</span>
+                <span className="font-semibold text-ir-t1">{goals[0]}</span>
+              </p>
+              {goals.length > 1 && <p className="mt-1">รองลงมา: {goals.slice(1).join(" · ")}</p>}
+            </div>
+          )}
         </Block>
 
         {/* what they like in their references */}

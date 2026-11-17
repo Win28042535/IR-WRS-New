@@ -39,7 +39,21 @@ export interface CatalogFont {
   group: string;           // FONT_GROUPS id
   role: FontRole;
   note: string;            // why it suits an IR site, in plain Thai
+  /** "irplus" = a licensed face from IR Plus's own set (not on Google Fonts). */
+  collection?: "irplus";
+  /** Google face used to approximate an IR Plus font on screen ("ตัวอย่างโดยประมาณ"). */
+  preview?: string;
 }
+
+export type FontCollection = "all" | "irplus" | "google";
+// `short` is the phone label, so all three fit one row at 375px
+export const FONT_COLLECTIONS: { id: FontCollection; label: string; short: string }[] = [
+  { id: "all", label: "ทุกฟอนต์", short: "ทุกฟอนต์" },
+  { id: "irplus", label: "ชุดของ IR Plus", short: "IR Plus" },
+  { id: "google", label: "Google Fonts (ฟรี)", short: "Google ฟรี" },
+];
+export const inCollection = (f: CatalogFont, c: FontCollection) =>
+  c === "all" || (c === "irplus" ? f.collection === "irplus" : f.collection !== "irplus");
 
 export const FONT_CATALOG: CatalogFont[] = [
   // ไม่มีหัว · เรียบ เป็นกลาง
@@ -64,6 +78,20 @@ export const FONT_CATALOG: CatalogFont[] = [
   { family: "Taviraj", designer: "Cadson Demak", weights: [100, 200, 300, 400, 500, 600, 700, 800, 900], structure: "looped", group: "classic", role: "heading", note: "มีเชิงแบบหนังสือ หรูหรา เหมาะกับหัวข้อของแบรนด์พรีเมียม" },
   { family: "Trirong", designer: "Cadson Demak", weights: [100, 200, 300, 400, 500, 600, 700, 800, 900], structure: "looped", group: "classic", role: "heading", note: "คมและสง่า ให้ความรู้สึกเป็นทางการระดับสูง" },
   { family: "Pridi", designer: "Cadson Demak", weights: [200, 300, 400, 500, 600, 700], structure: "looped", group: "classic", role: "heading", note: "มีเชิงหนาแน่น อบอุ่นแบบดั้งเดิม เหมาะกับองค์กรที่มีประวัติยาว" },
+
+  // ── ชุดของ IR Plus — MOCK for the demo: licensed faces the team already owns. They are not
+  // on Google Fonts, so on screen each is drawn with `preview` (a close Google face) and the
+  // card says "ตัวอย่างโดยประมาณ". Names and grouping are illustrative only.
+  { family: "FC Minimal", designer: "Fontcraft", weights: [300, 400, 500, 600, 700], structure: "loopless", group: "geometric", role: "both", collection: "irplus", preview: "Prompt", note: "เรียบ ทันสมัย สัดส่วนโปร่ง ใช้ได้ทั้งหัวข้อและเนื้อหา ทีมใช้บ่อยกับเว็บ IR" },
+  { family: "FC Iconic", designer: "Fontcraft", weights: [300, 400, 500, 600, 700], structure: "loopless", group: "geometric", role: "heading", collection: "irplus", preview: "Kanit", note: "หนักแน่น เด่นชัด เหมาะกับหัวข้อใหญ่และตัวเลขไฮไลต์" },
+  { family: "LINE Seed Sans TH", designer: "LINE", weights: [300, 400, 700], structure: "loopless", group: "geometric", role: "both", collection: "irplus", preview: "IBM Plex Sans Thai", note: "เรขาคณิตแบบนุ่ม เป็นมิตร อ่านง่ายบนมือถือ" },
+  { family: "Sukhumvit Set", designer: "Cadson Demak", weights: [300, 400, 500, 600, 700], structure: "loopless", group: "neutral", role: "both", collection: "irplus", preview: "Anuphan", note: "เรียบ เป็นกลาง ดูสะอาดแบบแบรนด์ระดับสากล" },
+  { family: "DB Helvethaica X", designer: "DB Design", weights: [300, 400, 500, 700], structure: "loopless", group: "neutral", role: "both", collection: "irplus", preview: "Noto Sans Thai", note: "คลาสสิกขององค์กรไทย ตัวเลขชัด เหมาะกับตารางการเงิน" },
+  { family: "DB Heavent", designer: "DB Design", weights: [300, 400, 500, 700], structure: "loopless", group: "neutral", role: "heading", collection: "irplus", preview: "Bai Jamjuree", note: "ทรงแคบ ประหยัดพื้นที่ ใส่หัวข้อยาวได้ในบรรทัดเดียว" },
+  { family: "DB Ozone X", designer: "DB Design", weights: [300, 400, 500, 700], structure: "loopless", group: "tech", role: "heading", collection: "irplus", preview: "K2D", note: "กึ่งเหลี่ยม ดูเป็นระบบ เหมาะกับธุรกิจพลังงานและเทคโนโลยี" },
+  { family: "PSL Kittithada Pro", designer: "PSL SmartLetter", weights: [300, 400, 500, 700], structure: "looped", group: "formal", role: "body", collection: "irplus", preview: "Sarabun", note: "มีหัวแบบทางการ อ่านเนื้อหายาวและรายงานประจำปีได้สบาย" },
+  { family: "FC Lamoon", designer: "Fontcraft", weights: [300, 400, 500, 700], structure: "looped", group: "formal", role: "both", collection: "irplus", preview: "Krub", note: "มีหัวทรงกว้าง อบอุ่น ดูน่าเชื่อถือแต่ไม่แข็ง" },
+  { family: "PSL Empire Pro", designer: "PSL SmartLetter", weights: [400, 500, 700], structure: "looped", group: "classic", role: "heading", collection: "irplus", preview: "Taviraj", note: "มีเชิงแบบหรู เหมาะกับหัวข้อของแบรนด์พรีเมียมและธนาคาร" },
 ];
 
 export const fontByFamily = (family?: string) => FONT_CATALOG.find((f) => f.family === family);
@@ -73,7 +101,15 @@ export const structureLabel = (id: FontStructure) => FONT_STRUCTURES.find((s) =>
 export const webWeights = (f: CatalogFont) => f.weights.filter((w) => w >= 300 && w <= 700);
 export const WEIGHT_NAME: Record<number, string> = { 100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold", 800: "ExtraBold", 900: "Black" };
 
-export const familyStack = (family: string) => `"${family}", "IBM Plex Sans Thai", system-ui, sans-serif`;
+/** The Google family that actually loads for a font (an IR Plus face loads its preview). */
+export const previewFamily = (family: string) => fontByFamily(family)?.preview ?? family;
+export const isIrPlus = (family?: string) => fontByFamily(family)?.collection === "irplus";
+// An IR Plus face is listed first so it shows if the viewer has it installed; otherwise
+// its preview face draws it.
+export const familyStack = (family: string) => {
+  const p = fontByFamily(family)?.preview;
+  return `"${family}",${p ? ` "${p}",` : ""} "IBM Plex Sans Thai", system-ui, sans-serif`;
+};
 
 // ── Which Thai heading font a requirement ends up with ──
 export type FontSource = "selected" | "website" | "team";
