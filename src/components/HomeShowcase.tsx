@@ -700,3 +700,98 @@ export function HeroFragments() {
     </div>
   );
 }
+
+// ── Demo panel (landing v2) ─────────────────────────────────────────────────────
+// A simulated run-through in the hero, so the first screen shows what the flow is like
+// and what comes out (user tests: BTS never scrolled; CBG said the first screen showed only
+// the hero and a button). Plays the six step mocks, then the result, and loops. Hover or
+// focus pauses; the step chips jump; reduced motion = no autoplay.
+const DEMO_MS = 3400;
+function DemoResult() {
+  const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
+  const pair = FONT_PAIRINGS[SAMPLE.dir];
+  return (
+    <div className="grid h-full w-full grid-cols-[1.1fr_1fr] gap-2.5 p-3" aria-hidden="true">
+      <div className="sg-a flex flex-col justify-end rounded-md p-3 text-white" style={{ background: d.bg, ...v({ t: 0 }) }}>
+        <span className="text-[11px] text-white/70">แนวทางที่ได้</span>
+        <span className="text-title font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{d.label}</span>
+        <span className="mt-1 text-[11px] text-white/80">{d.tagline}</span>
+      </div>
+      <div className="grid gap-2">
+        <div className="sg-a flex gap-1 rounded-md border border-ir-border bg-white p-2" style={v({ t: 1 })}>
+          {d.colors.slice(0, 3).map((c) => <span key={c} className="h-8 flex-1 rounded-xs ring-1 ring-inset ring-black/10" style={{ background: c }} />)}
+        </div>
+        <div className="sg-a rounded-md border border-ir-border bg-white px-2.5 py-1.5" style={v({ t: 1.5 })}>
+          <span className="text-heading leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700 }}>กข Aa</span>
+          <span className="ml-2 text-[11px] text-ir-t3">{pair.thai}</span>
+        </div>
+        <div className="sg-a grid gap-1 rounded-md border border-ir-border bg-white p-2" style={v({ t: 2 })}>
+          {SAMPLE_SECTIONS.slice(0, 3).map((s, j) => (
+            <span key={s} className={`flex h-5 items-center rounded-xs px-1.5 text-[10px] font-medium ${j === 0 ? "bg-ir-dark text-ir-accent" : "bg-ir-muted text-ir-t2"}`}>{j + 1} · {s}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DemoPanel() {
+  const slides = [
+    ...FLOW_STEPS.map((name, i) => ({ name, todo: STEPS_INFO[i].todo, Mock: STEPS_INFO[i].mock })),
+    { name: "ผลลัพธ์ที่ได้", todo: "สรุปแนวทาง สี ฟอนต์ และหน้าแรก ส่งให้ทีม IR Plus", Mock: DemoResult },
+  ];
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused || typeof window === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setTimeout(() => setI((x) => (x + 1) % slides.length), DEMO_MS);
+    return () => clearTimeout(t);
+  }, [i, paused, slides.length]);
+  const s = slides[i];
+  const Mock = s.Mock;
+  const isResult = i === slides.length - 1;
+
+  return (
+    <div
+      className="rounded-2xl border border-black/[0.06] bg-white/90 p-3 text-left shadow-e3 backdrop-blur"
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}
+    >
+      {/* window bar */}
+      <div className="flex items-center gap-2 px-1.5 pb-2.5">
+        <span className="flex gap-1" aria-hidden="true">{[0, 1, 2].map((k) => <span key={k} className="h-2.5 w-2.5 rounded-full bg-ir-border" />)}</span>
+        <span className="ml-1 text-small font-semibold text-ir-t2">ตัวอย่างการใช้งาน</span>
+        <span className="ml-auto rounded-full bg-ir-muted px-2.5 py-0.5 text-caption font-medium text-ir-t2">{paused ? "หยุดชั่วคราว" : "กำลังเล่น"}</span>
+      </div>
+
+      {/* the screen: the step mock, enlarged, replayed on every change */}
+      <div className="relative overflow-hidden rounded-xl border border-ir-border bg-ir-bg" style={{ height: 250 }} aria-live="polite">
+        <div key={i} className="sg-card h-full" data-sg="replay">
+          {isResult
+            ? <Mock />
+            : <div style={{ width: "74%", margin: "0 auto", transform: "scale(1.35)", transformOrigin: "top center", paddingTop: 1 }}><Mock /></div>}
+        </div>
+      </div>
+
+      {/* caption */}
+      <div className="flex items-start gap-3 px-1.5 pt-3">
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${isResult ? "ir-grad-fill text-ir-on-accent" : "bg-ir-dark text-ir-accent"}`}>{isResult ? "✓" : i + 1}</span>
+        <div className="min-w-0">
+          <p className="text-body font-semibold text-ir-t1">{isResult ? s.name : `ขั้นที่ ${i + 1} · ${s.name}`}</p>
+          <p className="text-small leading-snug text-ir-t2">{s.todo}</p>
+        </div>
+      </div>
+
+      {/* step chips */}
+      <div className="mt-3 flex gap-1 px-1.5" role="tablist" aria-label="ขั้นตอนในตัวอย่าง">
+        {slides.map((sl, k) => (
+          <button key={sl.name} type="button" role="tab" aria-selected={k === i} aria-label={k === slides.length - 1 ? sl.name : `ขั้นที่ ${k + 1} ${sl.name}`}
+            onClick={() => setI(k)}
+            className="group flex h-6 flex-1 items-center focus-ring rounded-full">
+            <span className={`h-1.5 w-full rounded-full transition-colors duration-base ${k < i ? "ir-grad-fill" : k === i ? "bg-ir-dark" : "bg-ir-border group-hover:bg-ir-border-hi"}`} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

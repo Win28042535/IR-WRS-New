@@ -22,12 +22,14 @@ import type { Requirement } from "@/lib/types";
 import { DUR, EASE } from "@/lib/motion";
 import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
 
-const MAX_OPT = RULES.sections.max - REQUIRED_SECTION_IDS.length;
+// No hard cap any more (user test CBG asked to pick freely): past SOFT_MAX a gentle note says
+// the homepage is getting long. The old cap is kept as that soft limit.
+const SOFT_MAX = RULES.sections.max - REQUIRED_SECTION_IDS.length;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
 const shortName = (id: string) => (sectionById(id)?.name ?? id).split(" / ")[0];
 const FLIGHT_MS = 560;
-// how many sections the AI proposes (and tags "แนะนำ"); leaves room under MAX_OPT to add one
-const REC_MAX = Math.min(5, MAX_OPT);
+// how many sections the AI proposes
+const REC_MAX = 5;
 
 type Flight = { key: number; from: DOMRect; to: DOMRect; n: number; title: string };
 
@@ -84,7 +86,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
   const all: string[] = draft.selectedSections ?? [];
   const optional = all.filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id));
-  const full = optional.length >= MAX_OPT;
+  const full = false; // no hard cap (see SOFT_MAX)
   const commit = (next: string[]) => updateDraft({ selectedSections: [...LEADING_REQUIRED_IDS, ...next, ...TRAILING_REQUIRED_IDS] });
 
   const { list: recList, reasons } = homepageRecommendation(draft);
@@ -301,18 +303,20 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   ล้างทั้งหมด
                 </button>
               )}
-              <span className="rounded-full bg-white px-2 py-0.5 font-mono text-caption text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
+              <span className="rounded-full bg-white px-2.5 py-0.5 text-caption font-semibold text-ir-t2 tabular-nums" role="status">{optional.length} ส่วน</span>
             </span>
           </div>
           <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
-            {Array.from({ length: MAX_OPT }, (_, i) => {
+            {/* the filled rows, then ONE dashed "next" slot — no row of empty slots to fill
+                (user test SCGP: "5/5" read as a quota) */}
+            {Array.from({ length: optional.length + 1 }, (_, i) => {
               const id = optional[i];
               if (!id) {
                 return (
-                  <li key={`empty-${i}`} ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-small text-ir-disabled">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi font-mono text-caption">{i + 1}</span>
-                    ว่าง
+                  <li key="next-slot" ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-small text-ir-t3">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi text-caption">+</span>
+                    {optional.length === 0 ? "เลือกส่วนจากรายการด้านซ้าย" : "เพิ่มส่วนอื่นได้จากรายการด้านซ้าย"}
                   </li>
                 );
               }
@@ -341,23 +345,23 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     ...(delay !== undefined ? { animationDelay: `${delay}ms` } : null),
                   }}
                   className={[
-                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-2 pr-1 text-small font-bold text-ir-t1 outline-none focus-ring",
+                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-0.5 pr-1 text-small font-bold text-ir-t1 outline-none focus-ring",
                     dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "cursor-grab",
                     drag && !dragging ? "transition-transform duration-fast ease-out" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
                   ].join(" ")}
                 >
-                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
-                  <span className="min-w-0 flex-1 truncate">{shortName(id)}</span>
-                  {/* drag handle — every screen size; on touch this is where a drag starts */}
+                  {/* drag handle — leading edge, where people look for it (user test AOT); every screen size; on touch this is where a drag starts */}
                   <span
                     aria-hidden="true"
                     onPointerDown={(e) => { e.stopPropagation(); rowDown(e, id, true); }}
-                    className="grid h-11 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-sm text-ir-t2 hover:bg-black/[0.05] active:bg-black/[0.07]"
+                    className="grid h-11 w-8 -mr-1 shrink-0 cursor-grab touch-none place-items-center rounded-sm text-ir-t2 hover:bg-black/[0.05] active:bg-black/[0.07]"
                   >
                     <svg width={12} height={18} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                   </span>
+                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
+                  <span className="min-w-0 flex-1 truncate">{shortName(id)}</span>
                   <button
                     type="button"
                     onClick={() => remove(id)}
@@ -370,6 +374,11 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               );
             })}
           </ol>
+          {optional.length > SOFT_MAX && (
+            <p className="mb-1.5 rounded-sm bg-white px-2.5 py-2 text-small leading-snug text-ir-t2">
+              หน้าแรกเริ่มยาวแล้ว ({optional.length} ส่วน) · เลือกต่อได้ ทีมอาจย้ายบางส่วนไปไว้หน้าอื่นเพื่อให้หน้าแรกอ่านง่าย
+            </p>
+          )}
           <FixedRow label="ส่วนท้ายเว็บ" />
           <p className="flex min-h-8 items-center px-1.5 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
             {movedMsg && (

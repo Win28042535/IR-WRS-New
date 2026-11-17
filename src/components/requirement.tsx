@@ -80,10 +80,10 @@ export function LightPreviewSummary({ req }: { req: Requirement }) {
 export function ProjectInfo({ req }: { req: Requirement }) {
   return (
     <div className="grid md:grid-cols-2 gap-2.5 mt-3">
-      <Info k="ชื่อผู้ติดต่อ" v={req.name} />
+      <Info k="ชื่อผู้ติดต่อ" v={req.position ? `${req.name} · ${req.position}` : req.name} />
       <Info k="บริษัท" v={req.company} />
       <Info k="Email" v={req.email} />
-      <Info k="โทรศัพท์" v={req.phone || "-"} />
+      <Info k="โทรศัพท์ · LINE" v={req.callbackOk === false ? "ขอให้ติดต่อทางอีเมล" : [req.phone, req.lineId && `LINE ${req.lineId}`].filter(Boolean).join(" · ") || "-"} />
       <Info k="Industry" v={req.industry} />
       <Info k="Company Type" v={req.companyType} />
       {req.projectType && <Info k="Website Type" v={req.projectType} />}

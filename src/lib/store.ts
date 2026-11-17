@@ -33,7 +33,7 @@ function emptyDraft(flow: FlowType): Requirement {
     projectType: "",
     primaryAudience: "",
     secondaryAudiences: [],
-    hasCorporateIdentity: "",
+    hasCorporateIdentity: "yes", // default: keep the existing brand colours (user tests #1–2)
     selectedMoods: [],
     selectedDirection: "",
     directionLabel: "",

@@ -123,81 +123,74 @@ const StandardHome = ({ t, id }: { t: Theme; id: string }) => (
   </>
 );
 
-// ── q1 · brand personality — same visual style as the other mocks; the two answers
-// differ in composition and in what the page talks about. Approachable: one big round
-// image, floating question bubbles, a chat card and FAQ. Formal: a strict grid, a
-// full-width image band, a company-facts table and a numbered index. ───────────────
-const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
+// ── q1 · brand personality — redrawn after user tests (CBG: "ข้อ 1 ดูคล้ายกันเกินไป",
+// CPALL paused here). The pair now differs at thumbnail size before any detail is read:
+//   Approachable — warm, light, everything rounded; people, a speech bubble, pastel cards
+//                  with friendly questions.
+//   Formal       — a full-width deep-navy band with a gold rule, square corners, a strict
+//                  facts table in numbers. ───────────────────────────────────────────────
+const Person = ({ cx, cy, s, skin, shirt }: { cx: number; cy: number; s: number; skin: string; shirt: string }) => (
+  <g>
+    <path d={`M${cx - s} ${cy + s * 2.3} Q${cx - s} ${cy + s * 0.9} ${cx} ${cy + s * 0.9} Q${cx + s} ${cy + s * 0.9} ${cx + s} ${cy + s * 2.3} Z`} fill={shirt} />
+    <circle cx={cx} cy={cy} r={s * 0.62} fill={skin} />
+  </g>
+);
+
+const ApproachableHome = ({ t }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    <rect x={col(0)} y={112} width={168} height={32} rx={16} fill={t.soft} />
-    <Txt x={col(0) + 84} y={133} size={14} weight={600} fill={t.accent} anchor="middle">สวัสดีนักลงทุน</Txt>
-    <Txt x={col(0)} y={206} size={48} weight={700} fill={t.ink}>มาเติบโต</Txt>
-    <Txt x={col(0)} y={266} size={48} weight={700} fill={t.ink}>ไปด้วยกันนะ</Txt>
-    <Lines x={col(0)} y={292} w={span(5) - 40} n={2} t={t} />
-    <Btn x={col(0)} y={336} w={span(2) + 30} label="คุยกับทีม IR" t={t} />
-    {/* one big round image */}
-    <Pic x={col(7) + 30} y={104} w={316} h={316} t={t} r={158} id={`${id}-p`} />
-    {/* questions people actually ask, floating over the image */}
-    {([["ปันผลจ่ายเมื่อไหร่?", col(6) - 20, 300, 228], ["ดูงบล่าสุดได้ที่ไหน?", col(9) + 30, 186, 232]] as const).map(([s, x, y, w]) => (
-      <g key={s}>
-        <rect x={x} y={y} width={w} height={48} rx={24} fill={t.bg} stroke={t.line} strokeWidth={2} />
-        <circle cx={x + 26} cy={y + 24} r={12} fill={t.soft} />
-        <Txt x={x + 26} y={y + 29} size={14} weight={700} fill={t.accent} anchor="middle">?</Txt>
-        <Txt x={x + 48} y={y + 30} size={16} weight={600} fill={t.ink}>{s}</Txt>
-      </g>
-    ))}
-    {/* chat card */}
-    <rect x={col(0)} y={452} width={span(7)} height={176} rx={t.r} fill={t.surface} />
-    <Txt x={col(0) + 28} y={490} size={18} weight={700} fill={t.ink}>คุยกับทีม IR</Txt>
-    <rect x={col(0) + 28} y={506} width={250} height={34} rx={17} fill={t.bg} />
-    <rect x={col(0) + 46} y={519} width={200} height={8} rx={4} fill={t.line} />
-    <rect x={col(4) + 10} y={548} width={200} height={34} rx={17} fill={t.accent} />
-    <rect x={col(4) + 28} y={561} width={150} height={8} rx={4} fill="rgba(255,255,255,0.6)" />
-    <rect x={col(0) + 28} y={590} width={span(7) - 104} height={26} rx={13} fill={t.bg} />
-    <circle cx={col(0) + span(7) - 50} cy={603} r={16} fill={t.accent} />
-    {/* FAQ card */}
-    <rect x={col(7)} y={452} width={span(5)} height={176} rx={t.r} fill={t.surface} />
-    <Txt x={col(7) + 28} y={490} size={18} weight={700} fill={t.ink}>คำถามที่พบบ่อย</Txt>
-    {[0, 1, 2].map((k) => (
-      <g key={k}>
-        <rect x={col(7) + 28} y={506 + k * 40} width={span(5) - 56} height={32} rx={16} fill={t.bg} />
-        <rect x={col(7) + 46} y={518 + k * 40} width={[190, 150, 170][k]} height={8} rx={4} fill={t.line} />
-        <Txt x={col(7) + span(5) - 48} y={528 + k * 40} size={18} weight={700} fill={t.accent} anchor="middle">+</Txt>
+    <rect x={col(0)} y={112} width={232} height={36} rx={18} fill={t.soft} />
+    <Txt x={col(0) + 116} y={136} size={15} weight={600} fill={t.accent} anchor="middle">สวัสดีนักลงทุนทุกคน 👋</Txt>
+    <Txt x={col(0)} y={210} size={50} weight={700} fill={t.ink}>ลงทุนไปด้วยกัน</Txt>
+    <Txt x={col(0)} y={270} size={50} weight={700} fill={t.accent}>เข้าใจง่ายทุกขั้นตอน</Txt>
+    <Lines x={col(0)} y={300} w={span(5) - 40} n={2} t={t} />
+    <Btn x={col(0)} y={344} w={span(2) + 30} label="เริ่มต้นที่นี่" t={t} />
+    <Btn x={col(2) + 44} y={344} w={span(2)} label="ถามทีม IR" t={t} ghost />
+    {/* people, in a warm round blob */}
+    <circle cx={col(9) + 10} cy={262} r={170} fill={t.soft} />
+    <Person cx={col(8) + 10} cy={238} s={46} skin="#F2C3A0" shirt="#F06B3A" />
+    <Person cx={col(9) + 60} cy={208} s={54} skin="#D9A27E" shirt="#2BB39A" />
+    <Person cx={col(10) + 60} cy={248} s={44} skin="#EFC9A9" shirt="#8A6CF0" />
+    {/* speech bubble */}
+    <rect x={col(7) + 10} y={104} width={250} height={52} rx={26} fill="#FFFFFF" stroke={t.line} strokeWidth={2} />
+    <path d={`M${col(8)} 154 l14 22 l8 -22 Z`} fill="#FFFFFF" />
+    <Txt x={col(7) + 135} y={137} size={17} weight={600} fill={t.ink} anchor="middle">มีคำถาม? ทักเราได้เลย</Txt>
+    {/* pastel question cards */}
+    {([["ปันผลจ่ายเมื่อไหร่?", "#FFE3D3"], ["งบล่าสุด อ่านง่าย ๆ", "#D7F3EC"], ["คุยกับทีม IR", "#E7E0FF"]] as const).map(([s2, bg], i) => (
+      <g key={s2}>
+        <rect x={col(i * 4)} y={460} width={span(4)} height={168} rx={32} fill={bg} />
+        <circle cx={col(i * 4) + 52} cy={512} r={26} fill="#FFFFFF" />
+        <Txt x={col(i * 4) + 52} y={521} size={24} weight={700} fill={t.accent} anchor="middle">{["฿", "📊", "💬"][i]}</Txt>
+        <Txt x={col(i * 4) + 28} y={578} size={22} weight={700} fill={t.ink}>{s2}</Txt>
+        <rect x={col(i * 4) + 28} y={596} width={span(4) - 120} height={8} rx={4} fill="rgba(42,33,24,0.12)" />
       </g>
     ))}
   </>
 );
 
-const FormalHome = ({ t, id }: { t: Theme; id: string }) => (
+const GOLD = "#B8963E";
+const FormalHome = ({ t }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    <Txt x={col(0)} y={130} size={13} weight={600} fill={t.muted} ls={3}>CORPORATE · SINCE 1998</Txt>
-    <line x1={col(0)} y1={146} x2={col(0) + 64} y2={146} stroke={t.ink} strokeWidth={2} />
-    <Txt x={col(0)} y={200} size={42} weight={700} fill={t.ink}>มุ่งมั่นสร้างคุณค่าอย่างมั่นคง</Txt>
-    <Btn x={col(9)} y={164} w={span(3)} label="รายงานประจำปี 2568" t={t} />
-    {/* full-width image band */}
-    <Pic x={col(0)} y={236} w={span(12)} h={168} t={t} r={0} id={`${id}-p`} />
-    {/* company facts table */}
-    <Txt x={col(0)} y={448} size={16} weight={700} fill={t.ink} ls={0.5}>ข้อมูลบริษัท</Txt>
-    <line x1={col(0)} y1={464} x2={col(0) + span(7)} y2={464} stroke={t.ink} strokeWidth={2} />
-    {[["ก่อตั้ง", "พ.ศ. 2541"], ["ตลาดหลักทรัพย์", "SET · หมวดพลังงาน"], ["ทุนจดทะเบียน", "12,000 ล้านบาท"], ["ผู้สอบบัญชี", "บริษัท XYZ จำกัด"]].map(([k, v], i) => (
+    {/* full-width navy band */}
+    <rect x={0} y={96} width={W} height={300} fill={t.ink} />
+    <Txt x={col(0)} y={156} size={14} weight={600} fill={GOLD} ls={4}>CORPORATE · ESTABLISHED 1998</Txt>
+    <rect x={col(0)} y={172} width={80} height={3} fill={GOLD} />
+    <Txt x={col(0)} y={244} size={46} weight={700} fill="#FFFFFF">มุ่งมั่นสร้างคุณค่า</Txt>
+    <Txt x={col(0)} y={300} size={46} weight={700} fill="#FFFFFF">อย่างมั่นคงและโปร่งใส</Txt>
+    <rect x={col(0)} y={330} width={span(3)} height={44} fill="none" stroke="#FFFFFF" strokeOpacity={0.6} />
+    <Txt x={col(0) + span(3) / 2} y={358} size={15} weight={600} fill="#FFFFFF" anchor="middle">รายงานประจำปี 2568</Txt>
+    {/* strict facts table */}
+    <line x1={col(0)} y1={436} x2={col(11) + span(1)} y2={436} stroke={t.ink} strokeWidth={3} />
+    {[["ทุนจดทะเบียน", "12,000", "ล้านบาท"], ["รายได้รวม", "28,560", "ล้านบาท"], ["อันดับ CG", "5", "ดาว"], ["ปันผล/หุ้น", "1.40", "บาท"]].map(([k, v, u], i) => (
       <g key={k}>
-        <Txt x={col(0)} y={494 + i * 40} size={15} fill={t.muted}>{k}</Txt>
-        <Txt x={col(3)} y={494 + i * 40} size={15} weight={600} fill={t.ink}>{v}</Txt>
-        <line x1={col(0)} y1={506 + i * 40} x2={col(0) + span(7)} y2={506 + i * 40} stroke={t.line} />
+        <Txt x={col(i * 3)} y={478} size={15} fill={t.muted}>{k}</Txt>
+        <Txt x={col(i * 3)} y={540} size={44} weight={700} fill={t.ink}>{v}</Txt>
+        <Txt x={col(i * 3)} y={572} size={14} fill={t.muted}>{u}</Txt>
+        {i > 0 && <line x1={col(i * 3) - 12} y1={456} x2={col(i * 3) - 12} y2={588} stroke={t.line} />}
       </g>
     ))}
-    {/* numbered index */}
-    <Txt x={col(8)} y={448} size={16} weight={700} fill={t.ink} ls={0.5}>สารบัญ</Txt>
-    <line x1={col(8)} y1={464} x2={col(11) + span(1)} y2={464} stroke={t.ink} strokeWidth={2} />
-    {["01  ผลประกอบการ", "02  ธรรมาภิบาล", "03  ความยั่งยืน", "04  เอกสารเผยแพร่"].map((s, i) => (
-      <g key={s}>
-        <Txt x={col(8)} y={494 + i * 40} size={15} weight={600} fill={t.ink}>{s}</Txt>
-        <Txt x={col(11) + span(1)} y={494 + i * 40} size={15} fill={t.muted} anchor="end">→</Txt>
-        <line x1={col(8)} y1={506 + i * 40} x2={col(11) + span(1)} y2={506 + i * 40} stroke={t.line} />
-      </g>
-    ))}
+    <line x1={col(0)} y1={608} x2={col(11) + span(1)} y2={608} stroke={t.line} />
   </>
 );
 
@@ -260,61 +253,75 @@ const DataHome = ({ t }: { t: Theme }) => {
   );
 };
 
-// ── q4 · density — one message vs everything at once ────────────────────────
-const SpaciousHome = ({ t, id }: { t: Theme; id: string }) => (
+// ── q4 · density — redrawn after user tests (CPALL paused here). One message and a lot
+// of air, vs a full dashboard where every inch carries a number. ────────────────────────
+const SpaciousHome = ({ t }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    <Txt x={W / 2} y={208} size={14} weight={600} fill={t.accent} anchor="middle" ls={1}>COMPANY PROFILE</Txt>
-    <Txt x={W / 2} y={272} size={52} weight={700} fill={t.ink} anchor="middle">สร้างคุณค่าที่ยั่งยืน</Txt>
-    <rect x={col(4)} y={300} width={span(4)} height={8} rx={4} fill={t.line} />
-    <rect x={col(4) + 60} y={318} width={span(4) - 120} height={8} rx={4} fill={t.line} />
-    <Btn x={W / 2 - 84} y={358} w={168} label="รู้จักเรา" t={t} />
-    <Pic x={col(2)} y={460} w={span(8)} h={217} t={t} r={t.r} id={`${id}-p`} />
+    <Txt x={W / 2} y={262} size={14} weight={600} fill={t.accent} anchor="middle" ls={2}>COMPANY PROFILE</Txt>
+    <Txt x={W / 2} y={340} size={60} weight={700} fill={t.ink} anchor="middle">สร้างคุณค่าที่ยั่งยืน</Txt>
+    <rect x={W / 2 - 180} y={372} width={360} height={8} rx={4} fill={t.line} />
+    <Btn x={W / 2 - 84} y={420} w={168} label="รู้จักเรา" t={t} />
+    {/* one quiet number, far below */}
+    <Txt x={W / 2} y={590} size={15} fill={t.muted} anchor="middle">รายได้ปี 2568  ·  28,560 ล้านบาท</Txt>
   </>
 );
 
-const DenseHome = ({ t }: { t: Theme }) => (
-  <>
-    <Header t={t} />
-    {/* market strip */}
-    <rect x={col(0)} y={96} width={span(12)} height={40} rx={Math.min(t.r, 8)} fill={t.surface} />
-    {["SET 1,420.75 ▲0.6%", "ABC 42.75 ▲3.0%", "Vol 12.4M", "Mkt Cap 86,400 ลบ."].map((s, i) => (
-      <Txt key={s} x={col(0) + 20 + i * 262} y={122} size={14} weight={600} fill={i === 1 ? t.accent : t.ink}>{s}</Txt>
-    ))}
-    {/* row 1 */}
-    <rect x={col(0)} y={152} width={span(6)} height={220} rx={t.r} fill={t.surface} />
-    <Txt x={col(0) + 20} y={184} size={16} weight={600} fill={t.ink}>ผลการดำเนินงาน</Txt>
-    <path d={`M${col(0) + 20} ${340} L${col(1) + 30} 310 L${col(2) + 40} 318 L${col(3) + 40} 276 L${col(4) + 40} 262 L${col(5) + 40} 214`} fill="none" stroke={t.accent} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
-    {/* three KPI tiles across the 6-column half: (516 − 2×12) / 3 = 164 wide */}
-    {[["รายได้", "28,560"], ["EBITDA", "6,890"], ["ROE", "12.4%"]].map(([k, v], i) => (
-      <g key={k}>
-        <rect x={col(6) + i * 176} y={152} width={164} height={104} rx={t.r} fill={t.surface} />
-        <Txt x={col(6) + 16 + i * 176} y={180} size={13} fill={t.muted}>{k}</Txt>
-        <Txt x={col(6) + 16 + i * 176} y={222} size={24} weight={700} fill={t.ink}>{v}</Txt>
-        <Txt x={col(6) + 16 + i * 176} y={244} size={12} fill={t.accent}>▲ 18%</Txt>
-      </g>
-    ))}
-    <rect x={col(6)} y={268} width={span(6)} height={104} rx={t.r} fill={t.surface} />
-    <Txt x={col(6) + 20} y={298} size={16} weight={600} fill={t.ink}>ปฏิทินนักลงทุน</Txt>
-    {["12 พ.ย. ประกาศงบ Q3", "28 พ.ย. Opportunity Day"].map((s, i) => (
-      <Txt key={s} x={col(6) + 20} y={326 + i * 26} size={14} fill={t.muted}>{s}</Txt>
-    ))}
-    {/* row 2 */}
-    {[["ข่าวล่าสุด", 3], ["เอกสารดาวน์โหลด", 3], ["ผู้ถือหุ้นรายใหญ่", 3]].map(([s, n], i) => (
-      <g key={s as string}>
-        <rect x={col(i * 4)} y={388} width={span(4)} height={232} rx={t.r} fill={t.surface} />
-        <Txt x={col(i * 4) + 20} y={420} size={16} weight={600} fill={t.ink}>{s}</Txt>
-        {Array.from({ length: n as number }, (_, k) => (
-          <g key={k}>
-            <rect x={col(i * 4) + 20} y={440 + k * 56} width={40} height={40} rx={Math.min(t.r, 8)} fill={t.soft} />
-            <rect x={col(i * 4) + 72} y={446 + k * 56} width={span(4) - 112} height={8} rx={4} fill={t.line} />
-            <rect x={col(i * 4) + 72} y={464 + k * 56} width={(span(4) - 112) * 0.6} height={8} rx={4} fill={t.line} />
-          </g>
-        ))}
-      </g>
-    ))}
-  </>
-);
+const DenseHome = ({ t }: { t: Theme }) => {
+  const tile = (x: number, y: number, w: number, h: number) => <rect x={x} y={y} width={w} height={h} rx={Math.min(t.r, 8)} fill={t.surface} />;
+  return (
+    <>
+      <Header t={t} />
+      {/* market strip */}
+      <rect x={col(0)} y={92} width={span(12)} height={34} rx={6} fill={t.ink} />
+      {["SET 1,420.75 ▲0.6%", "ABC 42.75 ▲3.0%", "Vol 12.4M", "P/E 13.3x", "Mkt Cap 86,400 ลบ."].map((s2, i) => (
+        <Txt key={s2} x={col(0) + 16 + i * 212} y={114} size={13} weight={600} fill={i === 1 ? "#7FB2FF" : "#FFFFFF"}>{s2}</Txt>
+      ))}
+      {/* 6 KPI tiles */}
+      {[["รายได้", "28,560"], ["EBITDA", "6,890"], ["กำไรสุทธิ", "4,120"], ["ROE", "12.4%"], ["EPS", "3.21"], ["ปันผล", "1.40"]].map(([k, v], i) => (
+        <g key={k}>
+          {tile(col(i * 2), 136, span(2), 82)}
+          <Txt x={col(i * 2) + 12} y={160} size={12} fill={t.muted}>{k}</Txt>
+          <Txt x={col(i * 2) + 12} y={194} size={22} weight={700} fill={t.ink}>{v}</Txt>
+          <Txt x={col(i * 2) + 12} y={210} size={11} fill={t.accent}>▲ {[18, 9, 12, 2, 7, 5][i]}%</Txt>
+        </g>
+      ))}
+      {/* chart + table + calendar */}
+      {tile(col(0), 228, span(5), 186)}
+      <Txt x={col(0) + 14} y={252} size={14} weight={600} fill={t.ink}>รายได้รายไตรมาส</Txt>
+      {[0.4, 0.5, 0.46, 0.62, 0.58, 0.7, 0.75, 0.9].map((b, i) => (
+        <rect key={i} x={col(0) + 18 + i * 52} y={400 - 130 * b} width={34} height={130 * b} rx={3} fill={i === 7 ? t.accent : t.soft} />
+      ))}
+      {tile(col(5), 228, span(4), 186)}
+      <Txt x={col(5) + 14} y={252} size={14} weight={600} fill={t.ink}>งบการเงินโดยย่อ</Txt>
+      {Array.from({ length: 6 }, (_, k) => (
+        <g key={k}>
+          <rect x={col(5) + 14} y={268 + k * 24} width={120} height={7} rx={3} fill={t.line} />
+          <rect x={col(5) + span(4) - 84} y={268 + k * 24} width={70} height={7} rx={3} fill={t.muted} opacity={0.5} />
+        </g>
+      ))}
+      {tile(col(9), 228, span(3), 186)}
+      <Txt x={col(9) + 14} y={252} size={14} weight={600} fill={t.ink}>ปฏิทินนักลงทุน</Txt>
+      {["12 พ.ย. งบ Q3", "28 พ.ย. Opp Day", "5 ธ.ค. ปันผล", "20 ธ.ค. AGM"].map((s2, k) => (
+        <Txt key={s2} x={col(9) + 14} y={282 + k * 32} size={13} fill={t.muted}>{s2}</Txt>
+      ))}
+      {/* row of lists */}
+      {["ข่าวล่าสุด", "เอกสารดาวน์โหลด", "ผู้ถือหุ้นรายใหญ่", "การนำเสนอ"].map((s2, i) => (
+        <g key={s2}>
+          {tile(col(i * 3), 424, span(3), 204)}
+          <Txt x={col(i * 3) + 14} y={448} size={14} weight={600} fill={t.ink}>{s2}</Txt>
+          {Array.from({ length: 5 }, (_, k) => (
+            <g key={k}>
+              <rect x={col(i * 3) + 14} y={464 + k * 30} width={22} height={22} rx={4} fill={t.soft} />
+              <rect x={col(i * 3) + 44} y={468 + k * 30} width={span(3) - 70} height={6} rx={3} fill={t.line} />
+              <rect x={col(i * 3) + 44} y={479 + k * 30} width={(span(3) - 70) * 0.55} height={6} rx={3} fill={t.line} />
+            </g>
+          ))}
+        </g>
+      ))}
+    </>
+  );
+};
 
 // ── q5 · expression — same palette; a near-empty quiet page vs image and type that
 // fill the frame and move ──────────────────────────────────────────────────────

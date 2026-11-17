@@ -200,6 +200,11 @@ export interface Requirement {
   website?: string;
   email: string;
   phone: string;
+  /** Job title of the person filling in (user test CPALL). */
+  position?: string;
+  /** "Happy to be called back to talk through more details?" — phone/LINE asked only on yes. */
+  callbackOk?: boolean;
+  lineId?: string;
   industry: string;
   companyType: string;
   projectType: string;
@@ -214,7 +219,11 @@ export interface Requirement {
 
   // corporate identity — does the company have existing brand guidelines
   // (logo, colors, fonts) it wants the AI to reference while designing?
-  hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered
+  hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered (new drafts start at "yes")
+  /** "no" (team proposes new colours): what tone they have in mind, free text. */
+  ciNote?: string;
+  /** Inspiration step: likes described in words, no link or picture needed. */
+  inspirationNote?: string;
   // brand colours captured earlier (older drafts); the colour reader has been removed, the
   // Design DNA card still shows them if present
   brandColors?: string[];  // hex, most prominent first

@@ -15,7 +15,7 @@ const NAV = [
 
 export function Header() {
   const pathname = usePathname();
-  const home = pathname === "/";
+  const home = pathname === "/" || pathname === "/v2"; // v2: alternate landing with the demo panel
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

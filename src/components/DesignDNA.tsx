@@ -81,12 +81,12 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
     <section aria-label="Design DNA" className={`rounded-2xl border border-ir-border bg-ir-bg p-3 sm:p-4 ${className}`}>
       {/* header: the Direction in its own colours and heading face */}
       <div className="rounded-xl p-5 text-white" style={{ background: own && req.brandPrimary ? `linear-gradient(135deg, ${req.brandPrimary}, #141613)` : dir.bg }}>
-        <p className="font-mono text-caption font-semibold tracking-[0.14em] text-white/70">DESIGN DNA</p>
+        <p className="text-small font-semibold text-white/70">สรุปแนวทางการออกแบบ</p>
         <p className="mt-2 text-display-sm font-bold leading-tight" style={{ fontFamily: fontStack(pair.heading) }}>{dir.label}</p>
         <p className="mt-1 text-body text-white/85">{dir.tagline}</p>
         {/* one main mood, the rest only support it */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="text-caption text-white/70">Mood หลัก</span>
+          <span className="text-caption text-white/70">อารมณ์หลัก</span>
           <span className="rounded-full bg-white px-2.5 py-1 text-caption font-semibold text-ir-t1">{dir.mood[0]}</span>
           {dir.mood.length > 1 && <span className="text-caption text-white/70">เสริมด้วย {dir.mood.slice(1).join(" · ")}</span>}
           {keepOwn && <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-caption font-medium">ใช้ชุดสีเดิมของแบรนด์</span>}
@@ -152,11 +152,15 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
 
         {/* imagery */}
         {style && (
-          <Block label="สไตล์ภาพ">
-            <div className="grid grid-cols-3 gap-1.5">
+          <Block label="แนวภาพ · ตัวอย่าง">
+            {/* example photos, not controls: no pointer events, a small "ตัวอย่าง" tag */}
+            <div className="grid grid-cols-3 gap-1.5 cursor-default select-none">
               {style.shots.slice(0, 3).map((p) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={p.id} src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" className="aspect-[4/3] w-full rounded-sm object-cover" />
+                <span key={p.id} className="relative block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={unsplashUrl(p.id, 240)} alt={p.cap} loading="lazy" draggable={false} className="pointer-events-none aspect-[4/3] w-full rounded-sm object-cover" />
+                  <span className="absolute left-1 top-1 rounded-xs bg-black/55 px-1 text-[10px] text-white">ตัวอย่าง</span>
+                </span>
               ))}
             </div>
             <p className="mt-2 text-caption leading-snug text-ir-t2">{style.mood}</p>

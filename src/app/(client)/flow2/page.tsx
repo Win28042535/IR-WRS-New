@@ -433,6 +433,12 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   const companyErr = nudge.field === "company-field" && !draft.company.trim();
   const audienceErr = nudge.field === "audience-field" && !draft.primaryAudience;
 
+  // Older drafts never answered the CI question; existing colours are the default now.
+  useEffect(() => {
+    if (!draft.hasCorporateIdentity) updateDraft({ hasCorporateIdentity: "yes" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Auto-select IR as the only website type
   useEffect(() => {
     if (draft.projectType !== "Investor Relations Site") {
@@ -594,7 +600,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
   return (
     <>
-      <Head n={1} title="ทำความเข้าใจ" sub="เริ่มจากทำความเข้าใจองค์กรของคุณ และกลุ่มเป้าหมายที่เว็บไซต์ IR ต้องสื่อสารด้วย" />
+      <Head n={1} title="ทำความเข้าใจ" sub="บริษัทของคุณ ใครจะเข้ามาดูเว็บ และสีกับฟอนต์ของแบรนด์" />
 
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
@@ -637,9 +643,9 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
       <div id="audience-field" className="scroll-mt-28">
-        <SectionLabel>กลุ่มเป้าหมาย <span className="text-red-500 font-normal">*</span></SectionLabel>
-        {audienceErr && <FieldError>เลือกกลุ่มเป้าหมายอย่างน้อย 1 กลุ่ม</FieldError>}
-        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกและเรียงกลุ่มนักลงทุนจากสำคัญมากไปน้อย ลำดับนี้กำหนดว่าข้อมูลไหนต้องอยู่ใกล้มือที่สุดบนเว็บไซต์</p>
+        <SectionLabel>ใครจะเข้ามาดูเว็บไซต์ <span className="text-red-500 font-normal">*</span></SectionLabel>
+        {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
+        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกกลุ่มผู้อ่าน แล้วเรียงจากกลุ่มที่สำคัญที่สุด</p>
         <RankPicker
           items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
           selected={selectedAudiences}
@@ -654,38 +660,48 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           values, so earlier answers carry over). */}
       <div>
         <div className="flex items-baseline gap-2">
-          <SectionLabel>Corporate Identity (CI)</SectionLabel>
+          <SectionLabel>สีของเว็บไซต์</SectionLabel>
           <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
         </div>
-        <p className="text-body text-ir-t3 mb-3 mt-1">สำหรับเว็บไซต์ใหม่ คุณต้องการให้เราใช้ชุดสีแบบใด?</p>
-        <div className="grid sm:grid-cols-2 gap-2.5">
-          {([
-            { id: "yes", label: "ใช้ชุดสีเดิม", desc: "โดยอ้างอิงจากเว็บไซต์ปัจจุบันหรือโลโก้บริษัท" },
-            { id: "no", label: "ให้ทีมออกแบบเสนอชุดสีใหม่", desc: "ทีมเสนอชุดสีที่เข้ากับแนวทางและกลุ่มผู้อ่านของเว็บไซต์" },
-          ] as const).map((opt) => (
-            <OptionCard
-              key={opt.id}
-              icon={OPTION_ICONS[`ci-${opt.id}`]}
-              title={opt.label}
-              desc={opt.desc}
-              selected={draft.hasCorporateIdentity === opt.id}
-              onSelect={() => updateDraft({ hasCorporateIdentity: draft.hasCorporateIdentity === opt.id ? "" : opt.id })}
+        {/* Existing brand colours are the default (user tests #1–2: two equal choices
+            confused people; CPALL: "base it on the corporate colours, and make 'team
+            proposes' a note"). The team-proposal path is a secondary link with a note. */}
+        {draft.hasCorporateIdentity !== "no" ? (
+          <>
+            <p className="text-body text-ir-t3 mt-1">เว็บไซต์ใหม่จะใช้ชุดสีเดิมของแบรนด์</p>
+            {/* With a current website the team takes the colours from it, so nothing to fill
+                in; without one, they can give the codes (else the team works from the logo). */}
+            {draft.website?.trim()
+              ? (
+                <p className="mt-3 flex items-start gap-2 rounded-xl border border-ir-select-soft bg-primary-50 px-4 py-3 text-small leading-relaxed text-ir-t2">
+                  <span aria-hidden="true" className="mt-0.5 shrink-0">🎨</span>
+                  <span>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> ของคุณ ไม่ต้องกรอกสีเพิ่ม</span>
+                </p>
+              )
+              : <BrandColorInput draft={draft} updateDraft={updateDraft} />}
+            <button type="button" onClick={() => updateDraft({ hasCorporateIdentity: "no" })}
+              className="mt-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
+              อยากให้ทีมเสนอชุดสีใหม่แทน
+            </button>
+          </>
+        ) : (
+          <div className="mt-2 rounded-xl border border-ir-border bg-ir-card p-4">
+            <p className="text-body font-semibold text-ir-t1">ให้ทีมเสนอชุดสีใหม่</p>
+            <p className="mt-0.5 text-small text-ir-t3">ทีมจะเสนอชุดสีที่เข้ากับแนวทางและกลุ่มผู้อ่าน · ถ้ามีโทนในใจ บอกไว้ได้</p>
+            <textarea
+              aria-label="โทนสีที่อยากได้"
+              rows={2}
+              value={draft.ciNote ?? ""}
+              onChange={(e) => updateDraft({ ciNote: e.target.value })}
+              placeholder="เช่น อยากให้ดูสดใสขึ้น หรือยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม"
+              className="mt-2.5 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-2.5 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
             />
-          ))}
-        </div>
-        {/* Recommendation, under the choices */}
-        <p className="mt-3 text-small leading-relaxed text-ir-t3">หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</p>
-        {/* their real colours, so the summary shows their brand, not the Direction's palette */}
-        {/* With a current website the team takes the colours from it, so nothing to fill in;
-            without one, they can give the codes (else the team works from the logo). */}
-        {draft.hasCorporateIdentity === "yes" && (draft.website?.trim()
-          ? (
-            <p className="mt-3 flex items-start gap-2 rounded-xl border border-ir-select-soft bg-primary-50 px-4 py-3 text-small leading-relaxed text-ir-t2">
-              <span aria-hidden="true" className="mt-0.5 shrink-0">🎨</span>
-              <span>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> ของคุณ ไม่ต้องกรอกสีเพิ่ม</span>
-            </p>
-          )
-          : <BrandColorInput draft={draft} updateDraft={updateDraft} />)}
+            <button type="button" onClick={() => updateDraft({ hasCorporateIdentity: "yes" })}
+              className="mt-1.5 inline-flex min-h-11 items-center px-1 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
+              กลับไปใช้ชุดสีเดิม
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Font — sits with the CI question (brand look in one place). It used to live at the
@@ -757,13 +773,13 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
   return (
     <>
-      <Head n={2} title="กำหนดเป้าหมาย" sub="เว็บไซต์ IR นี้ควรตอบโจทย์อะไรบ้าง?" />
+      <Head n={2} title="กำหนดเป้าหมาย" sub="เว็บไซต์ต้องทำอะไรให้บริษัทได้บ้าง" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
       <div id="goals-field" className="scroll-mt-28">
-        <SectionLabel>เป้าหมายหลัก</SectionLabel>
+        <SectionLabel>สิ่งที่เว็บไซต์ต้องทำได้</SectionLabel>
         {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
-        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกสิ่งที่เว็บไซต์ต้องทำได้ แล้วเรียงจากสำคัญที่สุด</p>
+        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกผลลัพธ์ที่อยากได้ แล้วเรียงจากสำคัญที่สุด</p>
         <RankPicker
           items={VISIBLE_GOALS.map((goal) => ({ id: goal.id, label: goal.label, desc: goal.desc, icon: OPTION_ICONS[goal.id] }))}
           selected={draft.businessGoals}
@@ -1402,7 +1418,7 @@ function S4Structure({ go, draft, updateDraft }: any) {
   const nudge = useNudge();
   return (
     <>
-      <Head n={4} title="จัดหน้าแรกของเว็บไซต์" sub="หน้าแรกประกอบด้วยหลายส่วน เรียงจากบนลงล่าง เราจัดไว้ให้ตามคำตอบของคุณแล้ว ปรับเพิ่ม ลบ หรือสลับลำดับได้" />
+      <Head n={4} title="จัดหน้าแรกของเว็บไซต์" sub="ส่วนต่าง ๆ บนหน้าแรก เรียงจากบนลงล่าง · AI จัดไว้ให้แล้ว ปรับได้" />
       <div id="structure-field" className="scroll-mt-28">
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
@@ -1913,6 +1929,14 @@ function domainOf(url: string) {
 // debounce needed since it's pure string parsing, not a network call. ──
 type UrlValidationState = "empty" | "invalid" | "unsupported" | "existing" | "valid";
 
+// Video links (user test CPALL: "Ref เป็น Video ได้มั้ย?"). Many videos share one host, so
+// duplicates are judged by the full link there, not by domain.
+const VIDEO_HOST = /^(?:www\.|m\.)?(youtube\.com|youtu\.be|vimeo\.com|tiktok\.com|facebook\.com\/watch|fb\.watch)/i;
+function isVideoUrl(raw: string) {
+  const v = raw.trim().replace(/^https?:\/\//i, "");
+  return VIDEO_HOST.test(v) || /\.(mp4|mov|webm)(\?|$)/i.test(v);
+}
+const normLink = (v: string) => v.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
 function validateUrlInput(raw: string, existing: { value: string }[]): UrlValidationState {
   const value = raw.trim();
   if (!value) return "empty";
@@ -1928,7 +1952,9 @@ function validateUrlInput(raw: string, existing: { value: string }[]): UrlValida
   if (!parsed.hostname.includes(".")) return "invalid"; // e.g. "https://asdf" — parses but isn't a real host
 
   const normalized = parsed.hostname.replace(/^www\./, "").toLowerCase();
-  const isDuplicate = existing.some((u) => domainOf(u.value).toLowerCase() === normalized);
+  const isDuplicate = isVideoUrl(value)
+    ? existing.some((u) => normLink(u.value) === normLink(value))
+    : existing.some((u) => !isVideoUrl(u.value) && domainOf(u.value).toLowerCase() === normalized);
   if (isDuplicate) return "existing";
 
   return "valid";
@@ -2196,9 +2222,9 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       // a bare checkmark, so it's a genuine visual preview, not only a confirmation message.
       useFloatingPreview.getState().show(
         <span className="w-full h-full flex items-center justify-center" style={{ background: URL_THUMB_THEMES[0] }}>
-          <IconGlobe width={11} height={11} className="text-white/80" />
+          {isVideoUrl(value) ? <span className="text-[9px] text-white">▶</span> : <IconGlobe width={11} height={11} className="text-white/80" />}
         </span>,
-        "เพิ่มเว็บไซต์แล้ว",
+        isVideoUrl(value) ? "เพิ่มวิดีโอแล้ว" : "เพิ่มเว็บไซต์แล้ว",
         domainOf(value)
       );
       setIsCommittingUrl(false);
@@ -2318,8 +2344,17 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       {/* ── AI-learning reassurance — one merged sentence (was two separate, overlapping
           descriptions split across this component and its parent section header) ── */}
       <p className="text-body text-ir-t3 mb-5 leading-relaxed">
-        เพิ่มเว็บไซต์หรือรูปที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
+        เพิ่มเว็บไซต์ วิดีโอ หรือรูปที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
       </p>
+      {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
+      <div className="-mt-2 mb-5 rounded-xl bg-ir-sunken px-4 py-3">
+        <p className="text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</p>
+        <ul className="mt-1.5 grid gap-1 text-small text-ir-t2 sm:grid-cols-2">
+          {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบโทนภาพ", "ภาพหน้าจอ หรือรูปจากรายงานประจำปี"].map((t) => (
+            <li key={t} className="flex items-start gap-1.5"><span aria-hidden="true" className="text-ir-accent-text">•</span>{t}</li>
+          ))}
+        </ul>
+      </div>
 
       {/* Mobile/tablet (<768px): Input → Gallery → Upload, so a newly added reference lands
           right under the input with no scrolling — the floating preview + counter confirm
@@ -2330,7 +2365,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         {/* ── Website links — unified input+button as one control, no visual seam ── */}
         <div className="order-1 mb-4">
           <p className="text-small font-semibold text-ir-t2 mb-2">
-            เว็บไซต์ที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
+            เว็บไซต์หรือวิดีโอที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
           </p>
           <div
             className={`flex items-stretch rounded-lg border bg-ir-card overflow-hidden transition-colors ${
@@ -2346,7 +2381,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             <span className="shrink-0 flex items-center pl-4 pr-2 text-lead text-ir-t3">🌐</span>
             <input
               type="url"
-              placeholder={urlCapReached ? `เพิ่มได้สูงสุด ${MAX_REFERENCE_URLS} ลิงก์` : "วางลิงก์เว็บไซต์ที่ชอบ..."}
+              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์เว็บไซต์ หรือ YouTube / Vimeo..."}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
@@ -2382,7 +2417,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           {/* Progressive validation — recomputed on every keystroke, no submit required to
               find out the link won't work. Falls back to the generic hint when empty. */}
           {urlValidation === "empty" ? (
-            <p className="text-small text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" เพื่อใส่ลิงก์ถัดไป · {urls.length}/{MAX_REFERENCE_URLS}</p>
+            <p className="text-small text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" · {urls.length === 0 ? `ใส่ได้สูงสุด ${MAX_REFERENCE_URLS} ลิงก์` : urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : `เพิ่มแล้ว ${urls.length} ลิงก์ · ใส่ได้อีก ${MAX_REFERENCE_URLS - urls.length}`}</p>
           ) : (
             <p role="status" className={`text-small mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
@@ -2413,8 +2448,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                       className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 text-center"
                       style={{ background: URL_THUMB_THEMES[i % URL_THUMB_THEMES.length] }}
                     >
-                      <IconGlobe width={12} height={12} className="text-white/70" />
-                      <span className="text-white text-[8px] font-medium truncate max-w-full px-1">{domainOf(u.value)}</span>
+                      {isVideoUrl(u.value)
+                        ? <span aria-label="วิดีโอ" className="grid h-5 w-5 place-items-center rounded-full bg-white/90 text-[9px] text-ir-t1">▶</span>
+                        : <IconGlobe width={12} height={12} className="text-white/70" />}
+                      <span className="text-white text-[8px] font-medium truncate max-w-full px-1">{isVideoUrl(u.value) ? "วิดีโอ · " : ""}{domainOf(u.value)}</span>
                     </div>
                     {/* No per-tile checkmark — every tile in this gallery is, by definition,
                         already added (that's what the "เพิ่มแล้ว N" header above it means),
@@ -2641,7 +2678,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="แนบเว็บไซต์หรือรูปที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
+        sub="แนบเว็บไซต์ วิดีโอ หรือรูปที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
       />
       {/* User test #1 read "ไม่บังคับ" in the subtitle but still thought they couldn't move on. */}
       <div className="-mt-2 mb-5 inline-flex items-center gap-2 rounded-full border border-ir-select-soft bg-primary-50 py-1 pl-1 pr-3.5 text-small font-semibold text-ir-t1">
@@ -2665,9 +2702,27 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         </div>
       )}
 
+      {/* Text-only inspiration (user test AOT: "Note เป็น Text ได้") — describe what they
+          like without needing a link or picture. Available whichever way they chose above. */}
+      <div className="mb-6">
+        <label htmlFor="inspiration-note" className="flex items-baseline gap-2">
+          <span className="text-body font-semibold text-ir-t1">เล่าเป็นข้อความ</span>
+          <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+        </label>
+        <p className="mt-0.5 text-small text-ir-t3">ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน</p>
+        <textarea
+          id="inspiration-note"
+          rows={3}
+          value={draft.inspirationNote ?? ""}
+          onChange={(e) => updateDraft({ inspirationNote: e.target.value })}
+          placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก และมีวิดีโอแนะนำองค์กร"
+          className="mt-2 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-3 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
+        />
+      </div>
+
       <StepNav
         onBack={() => go(4)}
-        next={<NextButton onClick={() => go(6)}>{hasCustom || hasCurated ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
+        next={<NextButton onClick={() => go(6)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
       />
     </div>
   );
@@ -2695,17 +2750,6 @@ function namedPalette(dir: any): { hex: string; name: string; main: boolean }[] 
 
 const NEUTRAL_RAMP = ["#F5F5F5", "#D9DBDE", "#B4B7BD", "#8A8F99", "#5A5F6B", "#33383F", "#151823"];
 
-// WCAG contrast ratio between two hex colours (1–21).
-function contrastRatio(a: string, b: string) {
-  const lum = (hex: string) => {
-    const h = hex.replace("#", "");
-    const ch = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
-      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
-  };
-  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
 
 // Typography specimen figures — a spread of numeral punctuation (comma, decimal, %, ฿,
 // hyphen) so the heading font's numeral rendering actually gets exercised, not just its
@@ -2812,19 +2856,8 @@ function ConceptBoard({ draft }: { draft: any }) {
     { hex: ink, role: "Text", use: "ตัวหนังสือหลัก" },
     { hex: muted, role: "Muted", use: "คำบรรยาย เส้นแบ่ง" },
   ];
-  // 60 / 30 / 10 — how much of a page each brand colour covers
-  const paletteMix = [
-    { hex: surface, role: "Background", pct: 60 },
-    { hex: primary, role: "Primary", pct: 30 },
-    { hex: accent, role: "Accent", pct: 10 },
-  ];
   const onPrimary = isLightHex(primary) ? ink : "#FFFFFF";
   const onAccent = isLightHex(accent) ? ink : "#FFFFFF";
-  const contrastPairs = [
-    { label: "ตัวหนังสือบนพื้นหลัง", fg: ink, bg: surface },
-    { label: "ตัวหนังสือบนสีหลัก", fg: onPrimary, bg: primary },
-    { label: "ตัวหนังสือบนสีเน้น", fg: onAccent, bg: accent },
-  ].map((c) => ({ ...c, ratio: contrastRatio(c.fg, c.bg) }));
   // Mood: one main feeling, the second only supports it — two equal words left the client
   // unsure which one the site is really about.
   const moods: string[] = dir?.mood ?? ["Professional & Clean"];
@@ -2867,7 +2900,9 @@ function ConceptBoard({ draft }: { draft: any }) {
 
   return (
     // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside.
-    <div className="rounded-xl border border-ir-border bg-ir-card shadow-e1 overflow-clip">
+    // Reads as a summary document (user tests AOT/CBG/SCGP: it looked clickable and
+    // unclear that it's only an example): no shadows/hover, Thai headings, "ตัวอย่าง" tags.
+    <div className="rounded-xl border border-ir-border bg-ir-card overflow-clip">
       {/* Header strip — Direction name is the actual content here, so it carries the
           weight; "Concept" is just the eyebrow label identifying what this card is. */}
       <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-5 md:py-4 border-b border-ir-border">
@@ -2882,6 +2917,9 @@ function ConceptBoard({ draft }: { draft: any }) {
           <p className="text-title font-semibold text-ir-t1 leading-tight mt-0.5">{dir?.label ?? "Design Direction"}</p>
         </div>
       </div>
+      <p className="border-b border-ir-border bg-ir-bg px-4 py-2 text-small text-ir-t3 md:px-5">
+        สรุปจากคำตอบของคุณ · สี ฟอนต์ และภาพด้านล่างเป็น<span className="font-semibold text-ir-t2">ตัวอย่างแนวทาง</span> ไม่ใช่งานออกแบบจริง
+      </p>
 
       <div className="p-4 md:p-5">
         {/* ── Mood anchor — the personality words set in the actual heading typeface, over the
@@ -2896,7 +2934,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             style={prefersLight ? { minHeight: 120 } : { background: moodBg, color: moodInk, minHeight: 120 }}
           >
             <span className={`text-small font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
-              Mood · {prefersLight ? "Light" : "Dark"}
+              อารมณ์ของเว็บ · {prefersLight ? "โทนสว่าง" : "โทนเข้ม"}
             </span>
             <div className="flex flex-col gap-1 my-2">
               <span className={`text-heading leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{mainMood}</span>
@@ -2918,8 +2956,8 @@ function ConceptBoard({ draft }: { draft: any }) {
         {/* ── Colors — each swatch with its job, the 60/30/10 mix, then the palette applied to
             a small IR page (like the Typography specimen) plus a readability check. ── */}
         <div className={sectionRule}>
-          <span className="text-lead font-semibold text-ir-t1">Colors</span>
-          <span className="text-small text-ir-t3 shrink-0">{keepOwn ? "ชุดสีเดิมของแบรนด์" : `ชุดสีตามแนวทาง · ${dir?.palette ?? ""}`}</span>
+          <span className="text-lead font-semibold text-ir-t1">ชุดสี</span>
+          <span className="text-small text-ir-t3 shrink-0">{keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีใหม่ · ตัวอย่างจากแนวทาง ${dir?.palette ?? ""}`}</span>
           <div className="flex-1 h-px bg-ir-border" />
         </div>
         {ownPending ? (
@@ -2950,19 +2988,9 @@ function ConceptBoard({ draft }: { draft: any }) {
             ))}
           </div>
 
-          {/* proportion */}
-          <div className="mt-4">
-            <span className={eyebrow}>สัดส่วนบนหน้าเว็บ</span>
-            {/* 1px gaps on a grey track, so a white Background segment still reads */}
-            <div className="mt-1.5 flex h-3 gap-px rounded-full overflow-hidden bg-ir-border ring-1 ring-black/10" aria-hidden="true">
-              {paletteMix.map((m) => <span key={m.role} style={{ background: m.hex, width: `${m.pct}%` }} />)}
-            </div>
-            <p className="mt-1.5 text-small text-ir-t3">{paletteMix.map((m) => `${m.role} ${m.pct}%`).join(" · ")}</p>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4">
+          <div className="mt-4 pt-4 border-t border-ir-border">
             {/* applied: a small IR page in this palette */}
-            <div>
+            <div className="max-w-[520px]">
               <span className={eyebrow}>ตัวอย่างการใช้สี</span>
               <div className="mt-1.5 rounded-md overflow-hidden ring-1 ring-black/10" style={{ background: surface }} aria-label="ตัวอย่างหน้าเว็บ IR ที่ใช้ชุดสีนี้">
                 <div className="flex items-center gap-3 px-3 py-2" style={{ background: primary, color: onPrimary }}>
@@ -2991,29 +3019,6 @@ function ConceptBoard({ draft }: { draft: any }) {
                 </div>
               </div>
             </div>
-            {/* readability */}
-            <div>
-              <span className={eyebrow}>ความอ่านง่าย</span>
-              <ul className="mt-1.5 grid gap-2">
-                {contrastPairs.map((c) => {
-                  const pass = c.ratio >= 4.5;
-                  const large = !pass && c.ratio >= 3;
-                  return (
-                    <li key={c.label} className="flex items-center gap-2.5 rounded-md border border-ir-border px-2.5 py-2">
-                      <span className="w-9 h-9 rounded-sm grid place-items-center text-small font-bold shrink-0 ring-1 ring-black/[0.06]" style={{ background: c.bg, color: c.fg }}>Aa</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-small text-ir-t1 leading-tight">{c.label}</span>
-                        <span className="block text-caption font-mono text-ir-t3">{c.ratio.toFixed(1)} : 1</span>
-                      </span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-caption font-semibold ${pass ? "bg-ir-accent-soft text-ir-accent-text" : large ? "bg-ir-muted text-ir-t2" : "bg-red-50 text-red-700"}`}>
-                        {pass ? "ผ่าน AA" : large ? "เฉพาะตัวใหญ่" : "ไม่ผ่าน"}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-2 text-caption text-ir-t3 leading-snug">ตามเกณฑ์ WCAG 2.1 · ตัวหนังสือปกติต้องได้ 4.5 : 1 ขึ้นไป</p>
-            </div>
           </div>
         </div>
         )}
@@ -3022,7 +3027,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             body alike), shown big, then a real-content specimen in that same font: headline,
             body, CTA and numeral-heavy stat tiles. Listing a Latin heading + Thai + body trio
             read as three choices; the client thinks in one font, e.g. "FC Minimal". ── */}
-        <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
+        <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">ตัวอักษร</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
           <span className={eyebrow}>ฟอนต์หลัก</span>
           <p className="mt-1 text-display-sm text-ir-t1 leading-tight" style={{ fontFamily: thaiStack, fontWeight: 700 }} title={mainFont}>
@@ -3071,19 +3076,19 @@ function ConceptBoard({ draft }: { draft: any }) {
         {/* ── IR Homepage Sections — the exact structure picked in "วางโครงสร้าง", in the
             order the client arranged it. ── */}
         <div className={sectionRule}>
-          <span className="text-lead font-semibold text-ir-t1">IR Homepage Sections</span>
-          {homepageSections.length > 0 && <span className="text-small text-ir-t3 shrink-0">{homepageSections.length} sections</span>}
+          <span className="text-lead font-semibold text-ir-t1">ส่วนต่าง ๆ บนหน้าแรก</span>
+          {homepageSections.length > 0 && <span className="text-small text-ir-t3 shrink-0">{homepageSections.length} ส่วน · เรียงจากบนลงล่าง</span>}
           <div className="flex-1 h-px bg-ir-border" />
         </div>
         {homepageSections.length > 0 ? (
-          <div className="sc-reveal grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <ol className="sc-reveal grid grid-cols-1 gap-x-6 sm:grid-cols-2">
             {homepageSections.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2.5 rounded-md border border-ir-border px-3 py-2.5 min-w-0">
-                <span className="w-6 h-6 rounded-full bg-ir-accent/15 text-ir-accent-text text-small font-semibold flex items-center justify-center shrink-0">{i + 1}</span>
-                <span className="text-small text-ir-t1 leading-snug truncate" title={s.name}>{s.name}</span>
-              </div>
+              <li key={s.id} className="flex items-baseline gap-2.5 border-b border-ir-border-soft py-2 min-w-0">
+                <span className="w-5 shrink-0 text-right font-mono text-small text-ir-t3">{i + 1}.</span>
+                <span className="text-body text-ir-t1 leading-snug" title={s.name}>{s.name.split(" / ")[0]}</span>
+              </li>
             ))}
-          </div>
+          </ol>
         ) : (
           <p className="text-small text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;จัดหน้าแรก&quot; เพื่อเลือก</p>
         )}
@@ -3098,18 +3103,19 @@ function ConceptBoard({ draft }: { draft: any }) {
             and the mood they share. ── */}
         {visualStyle && (
           <>
-            <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">Visual Style</span><div className="flex-1 h-px bg-ir-border" /></div>
+            <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">แนวภาพ</span><span className="text-small text-ir-t3 shrink-0">ตัวอย่างโทนภาพ</span><div className="flex-1 h-px bg-ir-border" /></div>
             <p className="text-body text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
             <div className="sc-reveal grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {visualStyle.shots.map((s) => (
-                <figure key={s.id} className="m-0">
+                <figure key={s.id} className="relative m-0 cursor-default select-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" className="w-full rounded-md object-cover ring-1 ring-black/[0.06] bg-ir-bg" style={{ aspectRatio: "4/3" }} />
+                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none w-full rounded-sm object-cover bg-ir-bg opacity-95" style={{ aspectRatio: "4/3" }} />
+                  <span className="absolute left-1.5 top-1.5 rounded-xs bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white">ตัวอย่าง</span>
                   <figcaption className="mt-1 text-small text-ir-t3 leading-snug">{s.cap}</figcaption>
                 </figure>
               ))}
             </div>
-            <p className="mt-2 text-small text-ir-t3">ภาพตัวอย่างจาก Unsplash · ใช้เป็นแนวทางการเลือกภาพ ไม่ใช่ภาพจริงบนเว็บไซต์</p>
+            <p className="mt-2 text-small text-ir-t3">ภาพตัวอย่างจาก Unsplash เพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง</p>
           </>
         )}
       </div>
@@ -3220,8 +3226,30 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
               <F label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุลผู้ประสานงาน" autoComplete="name" />
+              <F label="ตำแหน่ง" value={draft.position ?? ""} onChange={(v) => updateDraft({ position: v })} placeholder="เช่น ผู้จัดการฝ่ายนักลงทุนสัมพันธ์" autoComplete="organization-title" />
               <F label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.co.th" />
-              <F label="โทรศัพท์" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
+              {/* Phone is no longer a bare field: ask first whether a call-back suits them
+                  (user test CPALL), then where — phone or LINE. */}
+              <div role="group" aria-labelledby="callback-q">
+                <p id="callback-q" className="text-body font-medium mb-1.5">สะดวกให้ทีมติดต่อกลับ เพื่อคุยรายละเอียดเพิ่มไหม</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([[true, "สะดวก"], [false, "ทางอีเมลพอ"]] as const).map(([v, label]) => {
+                    const on = (draft.callbackOk ?? true) === v;
+                    return (
+                      <button key={label} type="button" aria-pressed={on} onClick={() => updateDraft({ callbackOk: v })}
+                        className={`min-h-11 rounded-md border px-3 text-body font-medium transition-colors focus-ring ${on ? "border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border text-ir-t2 hover:border-ir-border-hi"}`}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {(draft.callbackOk ?? true) && (
+                <>
+                  <F label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
+                  <F label="LINE ID (ไม่บังคับ)" value={draft.lineId ?? ""} onChange={(v) => updateDraft({ lineId: v.trim() })} placeholder="เช่น @irplus หรือ LINE ID ของคุณ" />
+                </>
+              )}
             </div>
             <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />
           </div>

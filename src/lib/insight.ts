@@ -33,10 +33,12 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Industry", value: r.industry || "-" },
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
+    { label: "Colours", value: r.hasCorporateIdentity === "no" ? `ทีมเสนอชุดสีใหม่${r.ciNote?.trim() ? ` · ${r.ciNote.trim()}` : ""}` : r.website?.trim() ? "ชุดสีเดิม · จากเว็บไซต์ปัจจุบัน" : (r.brandColors?.length ? `ชุดสีเดิม · ${r.brandColors.join(", ")}` : "ชุดสีเดิม · จากโลโก้") },
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },
     ...(r.structureNote?.trim() ? [{ label: "Homepage Note", value: r.structureNote.trim() }] : []),
+    ...(r.inspirationNote?.trim() ? [{ label: "Inspiration Note", value: r.inspirationNote.trim() }] : []),
     { label: "Approval Status", value: approvalSummary(r) },
   ];
 }
