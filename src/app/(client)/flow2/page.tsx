@@ -245,19 +245,21 @@ export default function Flow2() {
     <ProjectContextProvider>
     {/* Phones: the document scrolls (address bar can collapse, tap-status-bar-to-top works).
         From md up: a fixed-height split workspace whose left column scrolls on its own. */}
-    <div className="flex flex-col md:h-[calc(100dvh-56px)]">
+    {/* print: drop the fixed-height split and inner scroll, so "บันทึกสรุปเป็น PDF" on the
+        deliver step prints the whole summary, not one viewport of it */}
+    <div className="flex flex-col md:h-[calc(100dvh-56px)] print:h-auto">
       <GhostFlightLayer />
       <FloatingPreviewToast />
-      <StepIndicator steps={STEPS} stepsEn={STEPS_EN} current={step} />
+      <div className="no-print"><StepIndicator steps={STEPS} stepsEn={STEPS_EN} current={step} /></div>
 
       {/* ── Full-width split workspace ── */}
       <BackToTop scrollRef={leftPanelRef} threshold={600} />
-      <div ref={containerRef} className="flex-1 min-h-0 flex md:overflow-hidden">
+      <div ref={containerRef} className="flex-1 min-h-0 flex md:overflow-hidden print:overflow-visible">
 
         {/* ── Left: scrollable questionnaire ── */}
         <div
           ref={leftPanelRef}
-          className="md:overflow-y-auto shrink-0"
+          className="md:overflow-y-auto shrink-0 print:overflow-visible"
           style={{
             width: !showWorkspace || isOverlayWorkspace ? "100%" : wsCollapsed ? "100%" : `${leftPct}%`,
             transition: panelTransition,
@@ -3236,8 +3238,19 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           into its wide two-column layout right below. No divider line for the same reason
           `Head()` no longer has one — the heading is already visually distinct. */}
       <div className="mb-4 pb-4 md:mb-5 md:pb-5">
-        <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
-        <p className="text-lead text-ir-t2 leading-relaxed mt-2">ตรวจภาพรวมที่สรุปจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
+            <p className="text-lead text-ir-t2 leading-relaxed mt-2">ตรวจภาพรวมที่สรุปจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
+          </div>
+          {/* keep a copy before sending — browser print → "Save as PDF"; the contact form and
+              buttons are hidden in print (.no-print) */}
+          <button type="button" onClick={() => window.print()}
+            className="no-print inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-ir-border bg-white px-4 text-body font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+            บันทึกสรุปเป็น PDF
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
@@ -3248,7 +3261,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         </div>
 
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}
-        <aside className="w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
+        <aside className="no-print w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             <p className="text-lead font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>

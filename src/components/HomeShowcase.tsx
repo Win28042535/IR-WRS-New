@@ -769,7 +769,9 @@ export function DemoPanel() {
         <div key={i} className="sg-card h-full" data-sg="replay">
           {isResult
             ? <Mock />
-            : <div style={{ width: "74%", margin: "0 auto", transform: "scale(1.35)", transformOrigin: "top center", paddingTop: 1 }}><Mock /></div>}
+            // enlarged on sm+ only; on phones the panel is already the mock's own width, and
+            // scaling it would clip its sides
+            : <div className="mx-auto w-full origin-top pt-8 sm:w-[74%] sm:scale-[1.35] sm:pt-px"><Mock /></div>}
         </div>
       </div>
 
