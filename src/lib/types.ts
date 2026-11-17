@@ -232,6 +232,10 @@ export interface Requirement {
   businessGoals: string[];
   selectedLayout: string;
   selectedSections: string[];
+  /** Free note on the homepage step ("หมายเหตุ") — replaces the old "CTA / Section อื่นๆ" pick. */
+  structureNote?: string;
+  /** The AI-recommended homepage set was filled in once; never refill over the client's edits. */
+  structurePrefilled?: boolean;
   references: ReferenceItem[];
   note: string;
   comments: string;

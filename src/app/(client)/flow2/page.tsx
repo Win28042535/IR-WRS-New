@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
@@ -1041,7 +1041,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
 
       <div className="flex flex-wrap items-center justify-between gap-3 mt-8 pt-5">
         <BackButton onClick={onRetake}>ทำ Quiz ใหม่</BackButton>
-        <NextButton onClick={onContinue}>ไปวางโครงสร้าง</NextButton>
+        <NextButton onClick={onContinue}>ไปจัดหน้าแรก</NextButton>
       </div>
     </>
   );
@@ -1378,7 +1378,7 @@ function S4Structure({ go, draft, updateDraft }: any) {
   const nudge = useNudge();
   return (
     <>
-      <Head n={4} title="วางโครงสร้าง" sub="เลือกเนื้อหาที่ต้องการบนหน้าแรก แล้วเรียงลำดับจากสำคัญที่สุด" />
+      <Head n={4} title="จัดหน้าแรกของเว็บไซต์" sub="หน้าแรกประกอบด้วยหลายส่วน เรียงจากบนลงล่าง เราจัดไว้ให้ตามคำตอบของคุณแล้ว ปรับเพิ่ม ลบ หรือสลับลำดับได้" />
       <div id="structure-field" className="scroll-mt-28">
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
@@ -2791,6 +2791,7 @@ function ConceptBoard({ draft }: { draft: any }) {
   // The exact structure picked in "วางโครงสร้าง" (Structure step), in the order the
   // client arranged it — this board should mirror that decision, not restate it.
   const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
+    .filter((id) => !RETIRED_SECTION_IDS.includes(id))
     .map((id) => ({ id, name: sectionById(id)?.name ?? id }));
 
   const eyebrow = "text-small font-semibold uppercase tracking-wider text-ir-t3";
@@ -3025,7 +3026,13 @@ function ConceptBoard({ draft }: { draft: any }) {
             ))}
           </div>
         ) : (
-          <p className="text-small text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;วางโครงสร้าง&quot; เพื่อเลือก</p>
+          <p className="text-small text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;จัดหน้าแรก&quot; เพื่อเลือก</p>
+        )}
+        {draft.structureNote?.trim() && (
+          <div className="sc-reveal mt-2.5 rounded-md bg-ir-bg border border-ir-border px-3 py-2.5">
+            <p className="text-small font-semibold text-ir-t3">หมายเหตุ</p>
+            <p className="mt-0.5 text-body text-ir-t1 leading-relaxed whitespace-pre-line">{draft.structureNote.trim()}</p>
+          </div>
         )}
 
         {/* ── Visual Style — the photo direction for this Direction: 4 curated examples

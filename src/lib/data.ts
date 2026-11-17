@@ -26,6 +26,9 @@ export const REFERENCE_LIKES = ["สี", "ตัวอักษร", "การ
 export const LEADING_REQUIRED_IDS = ["header", "hero"];
 export const TRAILING_REQUIRED_IDS = ["footer"];
 export const REQUIRED_SECTION_IDS = [...LEADING_REQUIRED_IDS, ...TRAILING_REQUIRED_IDS];
+// Not offered on the homepage step any more: "CTA หรือ Section อื่นๆ" became a free "หมายเหตุ"
+// note (user test #1 — they wanted to jot extra needs, not pick a section type).
+export const RETIRED_SECTION_IDS = ["cta"];
 
 export const ESTIMATED_MINUTES: Record<string, number> = {
   flow1: 12,
@@ -454,5 +457,5 @@ export const unsplashUrl = (id: string, w = 800) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;
 
 // ── Client flow steps — shown in the flow's step bar and listed on the homepage. ──
-export const FLOW_STEPS = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "วางโครงสร้าง", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
+export const FLOW_STEPS = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "จัดหน้าแรก", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
 export const FLOW_STEPS_EN = ["Understand", "Define", "Explore", "Structure", "Inspiration", "Deliver"];

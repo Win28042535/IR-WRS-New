@@ -36,6 +36,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },
+    ...(r.structureNote?.trim() ? [{ label: "Homepage Note", value: r.structureNote.trim() }] : []),
     { label: "Approval Status", value: approvalSummary(r) },
   ];
 }

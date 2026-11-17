@@ -1,10 +1,10 @@
 "use client";
 // ── Structure step: pick + order homepage sections (production WRS #story DNA) ──────
-//   recommendation bar — "มีชุดเนื้อหาที่แนะนำจากคำตอบก่อนหน้า" + "✦ ใช้คำแนะนำ"; pressing it fills
-//                         the outline with the recommended set, then the bar folds away
-//   sources (left)     — every optional section; "แนะนำ" tag on the recommended ones; the
+//   recommendation — first visit fills the outline with the top recommended sections (≤5);
+//                         a note says so, with "กลับไปใช้ค่าแนะนำ" once they edit it
+//   sources (left)     — "แนะนำสำหรับคุณ" (the top picks, no extra tag) then "เพิ่มได้"; the
 //                         "+" disc turns into the black rank number once the section is in
-//   outline (right)    — "ลำดับเนื้อหาบนเว็บไซต์" n/max: dashed empty slots, filled rows (bold,
+//   outline (right)    — "หน้าแรก · เรียงจากบนลงล่าง" n/max: dashed empty slots, filled rows (bold,
 //                         black number, ✕ to remove), Header / Hero / Footer fixed by the system
 //   flight             — adding a section sends a white pill (lime number + name) from its
 //                         row into the next empty slot; the row pops in as it lands
@@ -13,7 +13,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-  GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RULES, SECTIONS, TRAILING_REQUIRED_IDS,
+  GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, TRAILING_REQUIRED_IDS,
   audienceById, directionById, sectionById,
 } from "@/lib/data";
 import { profileToDirection, rankDirections } from "@/lib/recommend";
@@ -26,6 +26,8 @@ const MAX_OPT = RULES.sections.max - REQUIRED_SECTION_IDS.length;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
 const shortName = (id: string) => (sectionById(id)?.name ?? id).split(" / ")[0];
 const FLIGHT_MS = 560;
+// how many sections the AI proposes (and tags "แนะนำ"); leaves room under MAX_OPT to add one
+const REC_MAX = Math.min(5, MAX_OPT);
 
 type Flight = { key: number; from: DOMRect; to: DOMRect; n: number; title: string };
 
@@ -43,16 +45,9 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   }, [bestId]);
 
   const all: string[] = draft.selectedSections ?? [];
-  const optional = all.filter((id) => !REQUIRED_SECTION_IDS.includes(id));
+  const optional = all.filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id));
   const full = optional.length >= MAX_OPT;
   const commit = (next: string[]) => updateDraft({ selectedSections: [...LEADING_REQUIRED_IDS, ...next, ...TRAILING_REQUIRED_IDS] });
-
-  // Keep the fixed rows in place (older drafts may not have them yet).
-  useEffect(() => {
-    const ok = LEADING_REQUIRED_IDS.every((id, i) => all[i] === id) && TRAILING_REQUIRED_IDS.every((id, i) => all[all.length - TRAILING_REQUIRED_IDS.length + i] === id);
-    if (!ok) commit(optional);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── What to recommend: goals first, then what the primary audience looks for, then the
   // Direction's own sections; ordered for the page by what the audiences need first.
@@ -67,15 +62,26 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     if (g >= 0) return 100 + g;
     return 200 + SECTIONS.findIndex((s) => s.id === id);
   };
-  const recSet = new Set([...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)].filter((id) => !REQUIRED_SECTION_IDS.includes(id) && sectionById(id)));
-  const recList = [...recSet].sort((a, b) => pageRank(a) - pageRank(b)).slice(0, MAX_OPT);
-  const sources = SECTIONS.filter((s) => !REQUIRED_SECTION_IDS.includes(s.id))
-    .map((s) => s.id)
-    .sort((a, b) => (recSet.has(a) === recSet.has(b) ? (recSet.has(a) ? pageRank(a) - pageRank(b) : 0) : recSet.has(a) ? -1 : 1));
-  const recMissing = recList.filter((id) => !optional.includes(id));
-  const [recGone, setRecGone] = useState(false);
-  const [recPress, setRecPress] = useState(false);
-  const showRec = !recGone && recMissing.length > 0 && optional.length < MAX_OPT;
+  const pool = [...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && sectionById(id));
+  // Only the top few carry "แนะนำ" — tagging every candidate (9–10) read as "pick all of these".
+  const recList = [...new Set(pool)].sort((a, b) => pageRank(a) - pageRank(b)).slice(0, REC_MAX);
+  const recSet = new Set(recList);
+  const otherSources = SECTIONS.map((s) => s.id)
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !recSet.has(id));
+  const isRecommended = recList.length > 0 && recList.length === optional.length && recList.every((id, i) => optional[i] === id);
+
+  // First visit: start from the recommended homepage instead of an empty outline, so the
+  // client edits a proposal rather than building it piece by piece. Done once per draft
+  // (structurePrefilled), so clearing it later is respected. Also keeps the fixed rows in
+  // place and drops retired sections from older drafts.
+  useEffect(() => {
+    const fill = !draft.structurePrefilled && optional.length === 0 && recList.length > 0;
+    const next = [...LEADING_REQUIRED_IDS, ...(fill ? recList : optional), ...TRAILING_REQUIRED_IDS];
+    const same = next.length === all.length && next.every((id, i) => all[i] === id);
+    if (!same || !draft.structurePrefilled) updateDraft({ selectedSections: next, structurePrefilled: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Flights + the rows they land in ──
   const srcRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -108,14 +114,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   };
   const remove = (id: string) => commit(optional.filter((x) => x !== id));
   const toggleSource = (id: string) => (optional.includes(id) ? remove(id) : add(id));
-  const applyRec = () => {
-    setRecPress(true);
-    setTimeout(() => setRecPress(false), 180);
-    const toAdd = recMissing.slice(0, MAX_OPT - optional.length);
-    launch(toAdd, optional.length);
-    commit([...optional, ...toAdd]);
-    setTimeout(() => setRecGone(true), 260);
-  };
+  const resetToRec = () => commit(recList);
   const move = (id: string, to: number) => {
     const from = optional.indexOf(id);
     if (from < 0 || to < 0 || to >= optional.length || from === to) return;
@@ -204,62 +203,64 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
   return (
     <div>
-      {/* recommendation bar */}
-      <div className={`sb-rec grid transition-[grid-template-rows,opacity,margin] duration-slow ease-out ${showRec ? "mb-5 grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"}`} aria-hidden={!showRec}>
-        <div className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 rounded-xl bg-ir-sunken p-3 sm:flex-nowrap">
-            <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
-            <div className="min-w-0 flex-1 text-small leading-snug">
-              <p className="font-semibold text-ir-t1">มีชุดเนื้อหาที่แนะนำจากคำตอบก่อนหน้า</p>
-              <p className="mt-0.5 text-caption text-ir-t3">อิงจากกลุ่มเป้าหมายและเป้าหมายที่คุณจัดลำดับไว้ · {recList.length} เรื่อง</p>
-            </div>
-            <button
-              type="button"
-              tabIndex={showRec ? 0 : -1}
-              onClick={applyRec}
-              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-transform duration-fast hover:bg-neutral-800 focus-ring ${recPress ? "scale-[0.93]" : ""}`}
-            >
-              ✦ ใช้คำแนะนำ
-            </button>
-          </div>
-        </div>
+      {/* recommendation note — the outline is already filled with the recommended set */}
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-ir-sunken px-3 py-2.5">
+        <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ir-accent text-small text-ir-on-accent">✦</span>
+        <p className="min-w-0 flex-1 text-small leading-snug text-ir-t2">
+          <span className="font-semibold text-ir-t1">{isRecommended ? "จัดไว้ให้ตามที่แนะนำแล้ว" : "คุณปรับจากที่แนะนำแล้ว"}</span>
+          {" "}· อิงจากกลุ่มเป้าหมายและเป้าหมายของคุณ เพิ่ม ลบ หรือลากสลับลำดับได้
+        </p>
+        {!isRecommended && recList.length > 0 && (
+          <button type="button" onClick={resetToRec}
+            className="inline-flex h-10 shrink-0 items-center rounded-full border border-ir-border bg-white px-3.5 text-caption font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
+            กลับไปใช้ค่าแนะนำ
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-5">
-        {/* sources */}
+        {/* sources — the few recommended first, everything else under "เพิ่มได้" */}
         <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2">
-          {sources.map((id) => {
-            const n = optional.indexOf(id) + 1;
-            const used = n > 0;
-            const dim = full && !used;
-            return (
-              <button
-                key={id}
-                type="button"
-                ref={(el) => { srcRefs.current[id] = el; }}
-                onClick={() => toggleSource(id)}
-                disabled={dim}
-                aria-pressed={used}
-                title={sectionById(id)?.desc}
-                className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
-                  used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
-                }`}
-              >
-                <span className="min-w-0 flex-1 truncate font-semibold text-ir-t1">{shortName(id)}</span>
-                {recSet.has(id) && <span className="shrink-0 rounded-full bg-ir-accent-soft px-2 py-0.5 text-caption font-semibold text-ir-accent-text">แนะนำ</span>}
-                <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-body font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
-              </button>
-            );
-          })}
+          {([
+            { label: "แนะนำสำหรับคุณ", ids: recList },
+            { label: "เพิ่มได้", ids: otherSources },
+          ]).filter((g) => g.ids.length > 0).map((g, gi) => (
+            <div key={g.label} className={`grid grid-cols-[minmax(0,1fr)] gap-2 ${gi > 0 ? "mt-3" : ""}`}>
+              <p className="px-1 text-caption font-semibold text-ir-t3">{g.label} <span className="font-mono">{g.ids.length}</span></p>
+              {g.ids.map((id) => {
+                const n = optional.indexOf(id) + 1;
+                const used = n > 0;
+                const dim = full && !used;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    ref={(el) => { srcRefs.current[id] = el; }}
+                    onClick={() => toggleSource(id)}
+                    disabled={dim}
+                    aria-pressed={used}
+                    title={sectionById(id)?.desc}
+                    className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
+                      used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1 truncate font-semibold text-ir-t1">{shortName(id)}</span>
+                    <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-body font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* outline */}
         <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-24">
           <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
-            <p className="text-body font-semibold text-ir-t1">ลำดับเนื้อหาบนเว็บไซต์</p>
+            {/* reads as one page top→bottom, so it isn't mistaken for the top menu (user test #1) */}
+            <p className="text-body font-semibold text-ir-t1">หน้าแรก <span className="font-normal text-ir-t3">· เรียงจากบนลงล่าง</span></p>
             <span className="rounded-full bg-white px-2 py-0.5 font-mono text-caption text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
           </div>
-          <FixedRow label="เมนูหลัก · ส่วนเปิดหน้าเว็บ" />
+          <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
             {Array.from({ length: MAX_OPT }, (_, i) => {
               const id = optional[i];
@@ -341,17 +342,38 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
         </div>
       </div>
 
+      {/* หมายเหตุ — replaces the old "CTA หรือ Section อื่นๆ" pick: a free note for anything
+          else they want, without having to name a section type or format */}
+      <div className="mt-6">
+        <label htmlFor="structure-note" className="flex items-baseline gap-2">
+          <span className="text-body font-semibold text-ir-t1">หมายเหตุ</span>
+          <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+        </label>
+        <p className="mt-0.5 text-small text-ir-t3">มีอะไรอยากได้เพิ่มบนหน้าแรก หรืออยากบอกทีม เขียนไว้ได้เลย</p>
+        <textarea
+          id="structure-note"
+          rows={3}
+          value={draft.structureNote ?? ""}
+          onChange={(e) => updateDraft({ structureNote: e.target.value })}
+          placeholder="เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ"
+          className="mt-2 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-3 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
+        />
+      </div>
+
       <FlightLayer flights={flights} onDone={(key) => setFlights((f) => f.filter((x) => x.key !== key))} />
     </div>
   );
 }
 
-const FixedRow = ({ label }: { label: string }) => (
-  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 text-small font-medium text-ir-t3">
+const FixedRow = ({ label, hint }: { label: string; hint?: string }) => (
+  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 py-1.5 text-small font-medium text-ir-t3">
     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-caption" aria-hidden="true">
       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
     </span>
-    <span className="min-w-0 flex-1 truncate">{label}</span>
+    <span className="min-w-0 flex-1">
+      <span className="block truncate">{label}</span>
+      {hint && <span className="block text-caption font-normal leading-snug">{hint}</span>}
+    </span>
     <span className="pr-2 text-caption">ระบบจัดให้</span>
   </div>
 );
