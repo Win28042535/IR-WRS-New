@@ -231,11 +231,15 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
       <div className={`mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-xl border px-4 py-3.5 ${isRecommended ? "border-ir-select-soft bg-primary-50" : "border-ir-border bg-ir-sunken"}`}>
         <span aria-hidden="true" className="ir-grad-fill grid h-10 w-10 shrink-0 place-items-center rounded-full text-body text-ir-on-accent">✦</span>
         <div className="min-w-0 flex-1">
-          <p className="text-lead font-semibold leading-snug text-ir-t1">{isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : "คุณปรับจากที่ AI จัดให้แล้ว"}</p>
+          <p className="text-lead font-semibold leading-snug text-ir-t1">
+            {isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : optional.length === 0 ? "จัดหน้าแรกเองตั้งแต่ต้น" : "คุณปรับจากที่ AI จัดให้แล้ว"}
+          </p>
           <p className="mt-0.5 text-small leading-snug text-ir-t2">
             {isRecommended
               ? `${recList.length} ส่วน เลือกจากกลุ่มเป้าหมายและเป้าหมายที่คุณเรียงไว้ · ถ้าเห็นด้วย กด “ใช้หน้าแรกนี้” ได้เลย หรือเพิ่ม ลบ ลากสลับก่อนก็ได้`
-              : "ปรับต่อได้ตามต้องการ หรือกลับไปใช้ชุดที่ AI จัดให้"}
+              : optional.length === 0
+                ? `เลือกส่วนที่ต้องการจากรายการด้านซ้าย อย่างน้อย ${MIN_OPT} ส่วน แล้วลากเรียงลำดับ · หรือกลับไปใช้ชุดที่ AI จัดให้`
+                : "ปรับต่อได้ตามต้องการ หรือกลับไปใช้ชุดที่ AI จัดให้"}
           </p>
         </div>
         {!isRecommended && recList.length > 0 && (
@@ -289,7 +293,16 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
           <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
             {/* reads as one page top→bottom, so it isn't mistaken for the top menu (user test #1) */}
             <p className="text-body font-semibold text-ir-t1">หน้าแรก <span className="font-normal text-ir-t3">· เรียงจากบนลงล่าง</span></p>
-            <span className="rounded-full bg-white px-2 py-0.5 font-mono text-caption text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
+            <span className="flex items-center gap-1.5">
+              {/* for clients who'd rather set up every section themselves */}
+              {optional.length > 0 && (
+                <button type="button" onClick={() => commit([])}
+                  className="-my-1 inline-flex h-10 items-center rounded-full px-3 text-caption font-semibold text-ir-t2 transition-colors hover:bg-white hover:text-ir-t1 focus-ring">
+                  ล้างทั้งหมด
+                </button>
+              )}
+              <span className="rounded-full bg-white px-2 py-0.5 font-mono text-caption text-ir-t2 tabular-nums" role="status">{optional.length}/{MAX_OPT}</span>
+            </span>
           </div>
           <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">

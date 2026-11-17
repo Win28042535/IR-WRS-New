@@ -24,11 +24,6 @@ const SHOW_BRIEF = false;
 
 const REASSURE = ["ไม่ต้องสมัครสมาชิก", "บันทึกอัตโนมัติ", "แก้ไขได้ภายหลัง"];
 
-const PEEK = [
-  { href: "#example", icon: "🎨", title: "ดูตัวอย่างสิ่งที่คุณจะได้", sub: "แนวทาง สี ตัวอักษร ภาพ และโครงหน้าแรก" },
-  { href: "#steps", icon: "🧭", title: `${FLOW_STEPS.length} ขั้นตอน ทำอะไรบ้าง`, sub: "เลือกจากภาพเป็นหลัก AI จัดหน้าแรกให้" },
-];
-
 const STATS = [
   { pre: "ไม่เกิน", n: "20", post: "นาที" },
   { n: String(FLOW_STEPS.length), post: "ขั้นตอน" },
@@ -37,7 +32,7 @@ const STATS = [
 
 const PREP = [
   "ชื่อบริษัท และเว็บไซต์ปัจจุบัน (ถ้ามี)",
-  "รหัสสีของแบรนด์จากคู่มือ CI (ถ้ามี)",
+  "รหัสสีของแบรนด์จากคู่มือ CI (ถ้าไม่มีเว็บไซต์ปัจจุบัน)",
   "กลุ่มนักลงทุนที่สำคัญ เช่น รายย่อย สถาบัน นักวิเคราะห์",
   "เว็บไซต์ที่ชอบ (ไม่บังคับ)",
   "ชื่อ อีเมล และเบอร์โทรของผู้ติดต่อ",
@@ -89,21 +84,7 @@ export default function Landing() {
           ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับภายใน 1–2 วันทำการ
         </p>
 
-        {/* What's further down, said in the first screen. User test #1 started straight away
-            and never scrolled, so they never saw the example result or the steps. Small
-            pills, so the start form stays the one main action. */}
-        <nav aria-label="ดูก่อนเริ่ม" className="mt-4 flex flex-wrap justify-center gap-2">
-          {PEEK.map((pk) => (
-            <a key={pk.href} href={pk.href} title={pk.sub}
-              className="group inline-flex min-h-10 items-center gap-1.5 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-2 pr-3.5 text-small font-semibold text-ir-t1 shadow-e1 backdrop-blur transition-[transform,border-color] duration-fast hover:-translate-y-0.5 hover:border-ir-select-soft focus-ring">
-              <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-ir-accent-soft text-small">{pk.icon}</span>
-              {pk.title}
-              <span aria-hidden="true" className="text-ir-t3 transition-transform duration-fast group-hover:translate-y-0.5">↓</span>
-            </a>
-          ))}
-        </nav>
-
-        <div id="hero-cta" className="mx-auto mt-7 max-w-[34rem] text-left">
+        <div id="hero-cta" className="mx-auto mt-8 max-w-[34rem] text-left">
           {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
         </div>
 

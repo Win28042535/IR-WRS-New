@@ -15,7 +15,7 @@ import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { FontChoice } from "@/components/FontPicker";
 import { BrandColorInput } from "@/components/BrandColors";
 import { BackToTop } from "@/components/BackToTop";
-import { chosenThaiFont, familyStack, previewFamily } from "@/lib/fontCatalog";
+import { SOURCE_LABEL, chosenThaiFont, familyStack, fontByFamily, isIrPlus, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -676,13 +676,22 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         {/* Recommendation, under the choices */}
         <p className="mt-3 text-small leading-relaxed text-ir-t3">หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</p>
         {/* their real colours, so the summary shows their brand, not the Direction's palette */}
-        {draft.hasCorporateIdentity === "yes" && <BrandColorInput draft={draft} updateDraft={updateDraft} />}
+        {/* With a current website the team takes the colours from it, so nothing to fill in;
+            without one, they can give the codes (else the team works from the logo). */}
+        {draft.hasCorporateIdentity === "yes" && (draft.website?.trim()
+          ? (
+            <p className="mt-3 flex items-start gap-2 rounded-xl border border-ir-select-soft bg-primary-50 px-4 py-3 text-small leading-relaxed text-ir-t2">
+              <span aria-hidden="true" className="mt-0.5 shrink-0">🎨</span>
+              <span>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> ของคุณ ไม่ต้องกรอกสีเพิ่ม</span>
+            </p>
+          )
+          : <BrandColorInput draft={draft} updateDraft={updateDraft} />)}
       </div>
 
       {/* Font — sits with the CI question (brand look in one place). It used to live at the
           bottom of the optional Inspiration step, where user test #1 never saw it. */}
       <div className="mt-6">
-        <FontChoice draft={draft} updateDraft={updateDraft} dir={directionById(draft.selectedDirection)} inlineUrl={false} />
+        <FontChoice draft={draft} updateDraft={updateDraft} dir={directionById(draft.selectedDirection)} />
       </div>
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
@@ -2769,14 +2778,18 @@ function ConceptBoard({ draft }: { draft: any }) {
     : basePairing;
   // a picked catalog font (incl. an IR Plus face drawn by its preview) vs a pairing var font
   const thaiStack = thaiPick.source === "selected" ? familyStack(pairing.thai) : fontStack(pairing.thai);
+  const mainFont = pairing.thai;
+  const mainFontNote = fontByFamily(mainFont)?.note ?? basePairing.note;
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;
   // "ใช้ชุดสีเดิม": their own colours from step 1 drive the whole board. Without codes, the
   // board says the team will take them from the site/logo instead of passing the
   // Direction's palette off as theirs (user test #1: BTS is red, the board showed navy & gold).
+  // With a current website the colours come from the site, so typed codes aren't used.
   const keepOwn = draft.hasCorporateIdentity === "yes";
-  const own: string[] = keepOwn ? ((draft.brandColors as string[] | undefined) ?? []).filter(Boolean) : [];
+  const siteUrl = (draft.website ?? "").trim().replace(/^https?:\/\//, "");
+  const own: string[] = keepOwn && !siteUrl ? ((draft.brandColors as string[] | undefined) ?? []).filter(Boolean) : [];
   const ownPending = keepOwn && own.length === 0;
   const swatches = own.length
     ? own.map((hex, i) => ({ hex: hex.toUpperCase(), name: ["สีหลัก", "สีรอง", "สีเสริม"][i] ?? `สี ${i + 1}`, main: i === 0 }))
@@ -2915,8 +2928,9 @@ function ConceptBoard({ draft }: { draft: any }) {
             <div className="min-w-0">
               <p className="text-body font-semibold text-ir-t1">ใช้ชุดสีเดิมของแบรนด์</p>
               <p className="mt-0.5 text-small leading-relaxed text-ir-t2">
-                ทีมจะใช้สีจาก{draft.website?.trim() ? <> เว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> และ</> : ""}โลโก้ปัจจุบันของคุณ
-                · ถ้าทราบรหัสสี ใส่ได้ที่ขั้น “ทำความเข้าใจ” แล้วหน้านี้จะแสดงตัวอย่างด้วยสีจริงของคุณ
+                {siteUrl
+                  ? <>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{siteUrl}</span> ของคุณ</>
+                  : "ทีมจะใช้สีจากโลโก้ปัจจุบันของคุณ · ถ้าทราบรหัสสี ใส่ได้ที่ขั้น “ทำความเข้าใจ” แล้วหน้านี้จะแสดงตัวอย่างด้วยสีจริงของคุณ"}
               </p>
             </div>
           </div>
@@ -2961,7 +2975,7 @@ function ConceptBoard({ draft }: { draft: any }) {
                   <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2">
                     <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white">
                       <p className="text-caption" style={{ color: muted }}>รายได้รวม</p>
-                      <p className="text-title font-bold leading-tight" style={{ color: primary, fontFamily: fontStack(pairing.heading) }}>12,450</p>
+                      <p className="text-title font-bold leading-tight" style={{ color: primary, fontFamily: thaiStack }}>12,450</p>
                       <span className="mt-1 inline-block h-1 w-8 rounded-full" style={{ background: accent }} />
                     </div>
                     <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white flex items-end gap-1.5" aria-hidden="true">
@@ -3004,44 +3018,41 @@ function ConceptBoard({ draft }: { draft: any }) {
         </div>
         )}
 
-        {/* ── Typography — font pairing + description, then a real-content specimen
-            (headline/body/CTA + numeral-heavy stat tiles) so the choice reads as how it
-            will actually look, not just an isolated font-name label. ── */}
+        {/* ── Typography — ONE main font (the Thai face the site will use for headings and
+            body alike), shown big, then a real-content specimen in that same font: headline,
+            body, CTA and numeral-heavy stat tiles. Listing a Latin heading + Thai + body trio
+            read as three choices; the client thinks in one font, e.g. "FC Minimal". ── */}
         <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">Typography</span><div className="flex-1 h-px bg-ir-border" /></div>
         <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <p className="text-display-sm text-ir-t1 leading-tight" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }} title={pairing.heading}>
-              {pairing.heading}
-            </p>
-            <span className="text-ir-t3 text-body">+</span>
-            <p className="text-heading text-ir-t1 leading-tight" style={{ fontFamily: thaiStack, fontWeight: 700 }} title={pairing.thai}>
-              {pairing.thai}
-            </p>
-            <span className="text-ir-t3 text-body">+</span>
-            <p className="text-title text-ir-t2" style={{ fontFamily: fontStack(pairing.body), fontWeight: 500 }} title={pairing.body}>
-              {pairing.body}
-            </p>
-          </div>
-          <p className="text-body text-ir-t2 leading-relaxed mt-2 max-w-[560px]">
-            {pairing.heading} สำหรับหัวข้อภาษาอังกฤษ คู่กับ {pairing.thai} สำหรับหัวข้อภาษาไทย และ {pairing.body} สำหรับเนื้อหา — {pairing.note}
+          <span className={eyebrow}>ฟอนต์หลัก</span>
+          <p className="mt-1 text-display-sm text-ir-t1 leading-tight" style={{ fontFamily: thaiStack, fontWeight: 700 }} title={mainFont}>
+            {thaiPick.source === "website" ? "ฟอนต์จากเว็บไซต์เดิม" : mainFont}
           </p>
-          <div className="mt-2"><GoogleTag /></div>
+          <p className="text-body text-ir-t2 leading-relaxed mt-2 max-w-[600px]">
+            {thaiPick.source === "website"
+              ? <>ทีมจะใช้ฟอนต์เดียวกับเว็บไซต์ปัจจุบัน{siteUrl ? <> (<span className="font-semibold text-ir-t1">{siteUrl}</span>)</> : ""} · ตัวอย่างด้านล่างแสดงด้วย {mainFont} ไปก่อน</>
+              : <>ใช้ทั้งหัวข้อ เนื้อหา และตัวเลขบนเว็บไซต์ · {mainFontNote}</>}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="rounded-full bg-ir-muted px-2.5 py-0.5 text-small font-medium text-ir-t2">{SOURCE_LABEL[thaiPick.source]}</span>
+            {thaiPick.source !== "website" && (isIrPlus(mainFont)
+              ? <span className="text-small text-ir-t3">ชุดของ IR Plus · ตัวอย่างโดยประมาณ</span>
+              : <GoogleTag />)}
+          </div>
 
           <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1.3fr)] gap-4">
             <div>
               <span className={eyebrow}>ตัวอย่าง</span>
-              {/* Thai headline in the pairing's Thai face; body copy stays on the app's
-                  IBM Plex Sans Thai (Inter, the body pairing, has no Thai glyphs). */}
               <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: thaiStack, fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
                 นักลงทุนสัมพันธ์
               </p>
-              <p className="text-body text-ir-t2 leading-relaxed mt-1.5">
+              <p className="text-body text-ir-t2 leading-relaxed mt-1.5" style={{ fontFamily: thaiStack, fontWeight: 400 }}>
                 มุ่งมั่นสร้างการเติบโตอย่างยั่งยืน ด้วยข้อมูลที่โปร่งใสและเชื่อถือได้สำหรับผู้ถือหุ้นทุกท่าน
               </p>
               {/* A specimen of the button style, not a control — so not a <button>. */}
               <span
                 className="inline-block mt-3 text-small font-semibold px-4 py-2 rounded-full"
-                style={{ background: primary, color: isLightHex(primary) ? "#151823" : "#fff" }}
+                style={{ background: primary, color: isLightHex(primary) ? "#151823" : "#fff", fontFamily: thaiStack }}
               >
                 รายละเอียดเพิ่มเติม
               </span>
@@ -3049,8 +3060,8 @@ function ConceptBoard({ draft }: { draft: any }) {
             <div className="grid grid-cols-2 gap-2.5">
               {TYPE_SPECIMEN_STATS.map((s) => (
                 <div key={s.label} className="rounded-md bg-ir-bg border border-ir-border px-3 py-2.5">
-                  <p className="text-title text-ir-t1 leading-none" style={{ fontFamily: fontStack(pairing.heading), fontWeight: 700 }}>{s.value}</p>
-                  <p className="text-small text-ir-t3 mt-1 leading-snug">{s.label}</p>
+                  <p className="text-title text-ir-t1 leading-none" style={{ fontFamily: thaiStack, fontWeight: 700 }}>{s.value}</p>
+                  <p className="text-small text-ir-t3 mt-1 leading-snug" style={{ fontFamily: thaiStack }}>{s.label}</p>
                 </div>
               ))}
             </div>

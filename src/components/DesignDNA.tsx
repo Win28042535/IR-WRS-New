@@ -68,7 +68,8 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
   // only exist if they were captured earlier; otherwise the card says so instead of showing
   // the Direction palette as if it were theirs.
   const keepOwn = req.hasCorporateIdentity === "yes";
-  const own = keepOwn && (req.brandColors?.length ?? 0) > 0;
+  // with a current website the colours come from the site (step 1 hides the colour inputs)
+  const own = keepOwn && !(req.website ?? "").trim() && (req.brandColors?.length ?? 0) > 0;
   const ownColors = own ? [req.brandPrimary, ...req.brandColors!.filter((c) => c !== req.brandPrimary)].filter(Boolean).slice(0, 5) as string[] : [];
   const roles = ["หลัก", "เน้น", "พื้น"];
 
@@ -138,12 +139,13 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
 
         {/* type */}
         <Block label="ตัวอักษร">
-          <p className="text-display-sm leading-none text-ir-t1" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>
-            Aa <span style={{ fontFamily: thai.source === "selected" ? familyStack(thai.family) : fontStack(thai.family) }}>กข</span>
+          {/* one main font, the same face the board's Typography shows */}
+          <p className="text-display-sm leading-none text-ir-t1" style={{ fontFamily: thai.source === "selected" ? familyStack(thai.family) : fontStack(thai.family), fontWeight: 700 }}>
+            กข Aa
           </p>
-          <p className="mt-2 text-small font-semibold text-ir-t1">{pair.heading} + {thai.family}</p>
+          <p className="mt-2 text-small font-semibold text-ir-t1">{thai.source === "website" ? SOURCE_LABEL.website : thai.family}</p>
           <p className="mt-0.5 text-caption leading-snug text-ir-t3">
-            {thai.source === "team" ? pair.note : thai.source === "selected" ? `ฟอนต์ภาษาไทย: ${SOURCE_LABEL.selected}` : `${SOURCE_LABEL.website} · ตัวอย่างนี้เป็นฟอนต์ที่ทีมแนะนำไว้ก่อน`}
+            {thai.source === "website" ? `ตัวอย่างนี้แสดงด้วย ${thai.family} ไปก่อน` : `ฟอนต์หลัก · ${SOURCE_LABEL[thai.source]}`}
           </p>
           {(req.brandFonts?.length ?? 0) > 0 && <p className="mt-1.5 text-caption text-ir-t2">ฟอนต์บนเว็บไซต์เดิม: {req.brandFonts!.join(", ")}</p>}
         </Block>

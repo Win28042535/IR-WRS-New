@@ -39,16 +39,20 @@ const isLight = (hex: string) => {
 };
 
 // ── Step 5 block ──────────────────────────────────────────────────────────────────────
-// inlineUrl=false: the page already has the website field (step 1, #website-field), so a
-// missing URL points back up to it instead of opening a second input bound to the same value.
-export function FontChoice({ draft, updateDraft, dir, inlineUrl = true }: { draft: Requirement; updateDraft: (p: Partial<Requirement>) => void; dir?: Direction | null; inlineUrl?: boolean }) {
+// "ใช้ฟอนต์จากเว็บไซต์เดิม" needs a current website (step 1's field, just above): without one
+// the card is disabled, and clearing the URL later drops the choice back to the team's pick.
+export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; updateDraft: (p: Partial<Requirement>) => void; dir?: Direction | null }) {
   const team = (FONT_PAIRINGS[draft.selectedDirection ?? dir?.id] ?? DEFAULT_PAIRING).thai;
-  const mode: "team" | "website" | "selected" = draft.fontMode ?? "team";
-  const chosen = fontByFamily(draft.selectedFont);
   const website = (draft.website ?? "").trim();
+  const mode: "team" | "website" | "selected" = draft.fontMode === "website" && !website ? "team" : draft.fontMode ?? "team";
+  const chosen = fontByFamily(draft.selectedFont);
   const [sheet, setSheet] = useState<null | { family?: string }>(null);
   useGoogleFont(chosen ? previewFamily(chosen.family) : undefined, [400, 600]);
   useGoogleFont(team, [400, 600]);
+  useEffect(() => {
+    if (draft.fontMode === "website" && !website) updateDraft({ fontMode: "team" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [website, draft.fontMode]);
 
   return (
     <div className="mb-6">
@@ -70,8 +74,9 @@ export function FontChoice({ draft, updateDraft, dir, inlineUrl = true }: { draf
         <OptionCard
           icon={IconGlobe}
           title="ใช้ฟอนต์จากเว็บไซต์เดิม"
-          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : inlineUrl ? "ยังไม่มี URL · กดเพื่อกรอกที่นี่ได้เลย" : "กรอกเว็บไซต์ปัจจุบันด้านบนด้วย"}
+          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : "กรอกเว็บไซต์ปัจจุบันด้านบนก่อน จึงจะเลือกข้อนี้ได้"}
           selected={mode === "website"}
+          disabled={!website}
           onSelect={() => updateDraft({ fontMode: "website" })}
         />
         <OptionCard
@@ -80,42 +85,7 @@ export function FontChoice({ draft, updateDraft, dir, inlineUrl = true }: { draf
           desc={chosen ? <>เลือกไว้: <span style={{ fontFamily: familyStack(chosen.family) }} className="font-semibold text-ir-t1">{chosen.family}</span></> : `ดูตัวอย่างและเลือกจาก ${FONT_CATALOG.length} ฟอนต์`}
           selected={mode === "selected"}
           onSelect={() => (chosen ? updateDraft({ fontMode: "selected" }) : setSheet({}))}
-          className="max-lg:order-last"
         />
-
-      {/* "ใช้ฟอนต์จากเว็บไซต์เดิม" without a URL yet: fill it in right here instead of
-          sending them back to step 1. It writes the same `website` field step 1 uses.
-          Phones and tablets stack the cards, so this follows the website card directly (the third card
-          moves after it); lg+ (three across) puts it under the whole row. */}
-      {mode === "website" && !inlineUrl && !website && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-ir-border bg-ir-card px-4 py-3 lg:order-last lg:col-span-3">
-          <p className="min-w-0 flex-1 text-small text-ir-t2">ทีมต้องใช้ URL เว็บไซต์ปัจจุบันเพื่อดูฟอนต์ กรอกในช่อง “เว็บไซต์ปัจจุบัน” ด้านบน</p>
-          <button type="button" onClick={() => { const el = document.getElementById("website-field"); el?.scrollIntoView({ block: "center", behavior: "smooth" }); (el as HTMLInputElement | null)?.focus({ preventScroll: true }); }}
-            className="inline-flex h-10 shrink-0 items-center rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-colors hover:bg-neutral-800 focus-ring">
-            ไปที่ช่องเว็บไซต์
-          </button>
-        </div>
-      )}
-      {mode === "website" && inlineUrl && (
-        <div className="rounded-xl border border-ir-border bg-ir-card p-4 lg:order-last lg:col-span-3">
-          <label htmlFor="font-website-url" className="text-body font-semibold text-ir-t1">URL เว็บไซต์ปัจจุบัน</label>
-          <p className="mt-0.5 text-small text-ir-t3">ทีมจะดูฟอนต์จากเว็บไซต์นี้ · ช่องนี้เป็นช่องเดียวกับในขั้นที่ 1</p>
-          <div className="relative mt-2.5">
-            <IconGlobe width={18} height={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3" aria-hidden />
-            <input
-              id="font-website-url"
-              type="url"
-              inputMode="url"
-              autoFocus={!website}
-              value={draft.website ?? ""}
-              onChange={(e) => updateDraft({ website: e.target.value })}
-              placeholder="https://www.irplus.in.th"
-              className="w-full rounded-md border border-ir-border py-3 pl-10 pr-4 text-body outline-none transition-colors focus:border-ir-accent"
-            />
-          </div>
-          {!website && <p className="mt-2 text-small text-ir-t3">ยังไม่ได้กรอก หากไม่มีเว็บไซต์เดิม เลือก «ให้ทีมแนะนำ» แทนได้</p>}
-        </div>
-      )}
       </div>
 
       {mode === "selected" && chosen && (
