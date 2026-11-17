@@ -146,7 +146,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Homepage order as a wireframe */}
-        <Tile label="โครงหน้าแรก" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
+        <Tile label="โครงหน้าแรก · AI จัดให้" step={4} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
           <ol className="grid gap-1">
             {SAMPLE_SECTIONS.map((s, j) => (
               <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-sm px-2 text-small font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
@@ -184,6 +184,11 @@ function MockUnderstand() {
         <Chip on t={3}>{IR_AUDIENCES[1].label}</Chip>
         <Chip>{IR_AUDIENCES[0].label}</Chip>
       </div>
+      {/* brand look sits in step 1 now: their own colours + font */}
+      <div className="sg-a mt-3 flex items-center gap-1.5 rounded-full border border-ir-border bg-white py-1 pl-1 pr-3" style={v({ t: 4 })}>
+        {["#E31E24", "#1B1B1B", "#FFFFFF"].map((c) => <span key={c} className="h-5 w-5 rounded-full ring-1 ring-inset ring-black/10" style={{ background: c }} />)}
+        <span className="ml-1 text-caption font-medium text-ir-t2">สีแบรนด์ · ฟอนต์</span>
+      </div>
     </Frame>
   );
 }
@@ -216,6 +221,8 @@ function MockExplore() {
           </div>
         ))}
       </div>
+      {/* pick first, then next — the flow no longer jumps on tap */}
+      <div className="sg-press mt-3 rounded-full bg-ir-dark px-4 py-1.5 text-caption font-semibold text-white" style={v({ t: 2 })}>ข้อถัดไป →</div>
     </Frame>
   );
 }
@@ -223,15 +230,19 @@ function MockStructure() {
   const rows = SAMPLE_SECTIONS.slice(0, 3);
   return (
     <Frame>
+      <p className="mb-1.5 inline-flex items-center gap-1.5 text-caption font-semibold text-ir-t1">
+        <span className="ir-grad-fill grid h-5 w-5 place-items-center rounded-full text-[11px] text-ir-on-accent">✦</span>หน้าแรกที่ AI จัดให้
+      </p>
       <div className="grid w-full max-w-[220px] gap-1.5">
         {rows.map((r, i) => (
           // Row 2 is dragged up past row 3, which drops back into place.
-          <div key={r} className={`flex items-center gap-2 rounded-sm border border-ir-border bg-white px-3 py-2 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-e2" : i === 2 ? "sg-drop" : ""}`}>
+          <div key={r} className={`flex items-center gap-2 rounded-sm border border-ir-border bg-white px-3 py-1.5 ${i === 1 ? "sg-drag relative z-10 translate-x-1 shadow-e2" : i === 2 ? "sg-drop" : ""}`}>
             <span className="text-[12px] leading-none text-ir-t3">⋮⋮</span>
             <span className="truncate text-caption font-medium text-ir-t1">{r}</span>
           </div>
         ))}
       </div>
+      <div className="sg-press mt-2 rounded-full bg-ir-dark px-4 py-1 text-caption font-semibold text-white" style={v({ t: 2 })}>ใช้หน้าแรกนี้</div>
     </Frame>
   );
 }
@@ -246,6 +257,7 @@ function MockInspire() {
           </div>
         ))}
       </div>
+      <div className="mt-3 rounded-full border border-ir-border bg-white px-4 py-1.5 text-caption font-semibold text-ir-t2">ไม่มี? ข้ามขั้นนี้ได้</div>
     </Frame>
   );
 }
@@ -266,11 +278,11 @@ function MockDeliver() {
 }
 
 const STEPS_INFO: { mock: () => ReactNode; todo: string; how: string; optional?: boolean }[] = [
-  { mock: MockUnderstand, todo: "บอกชื่อบริษัทและกลุ่มนักลงทุนหลัก", how: "พิมพ์ + เลือก" },
+  { mock: MockUnderstand, todo: "บอกชื่อบริษัท กลุ่มนักลงทุนหลัก สีและฟอนต์ของแบรนด์", how: "พิมพ์ + เลือก" },
   { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ต้องทำได้", how: "เลือกจากรายการ" },
-  { mock: MockExplore, todo: "ตอบ 5 ข้อ ด้วยการเลือกภาพ A หรือ B", how: "เลือกจากภาพ" },
-  { mock: MockStructure, todo: "ปรับโครงหน้าแรกที่ระบบจัดให้", how: "ระบบจัดให้ก่อน" },
-  { mock: MockInspire, todo: "แนบเว็บที่ชอบ ถ้ามี", how: "ไม่บังคับ", optional: true },
+  { mock: MockExplore, todo: "ตอบ 5 ข้อ เลือกภาพ A หรือ B แล้วกดข้อถัดไป", how: "เลือกจากภาพ" },
+  { mock: MockStructure, todo: "ตรวจหน้าแรกที่ AI จัดให้ กดใช้ได้เลย หรือปรับก่อน", how: "AI จัดให้" },
+  { mock: MockInspire, todo: "แนบเว็บหรือรูปที่ชอบ ถ้ามี", how: "ข้ามได้", optional: true },
   { mock: MockDeliver, todo: "ตรวจภาพรวม แล้วกดส่ง", how: "ตรวจ + ส่ง" },
 ];
 
@@ -444,7 +456,7 @@ export function BriefFlow() {
       body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
     { name: FLOW_STEPS[2], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
       body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-sm border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
-    { name: FLOW_STEPS[3], q: "เรียงเนื้อหาบนหน้าแรก", token: `${SAMPLE_SECTIONS.length} Section`,
+    { name: FLOW_STEPS[3], q: "ตรวจหน้าแรกที่ AI จัดให้", token: `${SAMPLE_SECTIONS.length} Section`,
       body: <div className="flex flex-wrap gap-1">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div> },
   ];
 

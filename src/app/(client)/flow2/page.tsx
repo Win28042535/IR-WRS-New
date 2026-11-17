@@ -10,9 +10,10 @@ import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternal
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
 import { DesignDNACard } from "@/components/DesignDNA";
-import { StructureBuilder, STRUCTURE_MIN_OPTIONAL } from "@/components/StructureBuilder";
+import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { FontChoice } from "@/components/FontPicker";
+import { BrandColorInput } from "@/components/BrandColors";
 import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
@@ -620,6 +621,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           <div className="relative mt-2">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ir-t3 text-lead select-none">🌐</span>
             <input
+              id="website-field"
               aria-label="เว็บไซต์ปัจจุบัน"
               value={draft.website ?? ""}
               onChange={(e) => updateDraft({ website: e.target.value })}
@@ -673,6 +675,14 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         </div>
         {/* Recommendation, under the choices */}
         <p className="mt-3 text-small leading-relaxed text-ir-t3">หากบริษัทมีสีประจำแบรนด์ที่ใช้มาอย่างต่อเนื่องและเป็นที่จดจำ เราแนะนำให้เลือก «ใช้ชุดสีเดิม» เพื่อให้เว็บไซต์ใหม่ยังคงเอกลักษณ์ของแบรนด์</p>
+        {/* their real colours, so the summary shows their brand, not the Direction's palette */}
+        {draft.hasCorporateIdentity === "yes" && <BrandColorInput draft={draft} updateDraft={updateDraft} />}
+      </div>
+
+      {/* Font — sits with the CI question (brand look in one place). It used to live at the
+          bottom of the optional Inspiration step, where user test #1 never saw it. */}
+      <div className="mt-6">
+        <FontChoice draft={draft} updateDraft={updateDraft} dir={directionById(draft.selectedDirection)} inlineUrl={false} />
       </div>
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
@@ -803,17 +813,23 @@ const LetterBadge = ({ letter }: { letter: string }) => (
 // ── S2 Smart Discovery Quiz (A/B) ──
 function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebookEntry, quizIdx }: any) {
   const opts: [QuizOption, string][] = [[q.optionA, "A"], [q.optionB, "B"]];
-  const [pending, setPending] = useState<string | null>(null);
+  // Pick first, then "ข้อถัดไป" (user test #1: auto-advancing on tap left them unsure what
+  // happened — they tapped A and B, then scrolled looking for a next button). The pick is
+  // keyed to the question so it resets when the question changes.
+  const [chosen, setChosen] = useState<{ q: string; letter: string } | null>(null);
+  const pending = chosen && chosen.q === q.id ? chosen.letter : null;
   // Phones only: the two-up mocks are ~150px wide each, too small to read the details that
   // tell A from B. "ดูภาพใหญ่" shows both full width, stacked, right under the cards —
   // inline, no modal, and it stays open across questions once opened.
   const [bigView, setBigView] = useState(false);
-  const pendingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const isLast = idx === total - 1;
 
-  const selectOption = (o: QuizOption, letter: string) => {
-    if (pending) return;
-    setPending(letter);
-    if (idx === total - 1) {
+  const selectOption = (_o: QuizOption, letter: string) => setChosen({ q: q.id, letter });
+  const confirm = () => {
+    const pair = opts.find(([, l]) => l === pending);
+    if (!pair) return;
+    const [o] = pair;
+    if (isLast) {
       addTimelineEntry?.({
         step: 2, type: "quiz",
         decision: o.label,
@@ -826,13 +842,9 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         tags: ["design-profile", "quiz", o.label.toLowerCase().replace(/\s+/g, "-")],
       });
     }
-    pendingTimer.current = setTimeout(() => {
-      setPending(null);
-      onAnswer(o);
-    }, 220);
+    setChosen(null);
+    onAnswer(o);
   };
-
-  useEffect(() => () => clearTimeout(pendingTimer.current), []);
 
   const g = useGuide("design");
 
@@ -874,15 +886,16 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           them pushed B below the fold and biased answers toward A. */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
         {opts.map(([o, letter]) => (
-          <button key={letter} onClick={() => selectOption(o, letter)} disabled={!!pending}
+          <button key={letter} type="button" onClick={() => selectOption(o, letter)}
+            aria-pressed={pending === letter}
             aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
             className={[
               "group/sel relative rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-fast focus-ring",
               pending === letter
-                ? "wrs-quiz-selected border-ir-select bg-primary-50"
+                ? "wrs-quiz-selected border-ir-select bg-primary-50 shadow-selected"
                 : pending
-                // The other option recedes (desaturated) while the pick settles.
-                ? "border-ir-border bg-ir-card opacity-60 grayscale-[0.5] cursor-default"
+                // The other option recedes, but stays tappable to switch.
+                ? "border-ir-border bg-ir-card opacity-70 hover:opacity-100 hover:border-ir-select-soft"
                 : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-e2 active:scale-[0.98]",
             ].join(" ")}>
             <QuizVisual mock={o.mock} />
@@ -894,6 +907,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <span className="w-full min-w-0 text-body sm:w-auto sm:flex-1 sm:text-lead font-semibold text-ir-t1 leading-snug">{o.label}</span>
                 <SelectDot on={pending === letter} className="hidden sm:grid" />
               </div>
+              {pending === letter && <span className="mt-1.5 inline-flex items-center gap-1 text-small font-semibold text-ir-accent-text sm:hidden">✓ เลือกแล้ว</span>}
               <div className="text-body text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
           </button>
@@ -916,19 +930,20 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <button
                   type="button"
                   onClick={() => selectOption(o, letter)}
-                  disabled={!!pending}
-                  className="mt-2 w-full min-h-12 rounded-full bg-ir-dark text-body font-semibold text-white transition-[scale] active:scale-[0.98] disabled:opacity-60"
+                  aria-pressed={pending === letter}
+                  className={`mt-2 w-full min-h-12 rounded-full text-body font-semibold transition-[scale] active:scale-[0.98] ${pending === letter ? "bg-ir-accent-soft text-ir-t1" : "bg-ir-dark text-white"}`}
                 >
-                  เลือก {letter} แบบนี้
+                  {pending === letter ? `✓ เลือก ${letter} แล้ว` : `เลือก ${letter} แบบนี้`}
                 </button>
               </figure>
             ))}
           </div>
         )}
       </div>
-      <div className="flex justify-center mt-6">
-        <BackButton onClick={onBack}>ย้อนกลับ</BackButton>
-      </div>
+      <p className="mt-4 text-center text-small text-ir-t3" aria-live="polite">
+        {pending ? `เลือก ${pending} แล้ว · กด${isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}เพื่อไปต่อ หรือกดอีกภาพเพื่อเปลี่ยน` : "เลือกภาพที่ใกล้กับเว็บไซต์ที่อยากได้มากกว่า"}
+      </p>
+      <StepNav onBack={onBack} next={<NextButton onClick={confirm} disabled={!pending}>{isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}</NextButton>} />
     </>
   );
 }
@@ -1383,7 +1398,7 @@ function S4Structure({ go, draft, updateDraft }: any) {
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
       </div>
-      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>ถัดไป</NextButton>} />
+      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
     </>
   );
 }
@@ -2617,8 +2632,13 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="ขั้นตอนนี้เป็นทางเลือกเสริม ไม่จำเป็นต้องทำก็ได้ เลือกวิธีที่สะดวก หรือข้ามไปเลยก็ได้"
+        sub="แนบเว็บไซต์หรือรูปที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
       />
+      {/* User test #1 read "ไม่บังคับ" in the subtitle but still thought they couldn't move on. */}
+      <div className="-mt-2 mb-5 inline-flex items-center gap-2 rounded-full border border-ir-select-soft bg-primary-50 py-1 pl-1 pr-3.5 text-small font-semibold text-ir-t1">
+        <span className="rounded-full bg-ir-dark px-2.5 py-0.5 text-caption text-white">ข้ามได้</span>
+        ขั้นนี้ไม่บังคับ กด “ข้ามขั้นนี้” ด้านล่างได้ทันที
+      </div>
 
       <ReferenceModePicker mode={mode} setMode={setMode} hasCustom={hasCustom} hasCurated={hasCurated} />
 
@@ -2636,12 +2656,9 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         </div>
       )}
 
-      <SectionDivider />
-      <FontChoice draft={draft} updateDraft={updateDraft} dir={dir} />
-
       <StepNav
         onBack={() => go(4)}
-        next={<NextButton onClick={() => go(6)}>ถัดไป</NextButton>}
+        next={<NextButton onClick={() => go(6)}>{hasCustom || hasCurated ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
       />
     </div>
   );
@@ -2755,10 +2772,22 @@ function ConceptBoard({ draft }: { draft: any }) {
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;
-  const swatches = namedPalette(dir);
+  // "ใช้ชุดสีเดิม": their own colours from step 1 drive the whole board. Without codes, the
+  // board says the team will take them from the site/logo instead of passing the
+  // Direction's palette off as theirs (user test #1: BTS is red, the board showed navy & gold).
+  const keepOwn = draft.hasCorporateIdentity === "yes";
+  const own: string[] = keepOwn ? ((draft.brandColors as string[] | undefined) ?? []).filter(Boolean) : [];
+  const ownPending = keepOwn && own.length === 0;
+  const swatches = own.length
+    ? own.map((hex, i) => ({ hex: hex.toUpperCase(), name: ["สีหลัก", "สีรอง", "สีเสริม"][i] ?? `สี ${i + 1}`, main: i === 0 }))
+    : namedPalette(dir);
   const primary = swatches[0]?.hex ?? "#151823";
-  const accent = swatches[1]?.hex ?? "#BCC416";
-  const surface = swatches[2]?.hex ?? "#FFFFFF";
+  const accent = own.length ? (own[1] ?? own[0]).toUpperCase() : swatches[1]?.hex ?? "#BCC416";
+  const surface = own.length ? (own[2] && isLightHex(own[2]) ? own[2].toUpperCase() : "#FFFFFF") : swatches[2]?.hex ?? "#FFFFFF";
+  const moodBg = own.length
+    ? `linear-gradient(135deg, ${primary}, color-mix(in srgb, ${primary} 70%, #000))`
+    : ownPending ? "linear-gradient(135deg,#151823,#33383F)" : dir?.bg ?? primary;
+  const moodInk = own.length && isLightHex(primary) ? "#151823" : "#fff";
   const ink = NEUTRAL_RAMP[6];
   const muted = NEUTRAL_RAMP[3];
   // Five colours, each with the job it does on the site — so the palette reads as a plan
@@ -2851,7 +2880,7 @@ function ConceptBoard({ draft }: { draft: any }) {
               chose "สว่าง" (Light), so the board matches the tone they asked for. */}
           <div
             className={`sm:col-span-5 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
-            style={prefersLight ? { minHeight: 120 } : { background: dir?.bg ?? primary, color: "#fff", minHeight: 120 }}
+            style={prefersLight ? { minHeight: 120 } : { background: moodBg, color: moodInk, minHeight: 120 }}
           >
             <span className={`text-small font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
               Mood · {prefersLight ? "Light" : "Dark"}
@@ -2865,15 +2894,33 @@ function ConceptBoard({ draft }: { draft: any }) {
               )}
             </div>
             {dir?.tagline && <span className={`text-body leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
-            <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
-              {swatches.map((s) => <span key={s.hex} className={`w-5 h-5 rounded-full ring-1 ${prefersLight ? "ring-black/10" : "ring-white/40"}`} style={{ background: s.hex }} />)}
-            </div>
+            {!ownPending && (
+              <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
+                {swatches.map((s) => <span key={s.hex} className={`w-5 h-5 rounded-full ring-1 ${prefersLight ? "ring-black/10" : "ring-white/40"}`} style={{ background: s.hex }} />)}
+              </div>
+            )}
           </div>
         </div>
 
         {/* ── Colors — each swatch with its job, the 60/30/10 mix, then the palette applied to
             a small IR page (like the Typography specimen) plus a readability check. ── */}
-        <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">Colors</span><div className="flex-1 h-px bg-ir-border" /></div>
+        <div className={sectionRule}>
+          <span className="text-lead font-semibold text-ir-t1">Colors</span>
+          <span className="text-small text-ir-t3 shrink-0">{keepOwn ? "ชุดสีเดิมของแบรนด์" : `ชุดสีตามแนวทาง · ${dir?.palette ?? ""}`}</span>
+          <div className="flex-1 h-px bg-ir-border" />
+        </div>
+        {ownPending ? (
+          <div className="sc-reveal flex items-start gap-3 rounded-lg border border-ir-border p-4 md:p-5">
+            <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-ir-accent-soft text-lead">🎨</span>
+            <div className="min-w-0">
+              <p className="text-body font-semibold text-ir-t1">ใช้ชุดสีเดิมของแบรนด์</p>
+              <p className="mt-0.5 text-small leading-relaxed text-ir-t2">
+                ทีมจะใช้สีจาก{draft.website?.trim() ? <> เว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> และ</> : ""}โลโก้ปัจจุบันของคุณ
+                · ถ้าทราบรหัสสี ใส่ได้ที่ขั้น “ทำความเข้าใจ” แล้วหน้านี้จะแสดงตัวอย่างด้วยสีจริงของคุณ
+              </p>
+            </div>
+          </div>
+        ) : (
         <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
           {/* phones: a compact list (swatch left, role right); sm+: five swatch cards */}
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-2.5">
@@ -2955,6 +3002,7 @@ function ConceptBoard({ draft }: { draft: any }) {
             </div>
           </div>
         </div>
+        )}
 
         {/* ── Typography — font pairing + description, then a real-content specimen
             (headline/body/CTA + numeral-heavy stat tiles) so the choice reads as how it

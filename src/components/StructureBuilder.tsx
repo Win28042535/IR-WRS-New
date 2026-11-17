@@ -13,7 +13,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-  GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, TRAILING_REQUIRED_IDS,
+  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, TRAILING_REQUIRED_IDS,
   audienceById, directionById, sectionById,
 } from "@/lib/data";
 import { profileToDirection, rankDirections } from "@/lib/recommend";
@@ -30,6 +30,44 @@ const FLIGHT_MS = 560;
 const REC_MAX = Math.min(5, MAX_OPT);
 
 type Flight = { key: number; from: DOMRect; to: DOMRect; n: number; title: string };
+
+// ── What to recommend: goals first, then what the primary audience looks for, then the
+// Direction's own sections; ordered for the page by what the audiences need first. Each
+// pick carries a short reason, so the client can see the AI's proposal is about *them*
+// (user test #1: they never noticed there was a recommendation at all).
+export function homepageRecommendation(draft: Requirement): { list: string[]; reasons: Record<string, string> } {
+  const aud = audienceById(draft.primaryAudience ?? "");
+  const goalIds: string[] = draft.businessGoals ?? [];
+  const goalSuggested: string[] = goalIds.flatMap((g) => GOAL_SECTIONS[g] ?? []);
+  const dir = directionById(draft.selectedDirection);
+  const dirSuggested: string[] = dir?.sections ?? [];
+  const audienceOrder: string[] = [draft.primaryAudience ?? "", ...(draft.secondaryAudiences ?? [])].flatMap((a: string) => audienceById(a)?.prioritizes ?? []);
+  const pageRank = (id: string) => {
+    const a = audienceOrder.indexOf(id);
+    if (a >= 0) return a;
+    const g = goalSuggested.indexOf(id);
+    if (g >= 0) return 100 + g;
+    return 200 + SECTIONS.findIndex((s) => s.id === id);
+  };
+  const pool = [...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && sectionById(id));
+  // Only the top few — tagging every candidate (9–10) read as "pick all of these".
+  const list = [...new Set(pool)].sort((a, b) => pageRank(a) - pageRank(b)).slice(0, REC_MAX);
+  const reasons: Record<string, string> = {};
+  for (const id of list) {
+    const goal = goalIds.find((g) => (GOAL_SECTIONS[g] ?? []).includes(id));
+    if (aud?.prioritizes?.includes(id)) reasons[id] = `ผู้อ่านหลักคือ ${aud.label}`;
+    else if (goal) reasons[id] = `ตอบเป้าหมาย “${BUSINESS_GOALS.find((b) => b.id === goal)?.label ?? goal}”`;
+    else if (dir) reasons[id] = `เข้ากับแนวทาง ${dir.label}`;
+  }
+  return { list, reasons };
+}
+/** The outline is still exactly the recommended set, in the recommended order. */
+export function isRecommendedHomepage(draft: Requirement) {
+  const list = homepageRecommendation(draft).list;
+  const optional = (draft.selectedSections ?? []).filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id));
+  return list.length > 0 && list.length === optional.length && list.every((id, i) => optional[i] === id);
+}
 
 export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; updateDraft: (p: Partial<Requirement>) => void }) {
   // The Direction is picked from the answers; make sure one is set even if Explore was skipped.
@@ -49,27 +87,11 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   const full = optional.length >= MAX_OPT;
   const commit = (next: string[]) => updateDraft({ selectedSections: [...LEADING_REQUIRED_IDS, ...next, ...TRAILING_REQUIRED_IDS] });
 
-  // ── What to recommend: goals first, then what the primary audience looks for, then the
-  // Direction's own sections; ordered for the page by what the audiences need first.
-  const aud = audienceById(draft.primaryAudience ?? "");
-  const goalSuggested: string[] = (draft.businessGoals ?? []).flatMap((g: string) => GOAL_SECTIONS[g] ?? []);
-  const dirSuggested: string[] = directionById(draft.selectedDirection)?.sections ?? [];
-  const audienceOrder: string[] = [draft.primaryAudience ?? "", ...(draft.secondaryAudiences ?? [])].flatMap((a: string) => audienceById(a)?.prioritizes ?? []);
-  const pageRank = (id: string) => {
-    const a = audienceOrder.indexOf(id);
-    if (a >= 0) return a;
-    const g = goalSuggested.indexOf(id);
-    if (g >= 0) return 100 + g;
-    return 200 + SECTIONS.findIndex((s) => s.id === id);
-  };
-  const pool = [...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]
-    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && sectionById(id));
-  // Only the top few carry "แนะนำ" — tagging every candidate (9–10) read as "pick all of these".
-  const recList = [...new Set(pool)].sort((a, b) => pageRank(a) - pageRank(b)).slice(0, REC_MAX);
+  const { list: recList, reasons } = homepageRecommendation(draft);
   const recSet = new Set(recList);
   const otherSources = SECTIONS.map((s) => s.id)
     .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !recSet.has(id));
-  const isRecommended = recList.length > 0 && recList.length === optional.length && recList.every((id, i) => optional[i] === id);
+  const isRecommended = isRecommendedHomepage(draft);
 
   // First visit: start from the recommended homepage instead of an empty outline, so the
   // client edits a proposal rather than building it piece by piece. Done once per draft
@@ -203,17 +225,23 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
   return (
     <div>
-      {/* recommendation note — the outline is already filled with the recommended set */}
-      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-ir-sunken px-3 py-2.5">
-        <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ir-accent text-small text-ir-on-accent">✦</span>
-        <p className="min-w-0 flex-1 text-small leading-snug text-ir-t2">
-          <span className="font-semibold text-ir-t1">{isRecommended ? "จัดไว้ให้ตามที่แนะนำแล้ว" : "คุณปรับจากที่แนะนำแล้ว"}</span>
-          {" "}· อิงจากกลุ่มเป้าหมายและเป้าหมายของคุณ เพิ่ม ลบ หรือลากสลับลำดับได้
-        </p>
+      {/* AI panel — the outline is already the AI's proposal; say so loudly enough to be
+          noticed (user test #1 never saw the old quiet hint), and treat it as a template
+          they accept ("ใช้หน้าแรกนี้" on the step's next button) or adjust. */}
+      <div className={`mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-xl border px-4 py-3.5 ${isRecommended ? "border-ir-select-soft bg-primary-50" : "border-ir-border bg-ir-sunken"}`}>
+        <span aria-hidden="true" className="ir-grad-fill grid h-10 w-10 shrink-0 place-items-center rounded-full text-body text-ir-on-accent">✦</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-lead font-semibold leading-snug text-ir-t1">{isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : "คุณปรับจากที่ AI จัดให้แล้ว"}</p>
+          <p className="mt-0.5 text-small leading-snug text-ir-t2">
+            {isRecommended
+              ? `${recList.length} ส่วน เลือกจากกลุ่มเป้าหมายและเป้าหมายที่คุณเรียงไว้ · ถ้าเห็นด้วย กด “ใช้หน้าแรกนี้” ได้เลย หรือเพิ่ม ลบ ลากสลับก่อนก็ได้`
+              : "ปรับต่อได้ตามต้องการ หรือกลับไปใช้ชุดที่ AI จัดให้"}
+          </p>
+        </div>
         {!isRecommended && recList.length > 0 && (
           <button type="button" onClick={resetToRec}
-            className="inline-flex h-10 shrink-0 items-center rounded-full border border-ir-border bg-white px-3.5 text-caption font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
-            กลับไปใช้ค่าแนะนำ
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-ir-border bg-white px-3.5 text-caption font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
+            ✦ กลับไปใช้ที่ AI จัดให้
           </button>
         )}
       </div>
@@ -222,7 +250,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
         {/* sources — the few recommended first, everything else under "เพิ่มได้" */}
         <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2">
           {([
-            { label: "แนะนำสำหรับคุณ", ids: recList },
+            { label: "✦ AI แนะนำสำหรับคุณ", ids: recList },
             { label: "เพิ่มได้", ids: otherSources },
           ]).filter((g) => g.ids.length > 0).map((g, gi) => (
             <div key={g.label} className={`grid grid-cols-[minmax(0,1fr)] gap-2 ${gi > 0 ? "mt-3" : ""}`}>
@@ -244,7 +272,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                       used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
                     }`}
                   >
-                    <span className="min-w-0 flex-1 truncate font-semibold text-ir-t1">{shortName(id)}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-ir-t1">{shortName(id)}</span>
+                      {reasons[id] && <span className="mt-0.5 block truncate text-caption text-ir-t3">{reasons[id]}</span>}
+                    </span>
                     <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-body font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
                   </button>
                 );
@@ -355,7 +386,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
           rows={3}
           value={draft.structureNote ?? ""}
           onChange={(e) => updateDraft({ structureNote: e.target.value })}
-          placeholder="เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ"
+          placeholder="รายละเอียดเพิ่มเติม เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ"
           className="mt-2 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-3 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
         />
       </div>

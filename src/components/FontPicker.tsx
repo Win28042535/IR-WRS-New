@@ -39,7 +39,9 @@ const isLight = (hex: string) => {
 };
 
 // ── Step 5 block ──────────────────────────────────────────────────────────────────────
-export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; updateDraft: (p: Partial<Requirement>) => void; dir?: Direction | null }) {
+// inlineUrl=false: the page already has the website field (step 1, #website-field), so a
+// missing URL points back up to it instead of opening a second input bound to the same value.
+export function FontChoice({ draft, updateDraft, dir, inlineUrl = true }: { draft: Requirement; updateDraft: (p: Partial<Requirement>) => void; dir?: Direction | null; inlineUrl?: boolean }) {
   const team = (FONT_PAIRINGS[draft.selectedDirection ?? dir?.id] ?? DEFAULT_PAIRING).thai;
   const mode: "team" | "website" | "selected" = draft.fontMode ?? "team";
   const chosen = fontByFamily(draft.selectedFont);
@@ -59,14 +61,16 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
         <OptionCard
           icon={IconUsers}
           title="ให้ทีมแนะนำ"
-          desc={<>ใช้ <span style={{ fontFamily: familyStack(team) }} className="font-semibold text-ir-t1">{team}</span> ตามแนวทาง{dir ? ` ${dir.label}` : ""}</>}
+          desc={dir
+            ? <>ใช้ <span style={{ fontFamily: familyStack(team) }} className="font-semibold text-ir-t1">{team}</span> ตามแนวทาง {dir.label}</>
+            : "ทีมเลือกให้เข้ากับแนวทางที่ได้จากขั้นสำรวจแนวทาง"}
           selected={mode === "team"}
           onSelect={() => updateDraft({ fontMode: "team" })}
         />
         <OptionCard
           icon={IconGlobe}
           title="ใช้ฟอนต์จากเว็บไซต์เดิม"
-          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : "ยังไม่มี URL · กดเพื่อกรอกที่นี่ได้เลย"}
+          desc={website ? `ทีมจะดูจาก ${website.replace(/^https?:\/\//, "")}` : inlineUrl ? "ยังไม่มี URL · กดเพื่อกรอกที่นี่ได้เลย" : "กรอกเว็บไซต์ปัจจุบันด้านบนด้วย"}
           selected={mode === "website"}
           onSelect={() => updateDraft({ fontMode: "website" })}
         />
@@ -83,7 +87,16 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
           sending them back to step 1. It writes the same `website` field step 1 uses.
           Phones and tablets stack the cards, so this follows the website card directly (the third card
           moves after it); lg+ (three across) puts it under the whole row. */}
-      {mode === "website" && (
+      {mode === "website" && !inlineUrl && !website && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-ir-border bg-ir-card px-4 py-3 lg:order-last lg:col-span-3">
+          <p className="min-w-0 flex-1 text-small text-ir-t2">ทีมต้องใช้ URL เว็บไซต์ปัจจุบันเพื่อดูฟอนต์ กรอกในช่อง “เว็บไซต์ปัจจุบัน” ด้านบน</p>
+          <button type="button" onClick={() => { const el = document.getElementById("website-field"); el?.scrollIntoView({ block: "center", behavior: "smooth" }); (el as HTMLInputElement | null)?.focus({ preventScroll: true }); }}
+            className="inline-flex h-10 shrink-0 items-center rounded-full bg-ir-dark px-4 text-caption font-semibold text-white transition-colors hover:bg-neutral-800 focus-ring">
+            ไปที่ช่องเว็บไซต์
+          </button>
+        </div>
+      )}
+      {mode === "website" && inlineUrl && (
         <div className="rounded-xl border border-ir-border bg-ir-card p-4 lg:order-last lg:col-span-3">
           <label htmlFor="font-website-url" className="text-body font-semibold text-ir-t1">URL เว็บไซต์ปัจจุบัน</label>
           <p className="mt-0.5 text-small text-ir-t3">ทีมจะดูฟอนต์จากเว็บไซต์นี้ · ช่องนี้เป็นช่องเดียวกับในขั้นที่ 1</p>
