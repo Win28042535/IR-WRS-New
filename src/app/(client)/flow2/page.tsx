@@ -1968,6 +1968,7 @@ const URL_VALIDATION_COPY: Record<Exclude<UrlValidationState, "empty">, { label:
 };
 
 const MAX_REFERENCE_URLS = 8;
+const MAX_PDF_BYTES = 5 * 1024 * 1024;
 
 // URL thumbnail gradients cycle so a Pinterest board of link-cards doesn't look flat/uniform
 const URL_THUMB_THEMES = [
@@ -2098,12 +2099,14 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   // Recomputed every keystroke — pure parsing against the current list, no debounce needed.
   const urlValidation = useMemo(() => validateUrlInput(urlInput, urls), [urlInput, urls]);
 
-  // ── Image list state (base64 data-uri) ──
-  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[] }[]>(() =>
+  // ── Image + document list state (base64 data-uri) ── PDFs ride in the same gallery
+  // (user test BTS: "แนบได้ทั้งเอกสาร รูป และลิงก์"), stored as type "file".
+  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; kind?: "pdf" }[]>(() =>
     (draft.references ?? [])
-      .filter((r: any) => r.type === "image")
-      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes }))
+      .filter((r: any) => r.type === "image" || r.type === "file")
+      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, kind: r.type === "file" ? "pdf" as const : undefined }))
   );
+  const [uploadError, setUploadError] = useState("");
 
   // ── Per-item note ("why I picked this one") — id of the tile currently open for editing.
   // Notes are optional annotations, not a separate save step: typing updates the item (and
@@ -2168,7 +2171,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       .filter((u) => u.value.trim())
       .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined }));
     const imgItems = nextImages
-      .map((img) => ({ id: img.id, type: "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined }));
+      .map((img) => ({ id: img.id, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined }));
     updateDraft({ references: [...urlItems, ...imgItems] });
   }, [updateDraft]);
 
@@ -2267,12 +2270,16 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   // Image handlers
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
+    setUploadError("");
     Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+      if (!file.type.startsWith("image/") && !isPdf) { setUploadError(`${file.name}: รองรับเฉพาะรูปภาพและไฟล์ PDF`); return; }
+      // the demo keeps files in the browser, so documents are capped
+      if (isPdf && file.size > MAX_PDF_BYTES) { setUploadError(`${file.name}: ไฟล์ PDF ต้องไม่เกิน 5 MB`); return; }
       const reader = new FileReader();
       reader.onload = (e) => {
         const src = e.target?.result as string;
-        const newImg = { id: Math.random().toString(36).slice(2), src, name: file.name };
+        const newImg = { id: Math.random().toString(36).slice(2), src, name: file.name, ...(isPdf ? { kind: "pdf" as const } : {}) };
         // `syncToDraft` must run as a plain statement after the state updater settles, never
         // from inside the updater callback itself — calling it there updates the parent
         // draft store while React is still applying this component's own state update,
@@ -2287,9 +2294,11 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         // Floating preview (all widths) — an actual thumbnail crop of the uploaded image,
         // the clearest possible confirmation of what just got added.
         useFloatingPreview.getState().show(
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="" draggable={false} className="w-full h-full object-cover block select-none wrs-no-callout" />,
-          "เพิ่มรูปภาพแล้ว",
+          isPdf
+            ? <span className="w-full h-full grid place-items-center bg-red-50 text-[9px] font-bold text-red-700">PDF</span>
+            // eslint-disable-next-line @next/next/no-img-element
+            : <img src={src} alt="" draggable={false} className="w-full h-full object-cover block select-none wrs-no-callout" />,
+          isPdf ? "เพิ่มเอกสารแล้ว" : "เพิ่มรูปภาพแล้ว",
           file.name
         );
       };
@@ -2343,14 +2352,14 @@ function ReferenceEditor({ draft, updateDraft }: any) {
     <div>
       {/* ── AI-learning reassurance — one merged sentence (was two separate, overlapping
           descriptions split across this component and its parent section header) ── */}
-      <p className="text-body text-ir-t3 mb-5 leading-relaxed">
-        เพิ่มเว็บไซต์ วิดีโอ หรือรูปที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
+      <p className="text-body text-ir-t3 mb-4 leading-relaxed">
+        เพิ่มเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
       </p>
       {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
       <div className="-mt-2 mb-5 rounded-xl bg-ir-sunken px-4 py-3">
         <p className="text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</p>
         <ul className="mt-1.5 grid gap-1 text-small text-ir-t2 sm:grid-cols-2">
-          {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบโทนภาพ", "ภาพหน้าจอ หรือรูปจากรายงานประจำปี"].map((t) => (
+          {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบโทนภาพ", "ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (PDF)"].map((t) => (
             <li key={t} className="flex items-start gap-1.5"><span aria-hidden="true" className="text-ir-accent-text">•</span>{t}</li>
           ))}
         </ul>
@@ -2364,9 +2373,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       <div className="flex flex-col">
         {/* ── Website links — unified input+button as one control, no visual seam ── */}
         <div className="order-1 mb-4">
-          <p className="text-small font-semibold text-ir-t2 mb-2">
-            เว็บไซต์หรือวิดีโอที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
-          </p>
+          <div className="flex items-baseline gap-2">
+            <SectionLabel>เว็บไซต์หรือวิดีโอที่ชอบ</SectionLabel>
+            <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+          </div>
           <div
             className={`flex items-stretch rounded-lg border bg-ir-card overflow-hidden transition-colors ${
               {
@@ -2496,13 +2506,20 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
                     style={{ width: 72, height: 72, animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img.src}
-                      alt={img.name}
-                      draggable={false}
-                      className="w-full h-full object-cover block select-none wrs-no-callout"
-                    />
+                    {img.kind === "pdf" ? (
+                      <span className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50 px-1 text-center select-none">
+                        <span className="rounded-xs bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white">PDF</span>
+                        <span className="w-full truncate text-[8px] font-medium text-red-900">{img.name}</span>
+                      </span>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={img.src}
+                        alt={img.name}
+                        draggable={false}
+                        className="w-full h-full object-cover block select-none wrs-no-callout"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
                     <button
                       onClick={() => removeImage(img.id)}
@@ -2547,8 +2564,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                           <IconGlobe width={10} height={10} className="text-white/80" />
                         </span>
                       ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" />
+                        editingImage!.kind === "pdf"
+                          ? <span className="w-6 h-6 rounded-sm grid place-items-center shrink-0 bg-red-600 text-[8px] font-bold text-white">PDF</span>
+                          // eslint-disable-next-line @next/next/no-img-element
+                          : <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" />
                       )}
                       <span className="text-small font-medium text-ir-t2 truncate flex-1">
                         {editingUrl ? domainOf(editingUrl.value) : editingImage!.name}
@@ -2561,7 +2580,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         <IconClose width={9} height={9} />
                       </button>
                     </div>
-                    <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? "เว็บนี้" : "ภาพนี้"}?</p>
+                    <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? (isVideoUrl(editingUrl.value) ? "วิดีโอนี้" : "เว็บนี้") : editingImage!.kind === "pdf" ? "เอกสารนี้" : "ภาพนี้"}?</p>
                     <div role="group" aria-label="สิ่งที่ชอบ" className="mb-2.5 flex flex-wrap gap-1.5">
                       {REFERENCE_LIKES.map((like) => {
                         const on = (editingUrl ? editingUrl.likes : editingImage!.likes)?.includes(like) ?? false;
@@ -2599,9 +2618,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
 
         {/* ── Image upload — centered dropzone, standard upload-card pattern ── */}
         <div className="order-3 md:order-2">
-          <p className="text-small font-semibold text-ir-t2 mb-2">
-            รูปภาพที่ชอบ <span className="font-normal text-ir-t3">(ไม่บังคับ)</span>
-          </p>
+          <div className="flex items-baseline gap-2">
+            <SectionLabel>รูปภาพหรือเอกสารที่ชอบ</SectionLabel>
+            <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+          </div>
           <div
             onClick={() => fileInputRef.current?.click()}
             onDragOver={onDropZoneDragOver}
@@ -2612,11 +2632,12 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             }`}
           >
             <span className="w-10 h-10 rounded-md bg-ir-accent/10 flex items-center justify-center text-title mb-1">🖼️</span>
-            <p className="text-body font-semibold text-ir-t1">ลากรูปมาวางที่นี่</p>
+            <p className="text-body font-semibold text-ir-t1">ลากรูปหรือไฟล์ PDF มาวางที่นี่</p>
             <p className="text-small text-ir-t3">หรือ <span className="text-ir-accent-text font-medium">เลือกจากเครื่อง</span></p>
-            <p className="text-small text-ir-t3">รองรับ PNG, JPG, WEBP · เพิ่มได้หลายรูปพร้อมกัน</p>
-            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+            <p className="text-small text-ir-t3">รองรับ PNG, JPG, WEBP และ PDF (ไม่เกิน 5 MB) · เพิ่มได้หลายไฟล์พร้อมกัน</p>
+            <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.pdf" multiple className="hidden" onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }} />
           </div>
+          {uploadError && <div className="-mt-4 mb-6"><FieldError>{uploadError}</FieldError></div>}
         </div>
       </div>
     </div>
@@ -2633,8 +2654,12 @@ function ReferenceModePicker({ mode, setMode, hasCustom, hasCurated }: { mode: "
     { id: "curated", title: "ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง", desc: "ยังไม่มีตัวอย่างในใจ ให้ทีม IR Plus คัดมาให้เลือก", hasData: hasCurated },
   ];
   return (
-    <div className="mb-6">
-      {mode === null && <p className="text-body text-ir-t3 mb-3">เลือกวิธีที่สะดวกสำหรับคุณ — สลับไปอีกแบบได้ทุกเมื่อ ไม่หายกัน</p>}
+    <div>
+      <div className="flex items-baseline gap-2">
+        <SectionLabel>วิธีเพิ่มแรงบันดาลใจ</SectionLabel>
+        <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+      </div>
+      <p className="-mt-1 mb-3 text-body text-ir-t3">เลือกวิธีที่สะดวก สลับไปอีกแบบได้ทุกเมื่อ ข้อมูลไม่หาย</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
         {OPTIONS.map((o) => (
           <OptionCard
@@ -2678,7 +2703,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="แนบเว็บไซต์ วิดีโอ หรือรูปที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
+        sub="แนบเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
       />
       {/* User test #1 read "ไม่บังคับ" in the subtitle but still thought they couldn't move on. */}
       <div className="-mt-2 mb-5 inline-flex items-center gap-2 rounded-full border border-ir-select-soft bg-primary-50 py-1 pl-1 pr-3.5 text-small font-semibold text-ir-t1">
@@ -2686,30 +2711,36 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         ขั้นนี้ไม่บังคับ กด “ข้ามขั้นนี้” ด้านล่างได้ทันที
       </div>
 
+      {/* Same rhythm as the other steps (user test BTS: this page looked unlike the rest):
+          a section label + one-line description per group, dividers between groups. */}
       <ReferenceModePicker mode={mode} setMode={setMode} hasCustom={hasCustom} hasCurated={hasCurated} />
 
       {mode === "custom" && (
-        <div className="mb-6">
-          <SectionLabel>วางลิงก์หรือรูปเว็บที่ชอบ</SectionLabel>
+        <>
+          <SectionDivider />
           <ReferenceEditor draft={draft} updateDraft={updateDraft} />
-        </div>
+        </>
       )}
 
       {mode === "curated" && (
-        <div className="mb-6 md:mb-8">
-          <SectionLabel>ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง</SectionLabel>
-          <CuratedReferenceBoard dir={dir} draft={draft} updateDraft={updateDraft} />
-        </div>
+        <>
+          <SectionDivider />
+          <div className="mb-2">
+            <SectionLabel>เว็บไซต์ตัวอย่างที่ทีมคัดมา</SectionLabel>
+            <CuratedReferenceBoard dir={dir} draft={draft} updateDraft={updateDraft} />
+          </div>
+        </>
       )}
 
       {/* Text-only inspiration (user test AOT: "Note เป็น Text ได้") — describe what they
           like without needing a link or picture. Available whichever way they chose above. */}
+      <SectionDivider />
       <div className="mb-6">
         <label htmlFor="inspiration-note" className="flex items-baseline gap-2">
-          <span className="text-body font-semibold text-ir-t1">เล่าเป็นข้อความ</span>
+          <SectionLabel>เล่าเป็นข้อความ</SectionLabel>
           <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
         </label>
-        <p className="mt-0.5 text-small text-ir-t3">ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน</p>
+        <p className="-mt-1 text-body text-ir-t3">ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน</p>
         <textarea
           id="inspiration-note"
           rows={3}

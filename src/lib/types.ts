@@ -34,7 +34,7 @@ export type RequirementStatus =
 export interface ReferenceItem {
   id: string;
   category: "industry" | "competitor" | "trend" | "favorite";
-  type: "url" | "image";
+  type: "url" | "image" | "file"; // file = a document (PDF), stored as a data-uri
   value: string;        // url or data-uri / filename
   label?: string;
   note?: string;         // customer's own comment on why they picked this one
