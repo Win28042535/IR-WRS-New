@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { FLOW_STEPS } from "@/lib/data";
+import { FLOW_STEPS, flowStepOf } from "@/lib/data";
 
 const noop = () => () => {};
 
@@ -20,7 +20,7 @@ export function useStartFlow() {
 
   const inProgress =
     mounted && !!draft && draft.status === "draft" && (Boolean(draft.company?.trim()) || (draft.flowStep ?? 1) > 1);
-  const step = Math.min(Math.max(draft?.flowStep ?? 1, 1), FLOW_STEPS.length);
+  const step = flowStepOf(draft);
 
   return {
     inProgress,

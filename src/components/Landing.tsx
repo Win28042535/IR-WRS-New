@@ -98,7 +98,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
           <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">ให้ตรงใจองค์กรคุณ</span>
         </h1>
         <p className={`mx-auto mt-3 sm:mt-5 max-w-[38rem] text-lead sm:text-title leading-relaxed text-ir-t2 ${demo ? "lg:mx-0" : ""}`} style={balance}>
-          ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับโดยเร็ว
+          ตอบคำถาม {FLOW_STEPS.length} ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับโดยเร็ว
         </p>
 
         <div id="hero-cta" className={`mx-auto mt-5 sm:mt-8 max-w-[34rem] text-left ${demo ? "lg:mx-0" : ""}`}>

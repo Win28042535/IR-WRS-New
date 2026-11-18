@@ -188,6 +188,7 @@ export interface RequirementVersion {
 export interface Requirement {
   id: string;            // IRP-xxxxxx
   flow: FlowType;
+  stepScheme?: number;  // numbering flowStep was saved with (see STEP_SCHEME in data.ts)
   flowStep?: number;     // last step reached in the client flow, restored after a reload
   quizPicks?: { questionId: string; letter: "A" | "B" }[]; // Explore answers, in question order
   status: RequirementStatus;

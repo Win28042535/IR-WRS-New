@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, STEP_SCHEME, flowStepOf, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
@@ -78,8 +78,8 @@ export default function Flow2() {
     }
     // Resume where the customer left off. Quiz answers live in component state (not the
     // draft), so a draft without a Direction yet resumes at the quiz rather than past it.
-    let resume = st.draft.flowStep ?? 1;
-    if (resume > 3 && !st.draft.selectedDirection) resume = 3;
+    let resume = flowStepOf(st.draft);
+    if (resume > 4 && !st.draft.selectedDirection) resume = 4;
     if (resume > 1) {
       prevStep.current = resume;
       setStep(resume);
@@ -127,11 +127,11 @@ export default function Flow2() {
   const go = (n: number) => {
     // Back moves a whole step: from a later step, Explore reopens at question 1 (not the
     // last question), with the earlier answers still picked.
-    if (n === 3 && prevStep.current > 3 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
+    if (n === 4 && prevStep.current > 4 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
     setDir(n > prevStep.current ? "forward" : "backward");
     prevStep.current = n;
     setStep(n);
-    updateDraft({ flowStep: n });
+    updateDraft({ flowStep: n, stepScheme: STEP_SCHEME });
   };
 
   const answerQuiz = (option: QuizOption) => {
@@ -165,7 +165,7 @@ export default function Flow2() {
         });
       }
       if (SHOW_QUIZ_RESULT) setQuizDone(true);
-      else go(4);
+      else go(5);
     }
   };
 
@@ -207,8 +207,8 @@ export default function Flow2() {
           <div className="px-5 lg:px-7 py-6 pb-20">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
                 two-column layout with its own surfaces — so it isn't a card-in-a-card. */}
-            <div className={`mx-auto ${step === 6 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
-              {step === 6 ? (
+            <div className={`mx-auto ${step === 7 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
+              {step === 7 ? (
                 <div
                   ref={stepCardRef}
                   tabIndex={-1}
@@ -225,11 +225,12 @@ export default function Flow2() {
                   key={`${step}-${quizIdx}-${quizDone}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
-                  {step === 2 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
-                  {step === 3 && quizDone && <QuizResult draft={draft} onContinue={() => go(4)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
-                  {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
-                  {step === 4 && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
-                  {step === 5 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 2 && <S2Audience go={go} draft={draft} updateDraft={updateDraft} addNotebookEntry={addNotebookEntry} />}
+                  {step === 3 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
+                  {step === 4 && quizDone && <QuizResult draft={draft} onContinue={() => go(5)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
+                  {step === 4 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(3))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
+                  {step === 5 && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 6 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
                 </div>
               )}
             </div>
@@ -242,7 +243,7 @@ export default function Flow2() {
   );
 }
 
-function Head({ n: _n, title, sub, optional }: { n: number; title: string; sub?: string; optional?: boolean }) {
+function Head({ n: _n, title, sub, optional, required }: { n: number; title: string; sub?: string; optional?: boolean; required?: boolean }) {
   return (
     // Mobile trims a bit of the dead space above the fold (mb-4 pb-4 vs the desktop mb-5
     // pb-5) — small on its own, but it stacks with the card's own padding and every
@@ -253,6 +254,7 @@ function Head({ n: _n, title, sub, optional }: { n: number; title: string; sub?:
     <div className="mb-4 pb-4 md:mb-5 md:pb-5">
       <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>
         {title}
+        {required && <span className="ml-1.5 text-red-500 font-normal" aria-label="จำเป็น">*</span>}
         {/* same "(ไม่บังคับ)" as optional fields elsewhere — plain grey text, not a badge */}
         {optional && <span className="ml-2 whitespace-nowrap text-lead font-normal tracking-normal text-ir-t3">(ไม่บังคับ)</span>}
       </h2>
@@ -291,19 +293,10 @@ function inferCompanyType(company: string): string {
 
 // ── S1 · Understand company context + audience ──
 function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router }: any) {
-  // Audience: one flat multi-select — no forced "pick primary first" step.
-  // Whichever audience is picked first is still kept as primaryAudience
-  // behind the scenes (all the AI tone/priority/density logic downstream
-  // reads a single "main" audience), and later picks land in
-  // secondaryAudiences. Removing a card promotes the next selected one so
-  // primaryAudience is only ever empty when nothing is selected at all.
-  const selectedAudiences: string[] = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])].filter(Boolean);
-  // RankPicker does the picking and re-ranking: first pick = primaryAudience, the rest =
-  // secondaryAudiences, in rank order.
-  const ok = !!(draft.company.trim() && draft.projectType && draft.primaryAudience);
+  // Audience moved to its own step (S2Audience).
+  const ok = !!(draft.company.trim() && draft.projectType);
   const nudge = useNudge();
   const companyErr = nudge.field === "company-field" && !draft.company.trim();
-  const audienceErr = nudge.field === "audience-field" && !draft.primaryAudience;
 
   // Older drafts never answered the CI question; existing colours are the default now.
   useEffect(() => {
@@ -456,23 +449,10 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.industry]);
 
-  // Audience → notebook insight (how it shapes the design)
-  useEffect(() => {
-    if (!draft.primaryAudience) return;
-    const aud = audienceById(draft.primaryAudience);
-    if (!aud) return;
-    addNotebookEntry?.({
-      step: 1, category: "insight", source: "ai",
-      title: `กลุ่มเป้าหมาย: ${aud.label}`,
-      body: `${aud.desc} ${aud.shapes} Blueprint จะจัดลำดับ Section ที่กลุ่มนี้ให้ความสำคัญขึ้นก่อน`,
-      tags: ["audience", aud.id],
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft.primaryAudience]);
 
   return (
     <>
-      <Head n={1} title="ทำความเข้าใจ" sub="บริษัทของคุณ ใครจะเข้ามาดูเว็บ และสีกับฟอนต์ของแบรนด์" />
+      <Head n={1} title="ทำความเข้าใจ" sub="บริษัทของคุณ และสีกับฟอนต์ของแบรนด์" />
 
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
@@ -508,21 +488,6 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             />
           </div>
         </div>
-      </div>
-
-      <SectionDivider />
-
-      {/* Audience who the IR site speaks to — one flat multi-select, every
-          card behaves the same way so nothing has to be picked "first" */}
-      <div id="audience-field" className="scroll-mt-28">
-        <SectionLabel>ใครจะเข้ามาดูเว็บไซต์ <span className="text-red-500 font-normal">*</span></SectionLabel>
-        {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
-        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกกลุ่มผู้อ่าน แล้วเรียงจากกลุ่มที่สำคัญที่สุด</p>
-        <RankPicker
-          items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
-          selected={selectedAudiences}
-          onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
-        />
       </div>
 
       <SectionDivider />
@@ -584,7 +549,51 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
       <StepNav onBack={() => router.push("/")} backLabel="หน้าหลัก" next={
-        <NextButton onClick={() => go(2)} blocked={!ok} onBlocked={(b) => nudge.nudge(!draft.company.trim() ? "company-field" : "audience-field", b)}>ถัดไป</NextButton>
+        <NextButton onClick={() => go(2)} blocked={!ok} onBlocked={(b) => nudge.nudge("company-field", b)}>ถัดไป</NextButton>
+      } />
+    </>
+  );
+}
+
+// ── S2 · Audience: who the site is for (its own step since user test CBG — it used to
+// share step 1 with the company and brand questions) ──
+function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
+  // First pick = primaryAudience (the AI's tone / priority logic reads one main audience),
+  // the rest = secondaryAudiences, in rank order.
+  const selectedAudiences: string[] = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])].filter(Boolean);
+  const nudge = useNudge();
+  const audienceErr = nudge.field === "audience-field" && !draft.primaryAudience;
+
+  // Audience → notebook insight (how it shapes the design)
+  useEffect(() => {
+    if (!draft.primaryAudience) return;
+    const aud = audienceById(draft.primaryAudience);
+    if (!aud) return;
+    addNotebookEntry?.({
+      step: 1, category: "insight", source: "ai",
+      title: `กลุ่มเป้าหมาย: ${aud.label}`,
+      body: `${aud.desc} ${aud.shapes} Blueprint จะจัดลำดับ Section ที่กลุ่มนี้ให้ความสำคัญขึ้นก่อน`,
+      tags: ["audience", aud.id],
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.primaryAudience]);
+
+  return (
+    <>
+      <Head n={2} required title="ใครจะเข้ามาดูเว็บไซต์" sub="กดเลือกเรียงจากกลุ่มที่สำคัญที่สุด" />
+      {/* Audience who the IR site speaks to — one flat multi-select, every
+          card behaves the same way so nothing has to be picked "first" */}
+      <div id="audience-field" className="scroll-mt-28">
+        {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
+        <RankPicker
+          items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
+          selected={selectedAudiences}
+          onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
+        />
+      </div>
+
+      <StepNav onBack={() => go(1)} next={
+        <NextButton onClick={() => go(3)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -645,13 +654,11 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
   return (
     <>
-      <Head n={2} title="กำหนดเป้าหมาย" sub="เว็บไซต์ต้องทำอะไรให้บริษัทได้บ้าง" />
+      <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="กดเลือกเรียงจากเรื่องที่สำคัญที่สุด" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
       <div id="goals-field" className="scroll-mt-28">
-        <SectionLabel>สิ่งที่เว็บไซต์ต้องทำได้</SectionLabel>
         {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
-        <p className="text-body text-ir-t3 mb-4 mt-1">เลือกผลลัพธ์ที่อยากได้ แล้วเรียงจากสำคัญที่สุด</p>
         <RankPicker
           items={VISIBLE_GOALS.map((goal) => ({ id: goal.id, label: goal.label, desc: goal.desc, icon: OPTION_ICONS[goal.id] }))}
           selected={draft.businessGoals}
@@ -683,8 +690,8 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
         )}
       </div>
 
-      <StepNav onBack={() => go(1)} next={
-        <NextButton onClick={() => go(3)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
+      <StepNav onBack={() => go(2)} next={
+        <NextButton onClick={() => go(4)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -1097,12 +1104,12 @@ function S4Structure({ go, draft, updateDraft }: any) {
   const nudge = useNudge();
   return (
     <>
-      <Head n={4} title="จัดหน้าแรกของเว็บไซต์" sub="ส่วนต่าง ๆ บนหน้าแรก เรียงจากบนลงล่าง · AI จัดไว้ให้แล้ว ปรับได้" />
+      <Head n={5} title="จัดหน้าแรกของเว็บไซต์" sub="ส่วนต่าง ๆ บนหน้าแรก เรียงจากบนลงล่าง · AI จัดไว้ให้แล้ว ปรับได้" />
       <div id="structure-field" className="scroll-mt-28">
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
       </div>
-      <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
+      <StepNav onBack={() => go(4)} next={<NextButton onClick={() => go(6)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
     </>
   );
 }
@@ -1954,8 +1961,8 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       </div>
 
       <StepNav
-        onBack={() => go(4)}
-        next={<NextButton onClick={() => go(6)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
+        onBack={() => go(5)}
+        next={<NextButton onClick={() => go(7)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
       />
     </div>
   );
@@ -2447,7 +2454,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             </p>
 
             <div className="flex justify-center mt-4">
-              <BackButton onClick={() => go(5)}>ย้อนกลับ</BackButton>
+              <BackButton onClick={() => go(6)}>ย้อนกลับ</BackButton>
             </div>
           </div>
         </aside>

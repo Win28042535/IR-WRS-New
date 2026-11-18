@@ -28,7 +28,7 @@ export const buzz = (ms: number) => {
 };
 
 export function RankPicker({
-  items, selected: rawSelected, onChange, max, title = "เลือกและจัดลำดับความสำคัญ", hint = "การ์ดแรกที่กดคือลำดับที่ 1",
+  items, selected: rawSelected, onChange, max, title, hint,
   cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด",
 }: {
   items: RankItem[];
@@ -155,12 +155,16 @@ export function RankPicker({
 
   return (
     <div data-rank-root>
+      {/* No heading of its own by default: the step's title already asks the question and
+          its subtitle says to pick in order (user test CBG: four lines said the same thing). */}
       <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-body font-semibold text-ir-t1">{title}</p>
-          <p className="mt-0.5 text-caption text-ir-t3">{hint}</p>
-        </div>
-        <span className="shrink-0 rounded-full bg-ir-muted px-2.5 py-1 text-caption font-medium text-ir-t2 tabular-nums" role="status">
+        {(title || hint) && (
+          <div className="min-w-0">
+            {title && <p className="text-body font-semibold text-ir-t1">{title}</p>}
+            {hint && <p className="mt-0.5 text-caption text-ir-t3">{hint}</p>}
+          </div>
+        )}
+        <span className="ml-auto shrink-0 rounded-full bg-ir-muted px-2.5 py-1 text-caption font-medium text-ir-t2 tabular-nums" role="status">
           เลือกแล้ว {selected.length}/{limit}
         </span>
       </div>
