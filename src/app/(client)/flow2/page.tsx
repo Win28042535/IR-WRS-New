@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
@@ -3173,17 +3173,19 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   const [submitting, setSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [attempted, setAttempted] = useState(false);
+  // Name, position and email are required — the send button stops until they're filled
+  // (user decision after the CPALL test). Phone and LINE stay optional: only a malformed
+  // phone number is an error.
   const contactErrors = {
-    // Optional fields: only a malformed value is an error; empty is fine.
-    name: "",
-    email: draft.email.trim() ? emailError(draft.email) : "",
-    phone: phoneError(draft.phone),
+    name: draft.name.trim() ? "" : "กรุณากรอกชื่อ-นามสกุล",
+    position: draft.position?.trim() ? "" : "กรุณากรอกตำแหน่ง",
+    email: emailError(draft.email),
+    phone: (draft.callbackOk ?? true) ? phoneError(draft.phone) : "", // hidden when they chose email only
   };
   const showError = (field: keyof typeof contactErrors) => (touched[field] || attempted) ? contactErrors[field] : "";
   const markTouched = (field: string) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
-  // Always sendable: the team can follow up for anything missing. Completeness only drives
-  // the gentle nudges below (and the field hints once a field is touched).
-  const contactComplete = !!draft.name.trim() && !!draft.email.trim() && !contactErrors.email && !contactErrors.phone && !!draft.company;
+  const firstInvalid = (["name", "position", "email", "phone"] as const).find((k) => contactErrors[k]);
+  const contactComplete = !firstInvalid;
   const s6GapFired = useRef(false);
   useEffect(() => {
     if (s6GapFired.current) return;
@@ -3213,7 +3215,14 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
 
   const doSubmit = () => {
     if (submitting) return;
-    if (!contactComplete) { setAttempted(true); setTouched({ name: true, email: true, phone: true }); }
+    if (firstInvalid) {
+      // Blocked: show every missing field and take them to the first one.
+      setAttempted(true);
+      const el = document.getElementById(`contact-${firstInvalid}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+      return;
+    }
     setSubmitting(true);
     addTimelineEntry?.({
       step: 5, type: "submitted",
@@ -3239,7 +3248,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   useHesitation(15000, () => {
     if (shownHesitation.current || contactComplete) return;
     shownHesitation.current = true;
-    const missing = !draft.name ? "ชื่อ-นามสกุล" : !draft.email ? "Email" : "ข้อมูลติดต่อ";
+    const missing = !draft.name ? "ชื่อ-นามสกุล" : !draft.position?.trim() ? "ตำแหน่ง" : !draft.email ? "Email" : "ข้อมูลติดต่อ";
     g.show(`ใกล้เสร็จแล้วครับ ใส่ ${missing} ไว้ด้วย ทีมจะติดต่อกลับได้ทันที`, { mode: "tip", expert: "analyst", autohide: 10000 });
   });
 
@@ -3281,9 +3290,9 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
-              <F label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุลผู้ประสานงาน" autoComplete="name" />
-              <F label="ตำแหน่ง" value={draft.position ?? ""} onChange={(v) => updateDraft({ position: v })} placeholder="เช่น ผู้จัดการฝ่ายนักลงทุนสัมพันธ์" autoComplete="organization-title" />
-              <F label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.co.th" />
+              <F id="contact-name" required label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุลผู้ประสานงาน" autoComplete="name" />
+              <F id="contact-position" required label="ตำแหน่ง" value={draft.position ?? ""} onChange={(v) => updateDraft({ position: v })} onBlur={() => markTouched("position")} error={showError("position")} placeholder="เช่น ผู้จัดการฝ่ายนักลงทุนสัมพันธ์" autoComplete="organization-title" />
+              <F id="contact-email" required label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.co.th" />
               {/* Phone is no longer a bare field: ask first whether a call-back suits them
                   (user test CPALL), then where — phone or LINE. */}
               <div role="group" aria-labelledby="callback-q">
@@ -3302,7 +3311,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
               </div>
               {(draft.callbackOk ?? true) && (
                 <>
-                  <F label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
+                  <F id="contact-phone" label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
                   <F label="LINE ID (ไม่บังคับ)" value={draft.lineId ?? ""} onChange={(v) => updateDraft({ lineId: v.trim() })} placeholder="เช่น @irplus หรือ LINE ID ของคุณ" />
                 </>
               )}
@@ -3347,12 +3356,17 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
 }
 
 function F({
-  label, value, onChange, onBlur, error, placeholder, type = "text", autoComplete,
-}: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: string; placeholder?: string; type?: string; autoComplete?: string }) {
+  label, value, onChange, onBlur, error, placeholder, type = "text", autoComplete, id, required,
+}: { label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; error?: string; placeholder?: string; type?: string; autoComplete?: string; id?: string; required?: boolean }) {
+  const autoId = useId();
+  const inputId = id ?? autoId;
   return (
     <div>
-      <label className="text-body font-medium block mb-1.5">{label}</label>
+      <label htmlFor={inputId} className="text-body font-medium block mb-1.5">{label}</label>
       <input
+        id={inputId}
+        required={required}
+        aria-required={required || undefined}
         type={type}
         autoComplete={autoComplete}
         value={value}
