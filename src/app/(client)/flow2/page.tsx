@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
@@ -9,15 +9,15 @@ import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackB
 import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
-import { DesignDNACard } from "@/components/DesignDNA";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { FontChoice } from "@/components/FontPicker";
 import { BrandColorInput } from "@/components/BrandColors";
 import { BackToTop } from "@/components/BackToTop";
-import { SOURCE_LABEL, chosenThaiFont, familyStack, fontByFamily, isIrPlus, previewFamily } from "@/lib/fontCatalog";
+import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { DesignProfile, QuizOption } from "@/lib/types";
+import type { SheetData } from "@/lib/moodboardExport";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
 import { useHesitation } from "@/hooks/useHesitation";
@@ -2814,72 +2814,15 @@ function namedPalette(dir: any): { hex: string; name: string; main: boolean }[] 
 const NEUTRAL_RAMP = ["#F5F5F5", "#D9DBDE", "#B4B7BD", "#8A8F99", "#5A5F6B", "#33383F", "#151823"];
 
 
-// Typography specimen figures — a spread of numeral punctuation (comma, decimal, %, ฿,
-// hyphen) so the heading font's numeral rendering actually gets exercised, not just its
-// letterforms. Illustrative only, not real figures for the client's company.
-const TYPE_SPECIMEN_STATS = [
-  { value: "1,284.50", label: "SET Index" },
-  { value: "+12.4%", label: "YoY Growth" },
-  { value: "฿8.20", label: "Dividend/Share" },
-  { value: "56-1", label: "One Report" },
-];
-
-// Direction icon — a small glyph that carries the concept's own meaning (institutional
-// trust, growth in numbers, sustainability, technology) instead of an inert color dot.
-// A soft color-wash "glow" sits behind every glyph (same treatment across all four
-// directions) so the icon reads with some depth/presence rather than a flat line-drawing —
-// the glyph itself should still communicate the concept on its own at a glance.
-function ConceptIcon({ directionId, color }: { directionId?: string; color: string }) {
-  const stroke = { stroke: color, strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
-  const glow = <circle cx="9" cy="9" r="8.5" fill={color} opacity="0.14" />;
-  switch (directionId) {
-    case "esg-focused":
-      return (
-        <svg width="24" height="24" viewBox="0 0 18 18">
-          {glow}
-          <path d="M9 16c-3.5-1.2-6-4-6-8 0-2 .6-3.6 1.6-5C6.6 5 9 5.5 11 7c2 1.5 3 3.7 3 6 0 1-.3 2-.8 2.8" {...stroke} />
-          <path d="M9 16V8c0-1.6.7-2.8 1.8-3.8" {...stroke} />
-        </svg>
-      );
-    case "modern-tech":
-      return (
-        <svg width="24" height="24" viewBox="0 0 18 18">
-          {glow}
-          <path d="M10.2 2.5 4.5 10.2h4L7.8 15.5l6-8h-4.1l1.5-5z" fill={color} />
-        </svg>
-      );
-    case "growth-oriented":
-      return (
-        <svg width="24" height="24" viewBox="0 0 18 18">
-          {glow}
-          <path d="M3 13.5 7.2 9l3 3 4.8-5.5" {...stroke} />
-          <path d="M11.5 6h3.5v3.5" {...stroke} />
-          <circle cx="7.2" cy="9" r="1.15" fill={color} />
-          <circle cx="10.2" cy="12" r="1.15" fill={color} />
-          <circle cx="3" cy="13.5" r="1.15" fill={color} />
-        </svg>
-      );
-    case "premium-corporate":
-    default:
-      return (
-        <svg width="24" height="24" viewBox="0 0 18 18">
-          {glow}
-          <path d="M9 2 11 6.5 16 7 12.3 10.3 13.3 15 9 12.6 4.7 15l1-4.7L2 7l5-.5z" fill={color} />
-        </svg>
-      );
-  }
-}
-
-// ── Concept board — the design-system "concept" the client co-authored, mapped from
-// their real choices (Direction palette + AI font pairing + UI-styling profile). Bento
-// principles from /design-bentogrids-com: mixed tile sizes, generous 12px-based spacing,
-// rounded surfaces, one clear hierarchy — not its literal colors/fonts. ──
-function ConceptBoard({ draft }: { draft: any }) {
+// ── The design concept the client co-authored, worked out from their real choices
+// (Direction palette or their own brand colours, font, mood, homepage structure). Feeds
+// sheetData(), which both the on-screen overview and the PDF / PNG sheet draw from, so
+// the two never disagree. ──
+function conceptData(draft: any) {
   const dir = directionById(draft.selectedDirection);
   // the Thai face follows their step-5 choice when they picked one themselves
   const basePairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
   const thaiPick = chosenThaiFont(draft);
-  useGoogleFont(thaiPick.source === "selected" ? previewFamily(thaiPick.family) : undefined, [400, 500, 600, 700]);
   const pairing = thaiPick.source === "selected"
     ? { ...basePairing, thai: thaiPick.family, note: `ฟอนต์ภาษาไทยที่เลือกเอง คู่กับ ${basePairing.heading}` }
     : basePairing;
@@ -2931,258 +2874,210 @@ function ConceptBoard({ draft }: { draft: any }) {
   const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
     .filter((id) => !RETIRED_SECTION_IDS.includes(id))
     .map((id) => ({ id, name: sectionById(id)?.name ?? id }));
+  return { dir, thaiPick, pairing, thaiStack, mainFont, mainFontNote, p, dataDriven, keepOwn, siteUrl, own, ownPending, swatches, primary, accent, surface, moodBg, moodInk, ink, muted, paletteRoles, onPrimary, onAccent, moods, mainMood, supportMoods, homepageSections };
+}
 
-  const eyebrow = "text-small font-semibold uppercase tracking-wider text-ir-t3";
-  // Mobile gets a tighter vertical rhythm between subsections — this board is the
-  // longest single scroll in the flow, and it previously carried the same rhythm at
-  // every width (no `md:` overrides anywhere in this component).
-  const sectionRule = "sc-reveal flex items-center gap-3 mt-5 md:mt-6 mb-2.5 md:mb-3 first:mt-0";
+// ── Save the summary as a one-page moodboard sheet (PDF or PNG) ──
+// Click → the file downloads, no print dialog. The button itself reports the result:
+// spinner + "กำลังบันทึก…", then a check + "บันทึกแล้ว" for a few seconds.
+const SHEET_ROLE_TH: Record<string, string> = { Primary: "สีหลัก", Accent: "สีเน้น", Background: "พื้นหลัง", Text: "ตัวอักษร", Muted: "สีรอง" };
 
-  const GoogleTag = () => (
-    <span className="inline-flex items-center gap-1.5 text-small text-ir-t3">
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 0 1-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.4 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3C3.7 21.4 7.6 24 12 24z"/><path fill="#FBBC05" d="M5.6 14.7a7.2 7.2 0 0 1 0-4.6v-3H1.8a12 12 0 0 0 0 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.6 0 3.7 2.6 1.8 6.4l3.8 3C6.5 6.7 9 4.8 12 4.8z"/></svg>
-      Google · ฟรี
-    </span>
+function sheetData(draft: any): SheetData {
+  const c = conceptData(draft);
+  const vs = VISUAL_STYLES[draft.selectedDirection];
+  const picks = (draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[];
+  return {
+    company: draft.company ?? "",
+    directionLabel: c.dir?.label ?? "Design Direction",
+    tagline: c.dir?.tagline,
+    mainMood: c.mainMood,
+    supportMoods: c.supportMoods,
+    answers: picks.flatMap((p) => {
+      const q = QUIZ.find((x) => x.id === p.questionId);
+      return q ? [{ topic: q.topic, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
+    }),
+    ownPending: c.ownPending,
+    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ทีมเสนอชุดสีตามแนวทาง",
+    // three colours only — main, accent, background; text/muted greys add nothing here
+    swatches: c.paletteRoles.slice(0, 3).map((r) => ({ hex: r.hex, role: SHEET_ROLE_TH[r.role] ?? r.role, use: r.use })),
+    primary: c.primary,
+    moodInk: c.moodInk,
+    coverBg: c.moodBg,
+    inspiration: {
+      links: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type === "url").length,
+      files: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type !== "url").length,
+      note: draft.inspirationNote?.trim() || undefined,
+    },
+    fontName: c.mainFont,
+    fontStack: c.thaiStack,
+    fontNote: c.mainFontNote,
+    sections: c.homepageSections.map((s) => s.name),
+    note: draft.structureNote?.trim() || undefined,
+    visualMood: vs?.mood,
+    shots: (vs?.shots ?? []).map((s) => ({ url: unsplashUrl(s.id, 700), cap: s.cap })),
+  };
+}
+
+// One numbered chapter of the overview: label column, hairline above.
+function Chapter({ n, title, children }: { n: string; title: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-3 border-t border-black/[0.08] py-6 md:grid-cols-[150px_minmax(0,1fr)] md:gap-8 md:py-8">
+      <p className="flex items-baseline gap-2.5 md:block">
+        <span className="font-mono text-small text-[#8A8578]">{n}</span>
+        <span className="text-body font-semibold text-[#2B2A26] md:mt-1 md:block">{title}</span>
+      </p>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
+}
 
-  // The customer's 5 Explore answers drive one combined homepage mock. Drafts from before
-  // quizPicks existed derive the same answers from the profile axes instead.
-  const pickList = (draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[];
-  const picks: Partial<Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B">> = pickList.length
-    ? Object.fromEntries(pickList.map((pk) => [pk.questionId, pk.letter]))
-    : {
-        q1: (p?.toneCorporate ?? 0) > 0 ? "B" : "A",
-        q2: (p?.contrastDark ?? 0) > 0 ? "B" : "A",
-        q3: dataDriven > 0 ? "B" : "A",
-        q4: dataDriven > 0 ? "B" : "A",
-        q5: (p?.energyBold ?? 0) > 0 ? "A" : "B",
-      };
-  // Light/Dark comes straight from the tone question (q2) — the Mood panel follows it.
-  const prefersLight = picks.q2 !== "B"; // q2: A = สว่าง, B = เข้ม
-  const visualStyle = VISUAL_STYLES[draft.selectedDirection];
+// ── Project overview — the result, not a form ──
+// One section replacing the old "สรุปแนวทางการออกแบบ" + "ภาพรวมโปรเจกต์" pair (they
+// repeated each other and both looked like the questionnaire: bordered rounded cards,
+// chips, sample buttons — testers wondered if they still had to fill something in).
+// It reads as a printed brand sheet instead: paper background, a cover band in the
+// client's own colour, the chosen heading font at display size, numbered chapters split
+// by hairlines, flat colour fields and captioned photos. Nothing here is a control, so
+// nothing looks like one. The PDF / PNG download draws the same content (sheetData).
+function ProjectOverview({ draft }: { draft: any }) {
+  const thaiPick = chosenThaiFont(draft);
+  useGoogleFont(thaiPick.source === "selected" ? previewFamily(thaiPick.family) : undefined, [400, 500, 600, 700]);
+  const d = sheetData(draft);
+  const head = { fontFamily: d.fontStack } as CSSProperties;
+  const moods = [d.mainMood, ...d.supportMoods].filter(Boolean);
+  const insp = [
+    d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "",
+    d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "",
+  ].filter(Boolean).join(" · ");
 
   return (
-    // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines inside.
-    // Reads as a summary document (user tests AOT/CBG/SCGP: it looked clickable and
-    // unclear that it's only an example): no shadows/hover, Thai headings, "ตัวอย่าง" tags.
-    <div className="rounded-xl border border-ir-border bg-ir-card overflow-clip">
-      {/* Header strip — Direction name is the actual content here, so it carries the
-          weight; "Concept" is just the eyebrow label identifying what this card is. */}
-      <div className="flex items-center gap-2.5 px-4 py-3.5 md:px-5 md:py-4 border-b border-ir-border">
-        <span
-          className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 border"
-          style={{ background: `linear-gradient(135deg, ${primary}26, ${primary}08)`, borderColor: `${primary}30` }}
-        >
-          <ConceptIcon directionId={draft.selectedDirection} color={primary} />
-        </span>
-        <div>
-          <span className="text-small font-semibold uppercase tracking-wider text-ir-t3">ภาพรวมโปรเจกต์</span>
-          <p className="text-title font-semibold text-ir-t1 leading-tight mt-0.5">{dir?.label ?? "Design Direction"}</p>
-        </div>
+    <section aria-label="ภาพรวมผลลัพธ์" className="cursor-default overflow-clip rounded-sm bg-[#FBFAF6] text-[#2B2A26] ring-1 ring-black/[0.06]">
+      {/* cover */}
+      <div className="px-6 pb-9 pt-7 md:px-10 md:pb-12 md:pt-9" style={{ background: d.coverBg, color: d.moodInk }}>
+        <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์นักลงทุนสัมพันธ์{d.company ? ` · ${d.company}` : ""}</p>
+        <p className="mt-10 text-small font-medium opacity-75 md:mt-14">แนวทางที่ได้จากคำตอบของคุณ</p>
+        <h3 className="mt-1 font-bold leading-[1.05] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(40px, 9vw, 68px)", textWrap: "balance" } as CSSProperties}>{d.directionLabel}</h3>
+        {d.tagline && <p className="mt-3 max-w-[34rem] text-lead leading-relaxed opacity-90" style={head}>{d.tagline}</p>}
+        {moods.length > 0 && <p className="mt-6 text-small opacity-75">อารมณ์ของเว็บไซต์ · {moods.join(" · ")}</p>}
       </div>
-      <p className="border-b border-ir-border bg-ir-bg px-4 py-2 text-small text-ir-t3 md:px-5">
-        สรุปจากคำตอบของคุณ · สี ฟอนต์ และภาพด้านล่างเป็น<span className="font-semibold text-ir-t2">ตัวอย่างแนวทาง</span> ไม่ใช่งานออกแบบจริง
-      </p>
 
-      <div className="p-4 md:p-5">
-        {/* ── Mood anchor — the personality words set in the actual heading typeface, over the
-            direction's own brand gradient. No website mock here (same as the homepage): the
-            client's own choices tell the story. ── */}
-        <div className="sc-stage grid grid-cols-1 sm:grid-cols-5 gap-2.5">
-          {/* Mood panel — mood words in the heading font. Dark brand gradient when the
-              customer chose "เข้ม" (Dark); a light surface with brand-colored type when they
-              chose "สว่าง" (Light), so the board matches the tone they asked for. */}
-          <div
-            className={`sm:col-span-5 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-6 relative overflow-hidden ${prefersLight ? "border border-ir-border bg-ir-bg" : ""}`}
-            style={prefersLight ? { minHeight: 120 } : { background: moodBg, color: moodInk, minHeight: 120 }}
-          >
-            <span className={`text-small font-semibold uppercase tracking-wider ${prefersLight ? "text-ir-t3" : "text-white/70"}`}>
-              อารมณ์ของเว็บ · {prefersLight ? "โทนสว่าง" : "โทนเข้ม"}
-            </span>
-            <div className="flex flex-col gap-1 my-2">
-              <span className={`text-heading leading-tight font-semibold ${prefersLight ? "" : "drop-shadow-sm"}`} style={{ fontFamily: fontStack(pairing.heading), color: prefersLight ? primary : undefined }}>{mainMood}</span>
-              {supportMoods.length > 0 && (
-                <span className={`text-body leading-snug ${prefersLight ? "text-ir-t2" : "text-white/75"}`}>
-                  เสริมด้วยความ <span className={`font-semibold ${prefersLight ? "text-ir-t1" : "text-white"}`}>{supportMoods.join(" · ")}</span>
-                </span>
-              )}
-            </div>
-            {dir?.tagline && <span className={`text-body leading-snug ${prefersLight ? "text-ir-t2" : "text-white/80"}`}>{dir.tagline}</span>}
-            {!ownPending && (
-              <div className="mt-3 flex items-center gap-1.5" aria-hidden="true">
-                {swatches.map((s) => <span key={s.hex} className={`w-5 h-5 rounded-full ring-1 ${prefersLight ? "ring-black/10" : "ring-white/40"}`} style={{ background: s.hex }} />)}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Colors — each swatch with its job, the 60/30/10 mix, then the palette applied to
-            a small IR page (like the Typography specimen) plus a readability check. ── */}
-        <div className={sectionRule}>
-          <span className="text-lead font-semibold text-ir-t1">ชุดสี</span>
-          <span className="text-small text-ir-t3 shrink-0">{keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีใหม่ · ตัวอย่างจากแนวทาง ${dir?.palette ?? ""}`}</span>
-          <div className="flex-1 h-px bg-ir-border" />
-        </div>
-        {ownPending ? (
-          <div className="sc-reveal flex items-start gap-3 rounded-lg border border-ir-border p-4 md:p-5">
-            <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-ir-accent-soft text-lead">🎨</span>
-            <div className="min-w-0">
-              <p className="text-body font-semibold text-ir-t1">ใช้ชุดสีเดิมของแบรนด์</p>
-              <p className="mt-0.5 text-small leading-relaxed text-ir-t2">
-                {siteUrl
-                  ? <>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{siteUrl}</span> ของคุณ</>
-                  : "ทีมจะใช้สีจากโลโก้ปัจจุบันของคุณ · ถ้าทราบรหัสสี ใส่ได้ที่ขั้น “ทำความเข้าใจ” แล้วหน้านี้จะแสดงตัวอย่างด้วยสีจริงของคุณ"}
-              </p>
-            </div>
-          </div>
-        ) : (
-        <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
-          {/* phones: a compact list (swatch left, role right); sm+: five swatch cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-2.5">
-            {paletteRoles.map((c) => (
-              <div key={c.role} className="flex sm:block rounded-md overflow-hidden ring-1 ring-black/[0.06] bg-ir-card">
-                <div className="w-16 shrink-0 border-r border-black/[0.06] sm:w-auto sm:aspect-[16/10] sm:border-r-0 sm:border-b" style={{ background: c.hex }} />
-                <div className="min-w-0 px-2.5 py-2">
-                  <p className="text-small font-semibold text-ir-t1 leading-tight">{c.role}</p>
-                  <p className="text-caption font-mono text-ir-t3 mt-0.5">{c.hex.toUpperCase()}</p>
-                  <p className="text-caption text-ir-t2 leading-snug mt-1">{c.use}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-ir-border">
-            {/* applied: a small IR page in this palette */}
-            <div className="max-w-[520px]">
-              <span className={eyebrow}>ตัวอย่างการใช้สี</span>
-              <div className="mt-1.5 rounded-md overflow-hidden ring-1 ring-black/10" style={{ background: surface }} aria-label="ตัวอย่างหน้าเว็บ IR ที่ใช้ชุดสีนี้">
-                <div className="flex items-center gap-3 px-3 py-2" style={{ background: primary, color: onPrimary }}>
-                  <span className="text-small font-bold tracking-wide">LOGO</span>
-                  <span className="ml-auto hidden sm:flex gap-3 text-caption opacity-80"><span>ข้อมูลการเงิน</span><span>ราคาหุ้น</span><span>เอกสาร</span></span>
-                </div>
-                <div className="p-3">
-                  <p className="text-lead font-semibold leading-tight" style={{ color: ink, fontFamily: thaiStack }}>ข้อมูลสำคัญทางการเงิน</p>
-                  <p className="text-caption mt-0.5" style={{ color: muted }}>หน่วย: ล้านบาท · ข้อมูล ณ 30 ก.ย. 2569</p>
-                  <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-2">
-                    <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white">
-                      <p className="text-caption" style={{ color: muted }}>รายได้รวม</p>
-                      <p className="text-title font-bold leading-tight" style={{ color: primary, fontFamily: thaiStack }}>12,450</p>
-                      <span className="mt-1 inline-block h-1 w-8 rounded-full" style={{ background: accent }} />
-                    </div>
-                    <div className="rounded-sm p-2 ring-1 ring-black/[0.06] bg-white flex items-end gap-1.5" aria-hidden="true">
-                      {[38, 52, 46, 64, 80].map((h, i, arr) => (
-                        <span key={i} className="flex-1 rounded-t-[2px]" style={{ height: `${h * 0.6}px`, background: i === arr.length - 1 ? accent : primary, opacity: i === arr.length - 1 ? 1 : 0.85 }} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <span className="text-caption font-semibold px-3 py-1.5 rounded-full" style={{ background: primary, color: onPrimary }}>ดาวน์โหลดรายงาน</span>
-                    <span className="text-caption font-semibold px-3 py-1.5 rounded-full" style={{ background: accent, color: onAccent }}>ราคาหุ้นวันนี้</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        )}
-
-        {/* ── Typography — ONE main font (the Thai face the site will use for headings and
-            body alike), shown big, then a real-content specimen in that same font: headline,
-            body, CTA and numeral-heavy stat tiles. Listing a Latin heading + Thai + body trio
-            read as three choices; the client thinks in one font, e.g. "FC Minimal". ── */}
-        <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">ตัวอักษร</span><div className="flex-1 h-px bg-ir-border" /></div>
-        <div className="sc-reveal rounded-lg border border-ir-border p-4 md:p-5">
-          <span className={eyebrow}>ฟอนต์หลัก</span>
-          <p className="mt-1 text-display-sm text-ir-t1 leading-tight" style={{ fontFamily: thaiStack, fontWeight: 700 }} title={mainFont}>
-            {thaiPick.source === "website" ? "ฟอนต์จากเว็บไซต์เดิม" : mainFont}
-          </p>
-          <p className="text-body text-ir-t2 leading-relaxed mt-2 max-w-[600px]">
-            {thaiPick.source === "website"
-              ? <>ทีมจะใช้ฟอนต์เดียวกับเว็บไซต์ปัจจุบัน{siteUrl ? <> (<span className="font-semibold text-ir-t1">{siteUrl}</span>)</> : ""} · ตัวอย่างด้านล่างแสดงด้วย {mainFont} ไปก่อน</>
-              : <>ใช้ทั้งหัวข้อ เนื้อหา และตัวเลขบนเว็บไซต์ · {mainFontNote}</>}
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="rounded-full bg-ir-muted px-2.5 py-0.5 text-small font-medium text-ir-t2">{SOURCE_LABEL[thaiPick.source]}</span>
-            {thaiPick.source !== "website" && (isIrPlus(mainFont)
-              ? <span className="text-small text-ir-t3">ชุดของ IR Plus · ตัวอย่างโดยประมาณ</span>
-              : <GoogleTag />)}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-ir-border grid grid-cols-1 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1.3fr)] gap-4">
-            <div>
-              <span className={eyebrow}>ตัวอย่าง</span>
-              <p className="text-ir-t1 leading-tight mt-1.5" style={{ fontFamily: thaiStack, fontWeight: 700, fontSize: "clamp(20px, 5vw, 26px)" }}>
-                นักลงทุนสัมพันธ์
-              </p>
-              <p className="text-body text-ir-t2 leading-relaxed mt-1.5" style={{ fontFamily: thaiStack, fontWeight: 400 }}>
-                มุ่งมั่นสร้างการเติบโตอย่างยั่งยืน ด้วยข้อมูลที่โปร่งใสและเชื่อถือได้สำหรับผู้ถือหุ้นทุกท่าน
-              </p>
-              {/* A specimen of the button style, not a control — so not a <button>. */}
-              <span
-                className="inline-block mt-3 text-small font-semibold px-4 py-2 rounded-full"
-                style={{ background: primary, color: isLightHex(primary) ? "#151823" : "#fff", fontFamily: thaiStack }}
-              >
-                รายละเอียดเพิ่มเติม
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {TYPE_SPECIMEN_STATS.map((s) => (
-                <div key={s.label} className="rounded-md bg-ir-bg border border-ir-border px-3 py-2.5">
-                  <p className="text-title text-ir-t1 leading-none" style={{ fontFamily: thaiStack, fontWeight: 700 }}>{s.value}</p>
-                  <p className="text-small text-ir-t3 mt-1 leading-snug" style={{ fontFamily: thaiStack }}>{s.label}</p>
-                </div>
+      <div className="px-6 md:px-10">
+        <Chapter n="01" title="คำตอบของคุณ">
+          {d.answers.length ? (
+            <p className="text-lead leading-[1.9]">
+              {d.answers.map((a, i) => (
+                <Fragment key={a.topic}>
+                  {i > 0 && <span className="px-1 text-[#B5B0A3]"> · </span>}
+                  <span className="whitespace-nowrap"><span className="text-[#8A8578]">{a.topic}</span> <span className="font-semibold">{a.choice}</span></span>
+                </Fragment>
               ))}
-            </div>
-          </div>
-        </div>
+            </p>
+          ) : <p className="text-body text-[#8A8578]">ยังไม่ได้ตอบคำถามสำรวจแนวทาง</p>}
+        </Chapter>
 
-        {/* ── IR Homepage Sections — the exact structure picked in "วางโครงสร้าง", in the
-            order the client arranged it. ── */}
-        <div className={sectionRule}>
-          <span className="text-lead font-semibold text-ir-t1">ส่วนต่าง ๆ บนหน้าแรก</span>
-          {homepageSections.length > 0 && <span className="text-small text-ir-t3 shrink-0">{homepageSections.length} ส่วน · เรียงจากบนลงล่าง</span>}
-          <div className="flex-1 h-px bg-ir-border" />
-        </div>
-        {homepageSections.length > 0 ? (
-          <ol className="sc-reveal grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-            {homepageSections.map((s, i) => (
-              <li key={s.id} className="flex items-baseline gap-2.5 border-b border-ir-border-soft py-2 min-w-0">
-                <span className="w-5 shrink-0 text-right font-mono text-small text-ir-t3">{i + 1}.</span>
-                <span className="text-body text-ir-t1 leading-snug" title={s.name}>{s.name.split(" / ")[0]}</span>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="text-small text-ir-t3">ยังไม่ได้เลือก Section — กลับไปที่ขั้นตอน &quot;จัดหน้าแรก&quot; เพื่อเลือก</p>
-        )}
-        {draft.structureNote?.trim() && (
-          <div className="sc-reveal mt-2.5 rounded-md bg-ir-bg border border-ir-border px-3 py-2.5">
-            <p className="text-small font-semibold text-ir-t3">หมายเหตุ</p>
-            <p className="mt-0.5 text-body text-ir-t1 leading-relaxed whitespace-pre-line">{draft.structureNote.trim()}</p>
-          </div>
-        )}
+        <Chapter n="02" title="สี">
+          {d.ownPending ? (
+            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้ชุดสีเดิมของแบรนด์</span> <span className="text-[#6F6A5E]">· ทีมจะใช้สีจากเว็บไซต์หรือโลโก้ปัจจุบันของคุณ</span></p>
+          ) : (
+            <>
+              <div className="grid grid-cols-3">
+                {d.swatches.map((s) => (
+                  <div key={s.role}>
+                    <div className="h-20 md:h-28" style={{ background: s.hex, boxShadow: isLightHex(s.hex) ? "inset 0 0 0 1px rgba(0,0,0,0.08)" : undefined }} />
+                    <p className="mt-2 text-small font-semibold">{s.role}</p>
+                    <p className="font-mono text-caption text-[#8A8578]">{s.hex.toUpperCase()}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-small text-[#8A8578]">{d.colorSource}</p>
+            </>
+          )}
+        </Chapter>
 
-        {/* ── Visual Style — the photo direction for this Direction: 4 curated examples
-            and the mood they share. ── */}
-        {visualStyle && (
-          <>
-            <div className={sectionRule}><span className="text-lead font-semibold text-ir-t1">แนวภาพ</span><span className="text-small text-ir-t3 shrink-0">ตัวอย่างโทนภาพ</span><div className="flex-1 h-px bg-ir-border" /></div>
-            <p className="text-body text-ir-t2 leading-relaxed mb-2.5">{visualStyle.mood}</p>
-            <div className="sc-reveal grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {visualStyle.shots.map((s) => (
-                <figure key={s.id} className="relative m-0 cursor-default select-none">
+        <Chapter n="03" title="ตัวอักษร">
+          <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
+          <p className="mt-2 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
+          {d.fontNote && <p className="mt-2 text-small text-[#8A8578]">{d.fontNote}</p>}
+        </Chapter>
+
+        {d.shots.length > 0 && (
+          <Chapter n="04" title="แนวภาพ">
+            {d.visualMood && <p className="mb-4 text-body leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-4">
+              {d.shots.slice(0, 4).map((s) => (
+                <figure key={s.url} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={unsplashUrl(s.id, 480)} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none w-full rounded-sm object-cover bg-ir-bg opacity-95" style={{ aspectRatio: "4/3" }} />
-                  <span className="absolute left-1.5 top-1.5 rounded-xs bg-black/55 px-1.5 py-0.5 text-[11px] font-medium text-white">ตัวอย่าง</span>
-                  <figcaption className="mt-1 text-small text-ir-t3 leading-snug">{s.cap}</figcaption>
+                  <img src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none object-cover" style={{ aspectRatio: "4 / 3" }} />
+                  <figcaption className="mt-1.5 text-caption text-[#8A8578]">{s.cap}</figcaption>
                 </figure>
               ))}
             </div>
-            <p className="mt-2 text-small text-ir-t3">ภาพตัวอย่างจาก Unsplash เพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง</p>
-          </>
+            <p className="mt-4 text-small text-[#8A8578]">ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง</p>
+          </Chapter>
         )}
+
+        <Chapter n={d.shots.length ? "05" : "04"} title="หน้าแรก">
+          {d.sections.length ? (
+            <ol className="grid gap-x-8 sm:grid-cols-2">
+              {d.sections.map((name, i) => (
+                <li key={name} className="flex items-baseline gap-3 py-1.5 text-body">
+                  <span className="w-5 shrink-0 text-right font-mono text-small text-[#8A8578]">{i + 1}</span>
+                  <span>{name.split(" / ")[0]}</span>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="text-body text-[#8A8578]">ยังไม่ได้จัดหน้าแรก</p>}
+          {d.note && <p className="mt-4 text-body leading-relaxed"><span className="text-[#8A8578]">หมายเหตุ · </span>{d.note}</p>}
+          {(insp || d.inspiration.note) && (
+            <p className="mt-3 text-body leading-relaxed">
+              <span className="text-[#8A8578]">แรงบันดาลใจที่แนบ · </span>{[insp, d.inspiration.note].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </Chapter>
+
+        <p className="border-t border-black/[0.08] py-5 text-small text-[#8A8578]">
+          เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง
+        </p>
       </div>
-    </div>
+    </section>
+  );
+}
+
+function SaveSheetButton({ draft, kind }: { draft: any; kind: "pdf" | "png" }) {
+  const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  const name = kind === "pdf" ? "PDF" : "PNG";
+  const save = async () => {
+    if (state === "busy") return;
+    setState("busy");
+    try {
+      const { saveMoodboard } = await import("@/lib/moodboardExport");
+      await saveMoodboard(sheetData(draft), kind);
+      setState("done");
+    } catch {
+      setState("error");
+    }
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setState("idle"), 3000);
+  };
+  const label = state === "busy" ? "กำลังบันทึก…" : state === "done" ? "บันทึกแล้ว" : state === "error" ? "บันทึกไม่สำเร็จ ลองอีกครั้ง" : `บันทึก ${name}`;
+  return (
+    <button type="button" onClick={save} aria-busy={state === "busy"} aria-live="polite"
+      className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-body font-semibold transition-colors focus-ring ${
+        state === "done" ? "border-ir-select bg-primary-50 text-ir-t1"
+          : state === "error" ? "border-red-300 bg-red-50 text-red-700"
+          : "border-ir-border bg-white text-ir-t1 hover:border-ir-border-hi"
+      } ${state === "busy" ? "cursor-wait" : ""}`}>
+      {state === "busy" ? (
+        <span aria-hidden="true" className="h-[18px] w-[18px] rounded-full border-2 border-ir-t3/30 border-t-ir-t1 animate-spin" />
+      ) : state === "done" ? (
+        <IconCheck width={18} height={18} className="text-ir-accent-text" />
+      ) : (
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+      )}
+      {label}
+    </button>
   );
 }
 
@@ -3282,21 +3177,19 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
             <p className="text-lead text-ir-t2 leading-relaxed mt-2">ตรวจภาพรวมที่สรุปจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
           </div>
-          {/* keep a copy before sending — browser print → "Save as PDF"; the contact form and
-              buttons are hidden in print (.no-print) */}
-          <button type="button" onClick={() => window.print()}
-            className="no-print inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-ir-border bg-white px-4 text-body font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
-            บันทึกสรุปเป็น PDF
-          </button>
+          {/* keep a copy before sending — a one-page moodboard sheet, downloaded straight
+              away (no print dialog, nothing to set up) */}
+          <div className="no-print flex shrink-0 items-center gap-2">
+            <SaveSheetButton draft={draft} kind="pdf" />
+            <SaveSheetButton draft={draft} kind="png" />
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* ── LEFT: project overview (main visual) ── */}
         <div className="flex-1 min-w-0 w-full">
-          <DesignDNACard req={draft} className="mb-5" />
-          <ConceptBoard draft={draft} />
+          <ProjectOverview draft={draft} />
         </div>
 
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}

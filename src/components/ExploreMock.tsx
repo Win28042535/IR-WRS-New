@@ -16,6 +16,7 @@
 // span is 90·n − 24 wide), vertical rhythm in 8px steps.
 
 import type { ReactNode } from "react";
+import { SAMPLE_FIN } from "@/lib/data";
 
 const W = 1200;
 const H = 677;
@@ -50,19 +51,21 @@ const FORMAL: Theme = { // q1 Formal — navy, square, restrained
 const GOLD = "#B8963E";
 
 // ── the one page every mock shows ───────────────────────────────────────────
+// Figures come from SAMPLE_FIN (shared with the Deliver summary's samples).
+const S = SAMPLE_FIN;
 const FIN = {
   eyebrow: "นักลงทุนสัมพันธ์",
   title: "ข้อมูลสำคัญทางการเงิน",
-  year: "ปี 2568",
+  year: `ปี ${S.year}`,
   kpis: [
-    { k: "รายได้รวม", v: "28,560", u: "ล้านบาท", d: "+18%" },
-    { k: "กำไรสุทธิ", v: "4,120", u: "ล้านบาท", d: "+12%" },
-    { k: "ROE", v: "12.4%", u: "ปี 2568", d: "+0.8" },
-    { k: "ปันผล/หุ้น", v: "1.40", u: "บาท", d: "+0.15" },
+    { k: "รายได้รวม", v: S.revenue, u: "ล้านบาท", d: S.revenueGrowth },
+    { k: "กำไรสุทธิ", v: S.netProfit, u: "ล้านบาท", d: S.profitGrowth },
+    { k: "ROE", v: S.roe, u: `ปี ${S.year}`, d: "+0.8" },
+    { k: "ปันผล/หุ้น", v: S.dividend, u: "บาท", d: "+0.15" },
   ],
-  bars: [0.52, 0.6, 0.66, 0.78, 0.92],
-  years: ["2564", "2565", "2566", "2567", "2568"],
-  ratios: [["อัตรากำไรสุทธิ", "14.4%"], ["EPS (บาท)", "3.21"], ["D/E (เท่า)", "0.85"], ["P/E (เท่า)", "13.3"]],
+  bars: S.revenueTrend,
+  years: S.trendYears,
+  ratios: [["อัตรากำไรสุทธิ", S.netMargin], ["EPS (บาท)", S.eps], ["D/E (เท่า)", S.de], ["P/E (เท่า)", S.pe]],
   links: ["งบการเงิน", "รายงานประจำปี", "ปฏิทินนักลงทุน"],
 };
 
@@ -128,7 +131,7 @@ const NAV = ["เกี่ยวกับเรา", "นักลงทุน",
 const Header = ({ t, onBand = false }: { t: Theme; onBand?: boolean }) => (
   <g>
     <rect x={col(0)} y={26} width={28} height={28} rx={Math.min(t.r, 8)} fill={t.accent} />
-    <Txt x={col(0) + 40} y={46} size={18} weight={700} fill={t.ink}>บริษัท ABC</Txt>
+    <Txt x={col(0) + 40} y={46} size={18} weight={700} fill={t.ink}>{S.company}</Txt>
     {NAV.map((n, i) => {
       const cx = col(6) + 20 + i * 112;
       const on = n === "นักลงทุน";
@@ -181,7 +184,7 @@ const StandardHome = ({ t }: { t: Theme; id: string }) => (
 
 // ── q1 · brand personality — tone of voice on the same page ─────────────────
 //   Approachable — warm, rounded, plain-language headline, each figure explained in a
-//                  sentence ("เพิ่มขึ้น 18% จากปีก่อน"), a photo of the company.
+//                  sentence ("เพิ่มขึ้น 18% จากปีก่อน" — from SAMPLE_FIN), a photo of the company.
 //   Formal       — a full-width deep-navy band with a gold rule, square corners, a strict
 //                  facts table in numbers.
 const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
@@ -196,8 +199,8 @@ const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
     <Btn x={col(2) + 44} y={344} w={span(2) + 10} label="ติดต่อทีม IR" t={t} ghost />
     <Pic x={col(7)} y={104} w={span(5)} h={300} t={t} r={28} id={`${id}-p`} />
     {[
-      [FIN.kpis[0], "เพิ่มขึ้น 18% จากปีก่อน"],
-      [FIN.kpis[1], "เพิ่มขึ้น 12% จากปีก่อน"],
+      [FIN.kpis[0], `เพิ่มขึ้น ${S.revenueGrowth.slice(1)} จากปีก่อน`],
+      [FIN.kpis[1], `เพิ่มขึ้น ${S.profitGrowth.slice(1)} จากปีก่อน`],
       [FIN.kpis[3], "จ่ายปันผลวันที่ 5 ธ.ค."],
     ].map(([m, say], i) => {
       const k = m as (typeof FIN.kpis)[number];
@@ -220,12 +223,12 @@ const FormalHome = ({ t }: { t: Theme; id: string }) => (
     <Header t={t} />
     {/* full-width navy band */}
     <rect x={0} y={96} width={W} height={300} fill={t.ink} />
-    <Txt x={col(0)} y={156} size={14} weight={600} fill={GOLD} ls={4}>INVESTOR RELATIONS · 2568</Txt>
+    <Txt x={col(0)} y={156} size={14} weight={600} fill={GOLD} ls={4}>{`INVESTOR RELATIONS · ${S.year}`}</Txt>
     <rect x={col(0)} y={172} width={80} height={3} fill={GOLD} />
     <Txt x={col(0)} y={244} size={46} weight={700} fill="#FFFFFF">{FIN.title}</Txt>
-    <Txt x={col(0)} y={290} size={20} fill="#FFFFFF" >งบการเงินรวม สำหรับปีสิ้นสุด 31 ธันวาคม 2568</Txt>
+    <Txt x={col(0)} y={290} size={20} fill="#FFFFFF" >{`งบการเงินรวม สำหรับปีสิ้นสุด 31 ธันวาคม ${S.year}`}</Txt>
     <rect x={col(0)} y={322} width={span(3)} height={44} fill="none" stroke="#FFFFFF" strokeOpacity={0.6} />
-    <Txt x={col(0) + span(3) / 2} y={350} size={15} weight={600} fill="#FFFFFF" anchor="middle">รายงานประจำปี 2568</Txt>
+    <Txt x={col(0) + span(3) / 2} y={350} size={15} weight={600} fill="#FFFFFF" anchor="middle">{`รายงานประจำปี ${S.year}`}</Txt>
     {/* strict facts table */}
     <line x1={col(0)} y1={436} x2={RIGHT} y2={436} stroke={t.ink} strokeWidth={3} />
     {FIN.kpis.map((m, i) => (
@@ -246,12 +249,12 @@ const StoryHome = ({ t, id }: { t: Theme; id: string }) => (
     <Header t={t} />
     <Pic x={col(0)} y={112} w={span(6)} h={320} t={t} id={`${id}-p`} />
     <Txt x={col(6) + 24} y={146} size={14} weight={600} fill={t.accent} ls={1}>{FIN.title}{FIN.year}</Txt>
-    <Txt x={col(6) + 24} y={200} size={38} weight={700} fill={t.ink}>รายได้เติบโต 18%</Txt>
+    <Txt x={col(6) + 24} y={200} size={38} weight={700} fill={t.ink}>{`รายได้เติบโต ${S.revenueGrowth.slice(1)}`}</Txt>
     <Txt x={col(6) + 24} y={248} size={38} weight={700} fill={t.ink}>จากการขยายสู่ภูมิภาค</Txt>
     <Lines x={col(6) + 24} y={282} w={span(6) - 24} n={4} t={t} gap={18} />
     <Txt x={col(6) + 24} y={400} size={16} weight={600} fill={t.accent}>อ่านเรื่องราวทั้งหมด  →</Txt>
     <line x1={col(0)} y1={500} x2={RIGHT} y2={500} stroke={t.line} strokeWidth={2} />
-    {[["2564", "เริ่มฟื้นตัว"], ["2565", "เปิดโรงงานใหม่"], ["2567", "ขยายสู่ภูมิภาค"], ["2568", "รายได้ 28,560 ล้านบาท"]].map(([y, s], i) => (
+    {[["2564", "เริ่มฟื้นตัว"], ["2565", "เปิดโรงงานใหม่"], ["2567", "ขยายสู่ภูมิภาค"], [S.year, `รายได้ ${S.revenue} ล้านบาท`]].map(([y, s], i) => (
       <g key={y}>
         <circle cx={col(i * 3) + 8} cy={500} r={8} fill={i === 3 ? t.accent : t.bg} stroke={t.accent} strokeWidth={3} />
         <Txt x={col(i * 3)} y={548} size={22} weight={700} fill={t.ink}>{y}</Txt>
@@ -296,8 +299,8 @@ const SpaciousHome = ({ t }: { t: Theme; id: string }) => (
     <Header t={t} />
     <Txt x={W / 2} y={176} size={15} weight={600} fill={t.accent} anchor="middle" ls={1}>{FIN.title}{FIN.year}</Txt>
     <Txt x={W / 2} y={232} size={22} fill={t.muted} anchor="middle">รายได้รวม</Txt>
-    <Txt x={W / 2} y={348} size={112} weight={700} fill={t.ink} anchor="middle" ls={-2}>28,560</Txt>
-    <Txt x={W / 2} y={396} size={20} fill={t.muted} anchor="middle">ล้านบาท  ·  เพิ่มขึ้น 18% จากปีก่อน</Txt>
+    <Txt x={W / 2} y={348} size={112} weight={700} fill={t.ink} anchor="middle" ls={-2}>{S.revenue}</Txt>
+    <Txt x={W / 2} y={396} size={20} fill={t.muted} anchor="middle">{`ล้านบาท  ·  เพิ่มขึ้น ${S.revenueGrowth.slice(1)} จากปีก่อน`}</Txt>
     <Bars x={W / 2 - 150} y={440} w={300} h={80} t={t} labels={false} gap={0.4} />
     <Btn x={W / 2 - 92} y={560} w={184} label="ดูงบการเงิน" t={t} />
   </>
@@ -341,7 +344,7 @@ const DenseHome = ({ t }: { t: Theme }) => {
       {FIN.links.map((l, i) => (
         <g key={l}>
           <rect x={col(i * 4) + 18} y={562} width={36} height={44} rx={6} fill={t.soft} />
-          <Txt x={col(i * 4) + 66} y={590} size={15} fill={t.ink}>{l} 2568</Txt>
+          <Txt x={col(i * 4) + 66} y={590} size={15} fill={t.ink}>{l} {S.year}</Txt>
         </g>
       ))}
     </>
@@ -372,7 +375,7 @@ const SubtleHome = ({ t, id }: { t: Theme; id: string }) => (
 // Motion is implied by the layout, not animated: a slanted image bleeding off the edges,
 // slide dots and a ticker cut off at both edges as if it were running past. The
 // headline sits on white, clear of the image.
-const TICKER = ["รายได้ 28,560 ล้านบาท ▲18%", "กำไรสุทธิ 4,120 ล้านบาท", "ปันผล 1.40 บาท/หุ้น", "ROE 12.4%"];
+const TICKER = [`รายได้ ${S.revenue} ล้านบาท ▲${S.revenueGrowth.slice(1)}`, `กำไรสุทธิ ${S.netProfit} ล้านบาท`, `ปันผล ${S.dividend} บาท/หุ้น`, `ROE ${S.roe}`];
 
 const ExpressiveHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
@@ -383,8 +386,8 @@ const ExpressiveHome = ({ t, id }: { t: Theme; id: string }) => (
     </g>
     <Header t={t} />
     <Txt x={col(0) - 4} y={236} size={112} weight={800} fill={t.ink} ls={-3}>รายได้</Txt>
-    <Txt x={col(0) - 4} y={364} size={112} weight={800} fill={t.accent} ls={-3}>โต 18%</Txt>
-    <Txt x={col(0)} y={424} size={18} fill={t.muted}>{FIN.title}{FIN.year}  ·  28,560 ล้านบาท</Txt>
+    <Txt x={col(0) - 4} y={364} size={112} weight={800} fill={t.accent} >{`โต ${S.revenueGrowth.slice(1)}`}</Txt>
+    <Txt x={col(0)} y={424} size={18} fill={t.muted}>{FIN.title}{FIN.year}  ·  {S.revenue} ล้านบาท</Txt>
     {/* slide dots: the current slide is the long one */}
     {[[0, 64], [84, 24], [116, 24]].map(([dx, w], i) => (
       <rect key={dx} x={col(0) + dx} y={486} width={w} height={6} rx={3} fill={i === 0 ? t.ink : t.line} />

@@ -459,3 +459,27 @@ export const unsplashUrl = (id: string, w = 800) =>
 // ── Client flow steps — shown in the flow's step bar and listed on the homepage. ──
 export const FLOW_STEPS = ["ทำความเข้าใจ", "กำหนดเป้าหมาย", "สำรวจแนวทาง", "จัดหน้าแรก", "เพิ่มเติมแรงบันดาลใจ", "ส่งมอบ"];
 export const FLOW_STEPS_EN = ["Understand", "Define", "Explore", "Structure", "Inspiration", "Deliver"];
+
+// ── Sample company figures ──
+// One made-up set for "บริษัท ABC", used by every illustration that shows numbers: the
+// Explore quiz mocks and the colour / font samples on the Deliver summary. Keeping them in
+// one place stops the steps from showing two different companies (user test CPALL: the
+// data should hang together across steps). Illustrative only.
+export const SAMPLE_FIN = {
+  company: "บริษัท ABC",
+  year: "2568",
+  asOf: "31 ธ.ค. 2568",
+  revenue: "28,560",
+  netProfit: "4,120",
+  roe: "12.4%",
+  dividend: "1.40",
+  revenueGrowth: "+18%",
+  profitGrowth: "+12%",
+  eps: "3.21",
+  netMargin: "14.4%",
+  de: "0.85",
+  pe: "13.3",
+  /** Revenue, five years to `year`, as a share of the tallest bar. */
+  revenueTrend: [0.52, 0.6, 0.66, 0.78, 0.92],
+  trendYears: ["2564", "2565", "2566", "2567", "2568"],
+} as const;

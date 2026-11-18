@@ -22,10 +22,12 @@ import type { Direction, Requirement } from "@/lib/types";
 import { IconCheck, IconClose, IconEdit, IconGlobe, IconUsers } from "./icons";
 import { OptionCard, SectionLabel } from "./ui";
 
+// Figures match SAMPLE_FIN (lib/data) — the same sample company as the Explore mocks and
+// the Deliver summary — with decimals kept so numeral rendering shows.
 const SAMPLES = {
   heading: { label: "หัวข้อ", text: "รายงานประจำปี 2568", weight: 600 },
-  numbers: { label: "ตัวเลข", text: "฿12,450.75 ล้าน ▲ 8.2%", weight: 500 },
-  sentence: { label: "ประโยค", text: "ผลประกอบการไตรมาส 3/2569 เติบโตต่อเนื่อง", weight: 400 },
+  numbers: { label: "ตัวเลข", text: "฿28,560.42 ล้าน ▲ 18%", weight: 500 },
+  sentence: { label: "ประโยค", text: "ผลประกอบการไตรมาส 3/2568 เติบโตต่อเนื่อง", weight: 400 },
   company: { label: "ชื่อบริษัท", text: "", weight: 600 },
 } as const;
 type SampleKey = keyof typeof SAMPLES;
@@ -349,7 +351,7 @@ function FontCard({ f, text, weight, showNumbers, team, chosen, onOpen }: {
       <div className="pb-4">
       {f.collection === "irplus" && <p className="mt-2 text-caption text-ir-t3">ตัวอย่างโดยประมาณ</p>}
       <p className="mt-3 line-clamp-2 text-[28px] leading-[1.25] text-ir-t1 sm:text-[30px]" style={{ fontFamily: familyStack(f.family), fontWeight: weight }}>{text}</p>
-      {showNumbers && <p className="mt-1.5 truncate text-lead text-ir-t2 tabular-nums" style={{ fontFamily: familyStack(f.family), fontWeight: 500 }}>฿12,450.75 ล้าน ▲ 8.2%</p>}
+      {showNumbers && <p className="mt-1.5 truncate text-lead text-ir-t2 tabular-nums" style={{ fontFamily: familyStack(f.family), fontWeight: 500 }}>฿28,560.42 ล้าน ▲ 18%</p>}
       </div>
       <div className="mt-auto flex items-center gap-2 border-t border-ir-border-soft pt-3">
         <span className="min-w-0 flex-1 truncate text-body font-semibold text-ir-t1">{f.family}</span>
@@ -380,9 +382,9 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
 
   // type tester
   const PRESETS = {
-    heading: { label: "หัวข้อ", size: 40, weight: 600, text: "ผลประกอบการไตรมาส 3/2569 เติบโตต่อเนื่อง" },
-    body: { label: "เนื้อหา", size: 18, weight: 400, text: "บริษัทมีรายได้รวม 12,450.75 ล้านบาท เพิ่มขึ้นร้อยละ 8.2 จากปีก่อน จากการขยายฐานลูกค้าและการบริหารต้นทุนที่มีประสิทธิภาพ คณะกรรมการมีมติจ่ายเงินปันผลระหว่างกาลในอัตราหุ้นละ 0.35 บาท" },
-    numbers: { label: "ตัวเลข", size: 36, weight: 500, text: "฿12,450.75 ล้าน ▲ 8.2%  EPS 1.24" },
+    heading: { label: "หัวข้อ", size: 40, weight: 600, text: "ผลประกอบการไตรมาส 3/2568 เติบโตต่อเนื่อง" },
+    body: { label: "เนื้อหา", size: 18, weight: 400, text: "บริษัทมีรายได้รวม 28,560.42 ล้านบาท เพิ่มขึ้นร้อยละ 18 จากปีก่อน จากการขยายฐานลูกค้าและการบริหารต้นทุนที่มีประสิทธิภาพ คณะกรรมการมีมติจ่ายเงินปันผลระหว่างกาลในอัตราหุ้นละ 0.35 บาท" },
+    numbers: { label: "ตัวเลข", size: 36, weight: 500, text: "฿28,560.42 ล้าน ▲ 18%  EPS 3.21" },
   } as const;
   type PresetKey = keyof typeof PRESETS;
   const [preset, setPreset] = useState<PresetKey>("heading");
@@ -501,7 +503,7 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
           <table className="w-full min-w-[420px] text-left tabular-nums" style={{ fontFamily: stack }}>
             <thead><tr className="bg-ir-sunken text-small text-ir-t3"><th className="px-4 py-2 font-medium">ตัวเลขเรียงตรงหลักไหม</th><th className="px-4 py-2 text-right font-medium">2566</th><th className="px-4 py-2 text-right font-medium">2567</th><th className="px-4 py-2 text-right font-medium">2568</th></tr></thead>
             <tbody className="text-body text-ir-t1">
-              {[["รายได้รวม", "9,812.40", "11,507.11", "12,450.75"], ["กำไรสุทธิ", "1,104.08", "1,311.90", "1,489.32"], ["กำไรต่อหุ้น (บาท)", "0.92", "1.10", "1.24"]].map((r) => (
+              {[["รายได้รวม", "20,489.27", "24,213.66", "28,560.42"], ["กำไรสุทธิ", "3,251.40", "3,678.55", "4,120.18"], ["กำไรต่อหุ้น (บาท)", "2.53", "2.87", "3.21"]].map((r) => (
                 <tr key={r[0]} className="border-t border-ir-border-soft">{r.map((c, i) => <td key={i} className={`px-4 py-2 ${i ? "text-right" : ""}`} style={{ fontWeight: nearest(i ? 500 : 400) }}>{c}</td>)}</tr>
               ))}
             </tbody>
@@ -545,7 +547,7 @@ function IrMock({ family, company, dir }: { family: string; company: string; dir
           <table className="mt-2 w-full text-small tabular-nums text-[#141613]">
             <thead><tr className="text-[#686D64]"><th className="py-1 text-left font-normal">ล้านบาท</th><th className="py-1 text-right font-normal">2567</th><th className="py-1 text-right font-normal">2568</th></tr></thead>
             <tbody>
-              {[["รายได้รวม", "11,507.11", "12,450.75"], ["กำไรสุทธิ", "1,311.90", "1,489.32"], ["อัตรากำไรสุทธิ", "11.4%", "12.0%"]].map((r) => (
+              {[["รายได้รวม", "24,213.66", "28,560.42"], ["กำไรสุทธิ", "3,678.55", "4,120.18"], ["อัตรากำไรสุทธิ", "15.2%", "14.4%"]].map((r) => (
                 <tr key={r[0]} className="border-t border-black/[0.06]"><td className="py-1.5">{r[0]}</td><td className="py-1.5 text-right">{r[1]}</td><td className="py-1.5 text-right font-semibold">{r[2]}</td></tr>
               ))}
             </tbody>
