@@ -51,7 +51,7 @@ export function HomeContact() {
         <div className="min-w-0">
           <p className="text-body font-semibold text-ir-t1">รับเรื่องไว้แล้ว</p>
           <p className="mt-0.5 text-small leading-relaxed text-ir-t2" style={balance}>
-            ทีม IR Plus จะติดต่อกลับทาง <span className="font-semibold text-ir-t1">{c}</span> ภายใน 1–2 วันทำการ · <span className="font-mono text-caption text-ir-t3">{sentId}</span>
+            ทีม IR Plus จะติดต่อกลับทาง <span className="font-semibold text-ir-t1">{c}</span> โดยเร็ว · <span className="font-mono text-caption text-ir-t3">{sentId}</span>
           </p>
           <button type="button" onClick={reset} className="mt-1 min-h-10 text-small font-medium text-ir-t2 underline underline-offset-4 hover:text-ir-t1">ฝากเรื่องอื่นเพิ่ม</button>
         </div>

@@ -3206,7 +3206,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
     addTimelineEntry?.({
       step: 5, type: "submitted",
       decision: `Requirement ส่งแล้ว ${draft.company}`,
-      reasoning: `${draft.directionLabel || "Direction ที่เลือก"} · ${draft.selectedSections.length} Sections · ส่งโดย ${draft.name || draft.email} ทีม IR Plus จะติดต่อกลับภายใน 1-2 วันทำการ`,
+      reasoning: `${draft.directionLabel || "Direction ที่เลือก"} · ${draft.selectedSections.length} Sections · ส่งโดย ${draft.name || draft.email} ทีม IR Plus จะติดต่อกลับโดยเร็ว`,
     });
     addNotebookEntry?.({
       step: 5, category: "insight", source: "system",
@@ -3265,7 +3265,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             <p className="text-lead font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
-            <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน 1-2 วันทำการ</p>
+            <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับโดยเร็ว</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">

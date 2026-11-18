@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useStartFlow } from "@/lib/useStartFlow";
+import { useHomeMode } from "@/lib/useHomeMode";
 
 // The homepage's three sections a visitor may want before starting. On other pages the
 // links lead back to the homepage at that section.
@@ -16,6 +17,10 @@ const NAV = [
 export function Header() {
   const pathname = usePathname();
   const home = pathname === "/" || pathname === "/v2"; // v2: alternate landing with the demo panel
+  // Hero-only homepage: there are no sections to jump to, so the menu goes and only the
+  // start button stays.
+  const mode = useHomeMode();
+  const showNav = !(home && mode === "hero");
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +51,7 @@ export function Header() {
       </Link>
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+        {showNav && <>
         {/* md and up: the three sections as plain links */}
         <nav aria-label="เมนูหลัก" className="hidden items-center md:flex">
           {NAV.map((n) => (
@@ -72,11 +78,12 @@ export function Header() {
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
         </button>
+        </>}
 
         {home && <HeaderStart />}
       </div>
 
-      {open && (
+      {showNav && open && (
         <nav id="site-menu" aria-label="เมนูหลัก" className="menu-in absolute inset-x-0 top-14 border-b border-black/[0.06] bg-ir-bg/95 px-4 pb-4 pt-2 shadow-e3 backdrop-blur-md md:hidden">
           {NAV.map((n) => (
             <a

@@ -20,7 +20,7 @@ export const fmtDate = (t: number) => new Date(t).toLocaleString("th-TH", { day:
 
 export function nextStepText(status: Requirement["status"]): string {
   switch (status) {
-    case "submitted": return "IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว ทีมงานจะตรวจสอบและติดต่อกลับภายใน 1–2 วันทำการ";
+    case "submitted": return "IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว ทีมงานจะตรวจสอบและติดต่อกลับโดยเร็ว";
     case "in_review": return "ทีมงานกำลังตรวจสอบข้อมูล หากต้องการข้อมูลเพิ่มเติม เราจะติดต่อกลับทาง Email ที่แจ้งไว้";
     case "approved": return "IR Plus พร้อมเริ่มงานออกแบบแล้ว ทีมออกแบบจะติดต่อเพื่อนัดหมาย Project Kickoff";
     case "frozen": return "โครงการพร้อมเริ่มต้น ทีมออกแบบจะติดต่อเพื่อนัดหมาย Kickoff Meeting โดยเร็ว";

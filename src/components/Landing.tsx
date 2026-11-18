@@ -7,6 +7,7 @@ import { IconCheck, IconArrowRight } from "@/components/icons";
 import { BriefFlow, DemoPanel, HeroFragments, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
 import { HomeContact } from "@/components/HomeContact";
+import { setHomeMode, useHomeMode, type HomeMode } from "@/lib/useHomeMode";
 
 const balance = { textWrap: "balance" } as CSSProperties;
 
@@ -27,7 +28,7 @@ const REASSURE = ["ไม่ต้องสมัครสมาชิก", "บ
 const STATS = [
   { pre: "ไม่เกิน", n: "20", post: "นาที" },
   { n: String(FLOW_STEPS.length), post: "ขั้นตอน" },
-  { n: "1–2", post: "วันทำการ ทีมติดต่อกลับ" },
+  { pre: "ทีมติดต่อกลับ", n: "โดยเร็ว" },
 ];
 
 const PREP = [
@@ -54,6 +55,13 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
   const flow = useStartFlow();
   const [company, setCompany] = useState("");
   const shown = flow.inProgress ? flow.company : company;
+  const heroOnly = useHomeMode() === "hero";
+
+  // A link with ?mode=… also remembers that mode for the next visit.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("mode");
+    if (q === "hero" || q === "full") setHomeMode(q);
+  }, []);
 
   return (
     // overflow-clip, not hidden: hidden would capture the scroll-motion view() timelines.
@@ -73,29 +81,31 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
         style={{ background: "radial-gradient(closest-side, rgba(215,224,39,0.38), rgba(215,224,39,0) 70%)" }}
       />
 
-      {/* ── Hero: the outcome and the first question, nothing competing with the CTA ── */}
-      <section className={`relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 ir-fade-up ${demo ? "grid items-center gap-10 pt-8 pb-6 sm:pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:text-left text-center" : "pt-10 sm:pt-20 pb-6 text-center"}`}>
+      {/* ── Hero: the outcome and the first question, nothing competing with the CTA ──
+          It fills the first screen (below the 56px header) with the whole CTA in view, so
+          nothing needs a scroll to be seen. On phones the /v2 demo panel stacks below. */}
+      <section className={`relative isolate mx-auto max-w-[1320px] px-5 sm:px-8 ir-fade-up ${demo ? "grid items-center gap-10 py-6 lg:min-h-[calc(100svh-3.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:text-left text-center" : "flex min-h-[calc(100svh-3.5rem)] flex-col justify-center py-4 sm:py-8 text-center"}`}>
         {!demo && <HeroFragments />}
         <div>
         <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.06] bg-white/80 py-1.5 pl-1.5 pr-4 text-left text-small font-medium leading-snug text-ir-t2 shadow-e1 backdrop-blur">
           <span className="shrink-0 rounded-full bg-ir-dark px-2.5 py-0.5 text-small font-semibold text-white">IR Plus</span>
           <span className="whitespace-nowrap">สำหรับบริษัทจดทะเบียน</span>
         </span>
-        <h1 className={demo ? "mx-auto mt-6 max-w-[640px] text-display-lg font-bold leading-[1.25] lg:mx-0" : "mx-auto mt-6 max-w-[920px] text-hero font-semibold leading-[1.15] tracking-[-0.035em]"}
+        <h1 className={demo ? "mx-auto mt-6 max-w-[640px] text-display-lg font-bold leading-[1.25] lg:mx-0" : "mx-auto mt-4 sm:mt-6 max-w-[920px] text-hero font-semibold leading-[1.15] tracking-[-0.035em]"}
           style={demo ? { ...balance, fontFamily: "var(--font-noto-sans-thai), 'Noto Sans Thai', sans-serif" } : balance}>
           <span className="whitespace-nowrap">ออกแบบเว็บไซต์</span>{" "}
           <span className="whitespace-nowrap">นักลงทุนสัมพันธ์</span>{" "}
           <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">ให้ตรงใจองค์กรคุณ</span>
         </h1>
-        <p className={`mx-auto mt-5 max-w-[38rem] text-lead sm:text-title leading-relaxed text-ir-t2 ${demo ? "lg:mx-0" : ""}`} style={balance}>
-          ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับภายใน 1–2 วันทำการ
+        <p className={`mx-auto mt-3 sm:mt-5 max-w-[38rem] text-lead sm:text-title leading-relaxed text-ir-t2 ${demo ? "lg:mx-0" : ""}`} style={balance}>
+          ตอบคำถาม 6 ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับโดยเร็ว
         </p>
 
-        <div id="hero-cta" className={`mx-auto mt-8 max-w-[34rem] text-left ${demo ? "lg:mx-0" : ""}`}>
+        <div id="hero-cta" className={`mx-auto mt-5 sm:mt-8 max-w-[34rem] text-left ${demo ? "lg:mx-0" : ""}`}>
           {flow.inProgress ? <ResumeCard flow={flow} /> : <StartForm value={company} onChange={setCompany} onStart={flow.startWith} />}
         </div>
 
-        <ul className={`mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-body text-ir-t2 ${demo ? "lg:justify-start" : ""}`}>
+        <ul className={`mt-4 sm:mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-body text-ir-t2 ${demo ? "lg:justify-start" : ""}`}>
           {REASSURE.map((t) => (
             <li key={t} className="inline-flex items-center gap-1.5">
               <IconCheck width={20} height={20} className="text-ir-accent-text" />
@@ -108,6 +118,9 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
 
       </section>
 
+      {heroOnly ? (
+        <ModeSwitch mode="hero" />
+      ) : (<>
       {/* ── The deliverable, revealed on scroll: centred and large, away from the CTA ── */}
       <section id="example" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-16 sm:pt-20">
         <div className="sc-reveal text-center">
@@ -185,7 +198,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
           <h2 className="mx-auto max-w-[24ch] text-display font-semibold leading-[1.18] tracking-[-0.03em]" style={balance}>
             <span className="whitespace-nowrap">ยังมี<span className="ir-grad-text px-[0.02em] py-[0.15em]">คำถาม?</span></span>
           </h2>
-          <p className="mt-3 text-lead text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับภายใน 1–2 วันทำการ</p>
+          <p className="mt-3 text-lead text-ir-t2" style={balance}>ฝากเรื่องไว้ ทีม IR Plus ติดต่อกลับโดยเร็ว</p>
         </div>
         <div className="sc-reveal mt-10"><HomeContact /></div>
       </section>
@@ -215,10 +228,10 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
             </div>
             <ul className="mt-10 flex flex-wrap items-baseline justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-small text-white/70">
               {STATS.map((st) => (
-                <li key={st.post} className="inline-flex items-baseline gap-1.5">
+                <li key={st.n} className="inline-flex items-baseline gap-1.5">
                   {st.pre && <span>{st.pre}</span>}
                   <span className="ir-grad-text-dark text-title font-semibold tabular-nums">{st.n}</span>
-                  <span>{st.post}</span>
+                  {st.post && <span>{st.post}</span>}
                 </li>
               ))}
             </ul>
@@ -227,9 +240,52 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
         <p className="mt-10 text-center text-small text-ir-t3">IR Plus by efin · Website Requirement System</p>
       </section>
 
+      <ModeSwitch mode="full" />
       <MobileStickyCta flow={flow} company={company} />
       <BackToTop />
+      </>)}
     </div>
+  );
+}
+
+// Switches the homepage between the full page and the hero alone. A quiet pill in the
+// bottom-left corner: it's for whoever runs the test, not part of the client's page.
+function ModeSwitch({ mode }: { mode: HomeMode }) {
+  const opts: { id: HomeMode; label: string }[] = [
+    { id: "full", label: "หน้าเต็ม" },
+    { id: "hero", label: "Hero อย่างเดียว" },
+  ];
+  const other = mode === "hero" ? opts[0] : opts[1];
+  return (
+    <>
+    {/* Phones: one small round button (the labelled pill would cover the hero's last line) */}
+    <button
+      type="button"
+      onClick={() => setHomeMode(other.id)}
+      aria-label={`รูปแบบหน้าหลัก: สลับเป็น${other.label}`}
+      title={`สลับเป็น${other.label}`}
+      className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-3 z-30 grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/85 text-ir-t2 shadow-e2 backdrop-blur focus-ring sm:hidden print:hidden"
+    >
+      <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="3" width="16" height="18" rx="2" />
+        {mode === "hero" ? <path d="M8 8h8" /> : <path d="M8 8h8M8 12h8M8 16h5" />}
+      </svg>
+    </button>
+    <div role="radiogroup" aria-label="รูปแบบหน้าหลัก" className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] left-3 z-30 hidden rounded-full border border-black/10 bg-white/85 p-1 text-caption font-medium shadow-e2 backdrop-blur sm:flex print:hidden">
+      {opts.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          role="radio"
+          aria-checked={mode === o.id}
+          onClick={() => setHomeMode(o.id)}
+          className={`min-h-8 rounded-full px-3 transition-colors focus-ring ${mode === o.id ? "bg-ir-dark text-white" : "text-ir-t2 hover:text-ir-t1"}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+    </>
   );
 }
 
