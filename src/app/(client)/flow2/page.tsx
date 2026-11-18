@@ -29,6 +29,7 @@ import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
 import { DUR, EASE } from "@/lib/motion";
+import { onScrollShowBar } from "@/lib/useScrollBar";
 
 // Explore result screen is switched off for now: the last answer goes straight to Structure
 // (the Direction is still chosen from the answers). Flip to bring the screen back.
@@ -200,7 +201,8 @@ export default function Flow2() {
         {/* ── Left: scrollable questionnaire ── */}
         <div
           ref={leftPanelRef}
-          className="w-full min-w-0 md:overflow-y-auto print:overflow-visible"
+          onScroll={onScrollShowBar}
+          className="ir-scroll w-full min-w-0 md:overflow-y-auto print:overflow-visible"
         >
           <div className="px-5 lg:px-7 py-6 pb-20">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider

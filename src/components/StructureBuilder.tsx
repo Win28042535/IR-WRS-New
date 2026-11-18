@@ -21,10 +21,11 @@ import { buzz } from "@/components/RankPicker";
 import type { Requirement } from "@/lib/types";
 import { DUR, EASE } from "@/lib/motion";
 import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
+import { onScrollShowBar } from "@/lib/useScrollBar";
 
-// No hard cap any more (user test CBG asked to pick freely): past SOFT_MAX a gentle note says
-// the homepage is getting long. The old cap is kept as that soft limit.
-const SOFT_MAX = RULES.sections.max - REQUIRED_SECTION_IDS.length;
+// The AI proposes REC_MAX sections; the client can add up to MAX_OPT in all (header, hero and
+// footer not counted). A cap again, but a roomy one, shown as "n / 8".
+const MAX_OPT = 8;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
 const shortName = (id: string) => (sectionById(id)?.name ?? id).split(" / ")[0];
 const FLIGHT_MS = 560;
@@ -86,13 +87,14 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
   const all: string[] = draft.selectedSections ?? [];
   const optional = all.filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id));
-  const full = false; // no hard cap (see SOFT_MAX)
+  const full = optional.length >= MAX_OPT;
   const commit = (next: string[]) => updateDraft({ selectedSections: [...LEADING_REQUIRED_IDS, ...next, ...TRAILING_REQUIRED_IDS] });
 
   const { list: recList, reasons } = homepageRecommendation(draft);
   const recSet = new Set(recList);
-  const otherSources = SECTIONS.map((s) => s.id)
-    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !recSet.has(id));
+  // what can still be added: AI picks that were removed first, then the rest
+  const addable = [...recList, ...SECTIONS.map((s) => s.id).filter((id) => !recSet.has(id))]
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !optional.includes(id));
   const isRecommended = isRecommendedHomepage(draft);
 
   // First visit: start from the recommended homepage instead of an empty outline, so the
@@ -137,7 +139,6 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     commit([...optional, id]);
   };
   const remove = (id: string) => commit(optional.filter((x) => x !== id));
-  const toggleSource = (id: string) => (optional.includes(id) ? remove(id) : add(id));
   const resetToRec = () => commit(recList);
   const move = (id: string, to: number) => {
     const from = optional.indexOf(id);
@@ -236,10 +237,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     <div>
       {/* Result first, customising second (user feedback): the AI's homepage is a dark card
           that reads first — left on desktop, top on phones — and the picks are a quiet
-          "ปรับเอง (ถ้าต้องการ)" list beside / below it. */}
+          "เพิ่มส่วนอื่น" list beside / below it. */}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-6">
         {/* ── result: the homepage outline ── */}
-        <section aria-label="หน้าแรกของคุณ" className="rounded-2xl bg-ir-dark p-3 text-white shadow-e3 sm:p-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
+        <section aria-label="หน้าแรกของคุณ" onScroll={onScrollShowBar} className="rounded-2xl bg-ir-dark p-3 text-white shadow-e3 sm:p-4 ir-scroll ir-scroll-dark lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
           <div className="flex items-start gap-3 px-1 pb-3 pt-1">
             <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
             <div className="min-w-0 flex-1">
@@ -250,13 +251,13 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 {isRecommended
                   ? <>เรียงจากบนลงล่าง{basis ? ` · ${basis}` : ""} · เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย</>
                   : optional.length === 0
-                    ? `เลือกจากรายการ “ปรับเอง” อย่างน้อย ${MIN_OPT} ส่วน`
+                    ? `เลือกจากรายการ “เพิ่มส่วนอื่น” อย่างน้อย ${MIN_OPT} ส่วน`
                     : "เรียงจากบนลงล่าง · ลากที่ ⋮⋮ เพื่อสลับลำดับ"}
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 px-1 pb-3">
-            <span className="rounded-full bg-white/10 px-2.5 py-1 text-caption font-semibold tabular-nums" role="status">{optional.length} ส่วน</span>
+            <span className="rounded-full bg-white/10 px-2.5 py-1 text-caption font-semibold tabular-nums" role="status">{optional.length} / {MAX_OPT} ส่วน</span>
             <span className="flex-1" />
             {!isRecommended && recList.length > 0 && (
               <button type="button" onClick={resetToRec}
@@ -282,7 +283,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 return (
                   <li key="next-slot" ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-md border border-dashed border-white/25 px-2 text-small text-white/60">
                     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-white/35 text-caption">+</span>
-                    {optional.length === 0 ? "ยังไม่มีส่วน · เลือกจากรายการ “ปรับเอง”" : "เพิ่มส่วนอื่นได้จากรายการ “ปรับเอง”"}
+                    {optional.length === 0 ? "ยังไม่มีส่วน · เลือกจากรายการ “เพิ่มส่วนอื่น”" : "เพิ่มส่วนอื่นได้จากรายการ “เพิ่มส่วนอื่น”"}
                   </li>
                 );
               }
@@ -343,11 +344,6 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               );
             })}
           </ol>
-          {optional.length > SOFT_MAX && (
-            <p className="mb-1.5 rounded-md bg-white/10 px-2.5 py-2 text-small leading-snug text-white/85">
-              หน้าแรกเริ่มยาวแล้ว ({optional.length} ส่วน) · เลือกต่อได้ ทีมอาจย้ายบางส่วนไปไว้หน้าอื่นเพื่อให้หน้าแรกอ่านง่าย
-            </p>
-          )}
           <FixedRow label="ส่วนท้ายเว็บ" />
           <p className="flex min-h-8 items-center px-1 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
             {movedMsg && (
@@ -363,46 +359,42 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
           </p>
         </section>
 
-        {/* ── customise (optional): the picks, quieter than the result ── */}
+        {/* ── add more: only what isn't on the homepage yet. The AI's picks are already in
+            the result card (edit or remove them there), so this list is just "what else can
+            go on it" — white cards with a clear "+ เพิ่ม", up to MAX_OPT sections in all.
+            A removed AI pick comes back here with its "✦ AI แนะนำ" tag. */}
         <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2">
           <div className="px-1 pb-1">
-            <p className="text-body font-semibold text-ir-t1">ปรับเอง <span className="font-normal text-ir-t3">(ถ้าต้องการ)</span></p>
-            <p className="mt-0.5 text-small text-ir-t3">แตะเพื่อเพิ่มหรือเอาออกจากหน้าแรก</p>
+            <p className="text-lead font-semibold text-ir-t1">เพิ่มส่วนอื่นในหน้าแรก <span className="text-body font-normal text-ir-t3">(ถ้าต้องการ)</span></p>
+            <p className="mt-0.5 text-small text-ir-t2">
+              {full ? `ครบ ${MAX_OPT} ส่วนแล้ว · เอาส่วนอื่นออกจากหน้าแรกก่อน ถ้าต้องการเปลี่ยน` : `กด “เพิ่ม” เพื่อใส่ในหน้าแรก · ได้สูงสุด ${MAX_OPT} ส่วน`}
+            </p>
           </div>
-          {([
-            { label: "✦ AI แนะนำสำหรับคุณ", ids: recList },
-            { label: "เพิ่มได้", ids: otherSources },
-          ]).filter((g) => g.ids.length > 0).map((g, gi) => (
-            <div key={g.label} className={`grid grid-cols-[minmax(0,1fr)] gap-1.5 ${gi > 0 ? "mt-3" : ""}`}>
-              <p className="px-1 text-caption font-semibold text-ir-t3">{g.label} <span className="font-mono">{g.ids.length}</span></p>
-              {g.ids.map((id) => {
-                const n = optional.indexOf(id) + 1;
-                const used = n > 0;
-                const dim = full && !used;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    ref={(el) => { srcRefs.current[id] = el; }}
-                    onClick={() => toggleSource(id)}
-                    disabled={dim}
-                    aria-pressed={used}
-                    title={reasons[id] ? `AI แนะนำ เพราะ${reasons[id]}` : undefined}
-                    className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
-                      used ? "border-ir-border bg-white" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-border hover:bg-white"
-                    }`}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className={`block truncate text-small font-semibold ${used ? "text-ir-t1" : "text-ir-t2"}`}>{shortName(id)}</span>
-                      {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
-                    </span>
-                    <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-muted text-ir-t1" : "border border-ir-border text-body font-normal text-ir-t3"}`}>
-                      {used ? <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-label={`อยู่ในหน้าแรก ลำดับ ${n}`}><path d="M5 12.5 9.5 17 19 7.5" /></svg> : "+"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          {addable.length === 0 && <p className="px-1 text-small text-ir-t3">ใส่ครบทุกส่วนแล้ว</p>}
+          {addable.map((id) => (
+            <button
+              key={id}
+              type="button"
+              ref={(el) => { srcRefs.current[id] = el; }}
+              onClick={() => add(id)}
+              disabled={full}
+              title={reasons[id] ? `AI แนะนำ เพราะ${reasons[id]}` : undefined}
+              className={`group flex min-h-[60px] items-center gap-3 rounded-lg border bg-white px-3.5 py-2.5 text-left transition-[border-color,box-shadow,opacity,transform] duration-fast focus-ring ${
+                full ? "cursor-not-allowed border-ir-border-soft opacity-45" : "border-ir-border shadow-e1 hover:-translate-y-px hover:border-ir-border-hi hover:shadow-e2 active:translate-y-0 active:scale-[0.98]"
+              }`}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="text-small font-semibold text-ir-t1">{shortName(id)}</span>
+                  {recSet.has(id) && <span className="rounded-full bg-primary-50 px-2 py-px text-caption font-semibold text-ir-accent-text">✦ AI แนะนำ</span>}
+                </span>
+                {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
+              </span>
+              <span aria-hidden="true" className={`inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-3 text-caption font-semibold transition-colors ${full ? "bg-ir-muted text-ir-t3" : "bg-ir-dark text-white group-hover:bg-ir-accent group-hover:text-ir-on-accent"}`}>
+                <svg width={12} height={12} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M7 2v10M2 7h10" /></svg>
+                เพิ่ม
+              </span>
+            </button>
           ))}
         </div>
       </div>

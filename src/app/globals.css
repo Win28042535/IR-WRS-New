@@ -1037,3 +1037,11 @@ input:focus, textarea:focus, select:focus {
   .rk-landed { animation: rk-landed var(--motion-slow) ease-out; }
   .rk-drop-hint, .rk-moved { animation: rk-hint-in var(--motion-fast) var(--motion-ease-spring) both; }
 }
+
+/* ── Quiet scroll areas: a thin rounded bar that only shows while scrolling ──
+   The gutter is always reserved (thin, transparent), so nothing shifts when the bar
+   appears, and a dark card keeps all four corners even. `onScrollShowBar` sets
+   data-scrolling for a moment after each scroll. --sb-thumb sets the bar colour. */
+.ir-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; --sb-thumb: rgba(20,22,19,0.28); transition: scrollbar-color var(--motion-fast) ease-out; }
+.ir-scroll[data-scrolling] { scrollbar-color: var(--sb-thumb) transparent; }
+.ir-scroll-dark { --sb-thumb: rgba(255,255,255,0.35); }
