@@ -70,7 +70,7 @@ export function Moodboard({ company }: { company: string }) {
     <figure ref={ref} data-mb="wait" className="mbw relative m-0">
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
         {/* Direction — the lead tile, in the Direction's own colours and heading font */}
-        <Tile label="แนวทางการออกแบบ" step={4} d={0} dark bg={d.bg} className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
+        <Tile label="แนวทางการออกแบบ" step={5} d={0} dark bg={d.bg} className="col-span-2 md:col-span-6 lg:col-span-5 lg:row-span-2">
           <p className="mb-item text-small text-white/70" style={v({ j: 0 })}>สำหรับ <span className="font-semibold text-white">{name}</span></p>
           <p className="mb-item mt-auto pt-8 text-display-lg font-bold leading-[1.02] tracking-[-0.02em]" style={{ fontFamily: fontStack(pair.heading), ...v({ j: 1 }) }}>{d.label}</p>
           <p className="mb-item mt-3 text-body text-white/85" style={v({ j: 2 })}>{d.tagline}</p>
@@ -82,7 +82,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Palette */}
-        <Tile label={`ชุดสี · ${d.palette}`} step={1} d={1} className="col-span-1 md:col-span-3 lg:col-span-4">
+        <Tile label={`ชุดสี · ${d.palette}`} step={2} d={1} className="col-span-1 md:col-span-3 lg:col-span-4">
           <div className="grid flex-1 grid-cols-3 gap-1.5">
             {d.colors.slice(0, 3).map((c, j) => (
               <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
@@ -94,7 +94,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Type */}
-        <Tile label="ตัวอักษร" step={1} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
+        <Tile label="ตัวอักษร" step={2} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
           <div className="flex flex-1 items-end gap-2 text-ir-t1">
             <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
             <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
@@ -104,7 +104,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Imagery */}
-        <Tile label="สไตล์ภาพ" step={4} d={2} className="col-span-2 md:col-span-6 lg:col-span-7">
+        <Tile label="สไตล์ภาพ" step={5} d={2} className="col-span-2 md:col-span-6 lg:col-span-7">
           <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-1.5">
             {photos.map((p, j) => (
               <div key={p.id} className="overflow-hidden rounded-md bg-ir-muted">
@@ -116,7 +116,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* The five picks behind the Direction */}
-        <Tile label="สิ่งที่คุณเลือก · 5 ข้อจากภาพ" step={4} d={3} className="col-span-2 md:col-span-6 lg:col-span-5">
+        <Tile label="สิ่งที่คุณเลือก · 5 ข้อจากภาพ" step={5} d={3} className="col-span-2 md:col-span-6 lg:col-span-5">
           <ol className="grid gap-1.5">
             {QUIZ.map((q, j) => {
               const pick = SAMPLE.picks[q.id as keyof typeof SAMPLE.picks];
@@ -134,7 +134,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Who it is for */}
-        <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={2} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
+        <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={3} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
           <p className="mb-item text-lead font-semibold leading-tight text-ir-t1">{audience.label}</p>
           <p className="mb-item mt-1 text-small leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
           <ul className="mt-3 grid gap-1.5">
@@ -148,7 +148,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Homepage order as a wireframe */}
-        <Tile label="โครงหน้าแรก · AI จัดให้" step={5} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
+        <Tile label="โครงหน้าแรก · AI จัดให้" step={6} d={4} className="col-span-1 md:col-span-3 lg:col-span-3">
           <ol className="grid gap-1">
             {SAMPLE_SECTIONS.map((s, j) => (
               <li key={s} className={`mb-item flex min-w-0 items-center gap-1.5 rounded-sm px-2 text-small font-medium ${j === 0 ? "h-9 bg-ir-dark text-ir-accent" : "h-6 bg-ir-muted text-ir-t2"}`} style={v({ j })}>
@@ -177,7 +177,17 @@ function MockUnderstand() {
   return (
     <Frame>
       <div className="w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-caption text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด</span></div>
-      {/* CI: keep the colours + font of the current site, or let the team propose */}
+      <div className="sg-a mt-2 w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-caption text-ir-t3" style={v({ t: 3 })}>🌐 www.your-company.co.th</div>
+    </Frame>
+  );
+}
+// Brand (CI): keep the colours + font of the current site, or let the team propose
+function MockBrand() {
+  return (
+    <Frame>
+      <div className="flex gap-1.5" aria-hidden="true">
+        {["#0B3D91", "#F2A900", "#F4F2EC"].map((c, i) => <span key={c} className="sg-a h-7 w-7 rounded-full ring-1 ring-inset ring-black/10" style={{ background: c, ...v({ t: i * 0.4 }) }} />)}
+      </div>
       <div className="mt-3 grid w-full max-w-[240px] grid-cols-2 gap-1.5">
         {["ใช้ CI เดิม", "ให้ทีมเสนอใหม่"].map((t, i) => (
           <span key={t} className={`sg-a flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold ${i === 0 ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={v({ t: 3 + i })}>
@@ -290,7 +300,8 @@ function MockDeliver() {
 }
 
 const STEPS_INFO: { mock: () => ReactNode; todo: string; how: string; optional?: boolean }[] = [
-  { mock: MockUnderstand, todo: "บอกชื่อบริษัท และเลือกใช้ CI เดิมหรือให้ทีมเสนอใหม่", how: "พิมพ์ + เลือก" },
+  { mock: MockUnderstand, todo: "บอกชื่อบริษัท และลิงก์เว็บไซต์ปัจจุบัน (ถ้ามี)", how: "พิมพ์" },
+  { mock: MockBrand, todo: "เลือกใช้สีและฟอนต์เดิมจากเว็บไซต์ หรือให้ทีมเสนอใหม่", how: "เลือก" },
   { mock: MockAudience, todo: "เลือกว่าใครจะเข้ามาดูเว็บไซต์ เรียงจากกลุ่มที่สำคัญที่สุด", how: "เลือกจากรายการ" },
   { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ต้องทำได้", how: "เลือกจากรายการ" },
   { mock: MockExplore, todo: "ตอบ 5 ข้อ เลือกภาพ A หรือ B แล้วกดข้อถัดไป", how: "เลือกจากภาพ" },
@@ -465,15 +476,15 @@ export function BriefFlow() {
   }, []);
 
   const inputs: { name: string; q: string; body: ReactNode; token: string }[] = [
-    { name: FLOW_STEPS[0], q: "สีและฟอนต์ของแบรนด์ (CI)", token: "CI เดิม",
+    { name: FLOW_STEPS[1], q: "สีและฟอนต์ของแบรนด์ (CI)", token: "CI เดิม",
       body: <div className="flex flex-wrap gap-1"><DarkChip on>ใช้ CI เดิม</DarkChip><DarkChip>ให้ทีมเสนอใหม่</DarkChip></div> },
-    { name: FLOW_STEPS[1], q: "ใครคือผู้อ่านหลัก", token: audiences[0].label,
+    { name: FLOW_STEPS[2], q: "ใครคือผู้อ่านหลัก", token: audiences[0].label,
       body: <div className="flex flex-wrap gap-1">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div> },
-    { name: FLOW_STEPS[2], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
+    { name: FLOW_STEPS[3], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
       body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
-    { name: FLOW_STEPS[3], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
+    { name: FLOW_STEPS[4], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
       body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-sm border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
-    { name: FLOW_STEPS[4], q: "ตรวจหน้าแรกที่ AI จัดให้", token: `${SAMPLE_SECTIONS.length} ส่วน`,
+    { name: FLOW_STEPS[5], q: "ตรวจหน้าแรกที่ AI จัดให้", token: `${SAMPLE_SECTIONS.length} ส่วน`,
       body: <div className="flex flex-wrap gap-1">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div> },
   ];
 

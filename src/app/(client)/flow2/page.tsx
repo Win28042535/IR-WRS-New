@@ -81,7 +81,7 @@ export default function Flow2() {
     // Resume where the customer left off. Quiz answers live in component state (not the
     // draft), so a draft without a Direction yet resumes at the quiz rather than past it.
     let resume = flowStepOf(st.draft);
-    if (resume > 4 && !st.draft.selectedDirection) resume = 4;
+    if (resume > 5 && !st.draft.selectedDirection) resume = 5;
     if (resume > 1) {
       prevStep.current = resume;
       setStep(resume);
@@ -129,7 +129,7 @@ export default function Flow2() {
   const go = (n: number) => {
     // Back moves a whole step: from a later step, Explore reopens at question 1 (not the
     // last question), with the earlier answers still picked.
-    if (n === 4 && prevStep.current > 4 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
+    if (n === 5 && prevStep.current > 5 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
     setDir(n > prevStep.current ? "forward" : "backward");
     prevStep.current = n;
     setStep(n);
@@ -167,7 +167,7 @@ export default function Flow2() {
         });
       }
       if (SHOW_QUIZ_RESULT) setQuizDone(true);
-      else go(5);
+      else go(6);
     }
   };
 
@@ -209,8 +209,8 @@ export default function Flow2() {
           <div className="px-5 lg:px-7 py-6 pb-20">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
                 two-column layout with its own surfaces — so it isn't a card-in-a-card. */}
-            <div className={`mx-auto ${step === 7 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
-              {step === 7 ? (
+            <div className={`mx-auto ${step === 8 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
+              {step === 8 ? (
                 <div
                   ref={stepCardRef}
                   tabIndex={-1}
@@ -227,12 +227,13 @@ export default function Flow2() {
                   key={`${step}-${quizIdx}-${quizDone}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
-                  {step === 2 && <S2Audience go={go} draft={draft} updateDraft={updateDraft} addNotebookEntry={addNotebookEntry} />}
-                  {step === 3 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
-                  {step === 4 && quizDone && <QuizResult draft={draft} onContinue={() => go(5)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
-                  {step === 4 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(3))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
-                  {step === 5 && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
-                  {step === 6 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 2 && <SBrand go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 3 && <S2Audience go={go} draft={draft} updateDraft={updateDraft} addNotebookEntry={addNotebookEntry} />}
+                  {step === 4 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
+                  {step === 5 && quizDone && <QuizResult draft={draft} onContinue={() => go(6)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
+                  {step === 5 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(4))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
+                  {step === 6 && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
+                  {step === 7 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
                 </div>
               )}
             </div>
@@ -299,26 +300,6 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   const ok = !!(draft.company.trim() && draft.projectType);
   const nudge = useNudge();
   const companyErr = nudge.field === "company-field" && !draft.company.trim();
-
-  // CI: keeping it means taking colours + font from the current website, so it needs the
-  // link. Until the client picks, the default follows the link (link → keep, none → team
-  // proposes); without a link it can never stay on "keep".
-  const siteHost = siteHostOf(draft.website);
-  const keepCi = draft.hasCorporateIdentity === "yes" && !!siteHost;
-  // Step 1 comes before Explore, so the team's font shown here is the starting pairing.
-  const proposedFont = DEFAULT_PAIRING.thai;
-  const [fontPreview, setFontPreview] = useState(false);
-  const [fontBrowse, setFontBrowse] = useState(false);
-  const interestFont: string = fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : "";
-  useGoogleFont(!keepCi && interestFont ? previewFamily(interestFont) : undefined, [400, 600]);
-  useGoogleFont(keepCi ? undefined : proposedFont, [400, 600]);
-  useEffect(() => {
-    // a picked answer is kept as is (everything downstream also checks the link)
-    if (draft.ciPicked) return;
-    const want = siteHost ? "yes" : "no";
-    if (draft.hasCorporateIdentity !== want) updateDraft({ hasCorporateIdentity: want });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteHost, draft.ciPicked]);
 
   // Auto-select IR as the only website type
   useEffect(() => {
@@ -468,7 +449,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
   return (
     <>
-      <Head n={1} title="ทำความเข้าใจ" sub="บริษัทของคุณ และสีกับฟอนต์ของแบรนด์" />
+      <Head n={1} title="ทำความเข้าใจ" sub="ชื่อบริษัทและเว็บไซต์ปัจจุบัน" />
 
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
@@ -506,21 +487,72 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         </div>
       </div>
 
-      <SectionDivider />
+      {/* Missing info clicking Next when form is incomplete shows specific guide */}
+      <StepNav onBack={() => router.push("/")} backLabel="หน้าหลัก" next={
+        <NextButton onClick={() => go(2)} blocked={!ok} onBlocked={(b) => nudge.nudge("company-field", b)}>ถัดไป</NextButton>
+      } />
+    </>
+  );
+}
 
+// ── S2 · Brand (CI): colours and font. Its own step since the internal review of
+// 18 Nov 2026 (it used to sit under the company questions in step 1). Right after step 1,
+// so the company, its website and its brand are answered together. ──
+function SBrand({ go, draft, updateDraft }: any) {
+  // CI: keeping it means taking colours + font from the current website, so it needs the
+  // link. Until the client picks, the default follows the link (link → keep, none → team
+  // proposes); without a link it can never stay on "keep".
+  const siteHost = siteHostOf(draft.website);
+  const keepCi = draft.hasCorporateIdentity === "yes" && !!siteHost;
+  // Before Explore the team's font is the starting pairing; coming back after Explore it
+  // is the matched Direction's own font and colours.
+  const dirn = directionById(draft.selectedDirection);
+  const proposedFont = (FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING).thai;
+  const [fontPreview, setFontPreview] = useState(false);
+  const [fontBrowse, setFontBrowse] = useState(false);
+  const interestFont: string = fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : "";
+  useGoogleFont(!keepCi && interestFont ? previewFamily(interestFont) : undefined, [400, 600]);
+  useGoogleFont(keepCi ? undefined : proposedFont, [400, 600]);
+  useEffect(() => {
+    // a picked answer is kept as is (everything downstream also checks the link)
+    if (draft.ciPicked) return;
+    const want = siteHost ? "yes" : "no";
+    if (draft.hasCorporateIdentity !== want) updateDraft({ hasCorporateIdentity: want });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteHost, draft.ciPicked]);
+  const [askLink] = useState(!siteHost);
+
+  return (
+    <>
+      <Head n={2} title="สีและฟอนต์ของแบรนด์ (CI)" sub="ใช้สีและฟอนต์เดิมจากเว็บไซต์ปัจจุบัน หรือให้ทีมออกแบบเสนอใหม่" />
       {/* Corporate identity: colours AND font, one decision, and "keep" only means "take them
           from the current website" (no hex codes, no font picking: IR teams don't pick fonts,
           they follow their site — user tests BTS / AOT / CPALL). Two equal cards; keeping the
           CI needs the website link above. hasCorporateIdentity "yes" = from the website,
           "no" = the team proposes new colours and font. */}
       <div>
-        <SectionLabel>สีและฟอนต์ของแบรนด์ (CI)</SectionLabel>
-        <p className="mt-1 text-body text-ir-t3">สำหรับเว็บไซต์ใหม่ ต้องการใช้สีและฟอนต์แบบไหน</p>
+        {/* no link yet: ask for it here, since keeping the CI needs it (stays open once shown) */}
+        {askLink && (
+          <div className="mb-5">
+            <div className="flex items-baseline gap-2">
+              <SectionLabel>ลิงก์เว็บไซต์ปัจจุบัน</SectionLabel>
+              <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+            </div>
+            <input
+              aria-label="ลิงก์เว็บไซต์ปัจจุบัน"
+              value={draft.website ?? ""}
+              onChange={(e) => updateDraft({ website: e.target.value })}
+              placeholder="https://www.irplus.in.th"
+              className="mt-2 w-full border border-ir-border rounded-md px-4 py-3 text-body outline-none focus:border-ir-accent transition-colors"
+            />
+          </div>
+        )}
+        <SectionLabel>ต้องการใช้สีและฟอนต์แบบไหน</SectionLabel>
         <div className="mt-3 grid gap-2.5 md:grid-cols-2">
           <OptionCard
             icon={IconPalette}
             title="ใช้ CI เดิม"
-            desc={siteHost ? `ทีมจะใช้สีและฟอนต์จาก ${siteHost}` : "กรอกลิงก์เว็บไซต์ปัจจุบันด้านบนก่อน จึงเลือกข้อนี้ได้"}
+            desc={siteHost ? `ทีมจะใช้สีและฟอนต์จาก ${siteHost}` : "ใส่ลิงก์เว็บไซต์ปัจจุบันด้านบนก่อน จึงเลือกข้อนี้ได้"}
             selected={keepCi}
             disabled={!siteHost}
             onSelect={() => updateDraft({ hasCorporateIdentity: "yes", ciPicked: true })}
@@ -528,40 +560,58 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
           <OptionCard
             icon={IconSparkle}
             title="ให้ทีมออกแบบเสนอใหม่"
-            desc="ทีมเสนอสีและฟอนต์ที่เข้ากับแนวทางและกลุ่มผู้อ่าน"
+            desc={dirn ? `ทีมเสนอสีและฟอนต์ตามแนวทาง ${dirn.label}` : "ทีมเสนอสีและฟอนต์ที่เข้ากับแนวทางและกลุ่มผู้อ่าน"}
             selected={!keepCi}
             onSelect={() => updateDraft({ hasCorporateIdentity: "no", ciPicked: true })}
           />
         </div>
         {/* keep the CI: their logo (optional) sits where the starting font sits for the other card */}
         {keepCi && <LogoInput draft={draft} updateDraft={updateDraft} />}
-        {/* the team's font, previewed before Explore: the starting pairing, as a draft */}
+        {/* The team's font as a specimen card (internal review 18 Nov 2026: the old one-row
+            layout with a button and an underlined link read as odd). Specimen on top in the
+            font itself, then a footer: what it is on the left, two equal pill buttons on the
+            right in the order they're used (look at it, then browse others). Before Explore
+            it's the starting pairing; after Explore, the matched Direction's font and colours. */}
         {!keepCi && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-ir-border bg-ir-card px-4 py-3">
-            <span aria-hidden="true" className="text-heading leading-none text-ir-t1" style={{ fontFamily: familyStack(proposedFont), fontWeight: 600 }}>กข Aa</span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-small font-semibold text-ir-t1">ฟอนต์ตั้งต้น: <span style={{ fontFamily: familyStack(proposedFont) }}>{proposedFont}</span></span>
-              <span className="block text-caption leading-snug text-ir-t3">ฟอนต์จริงจะเลือกตามแนวทางที่ได้ในขั้นสำรวจแนวทาง</span>
-            </span>
-            {/* phones: the buttons take their own line under the font name (responsive audit) */}
-            <span className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:shrink-0">
-              <button type="button" onClick={() => setFontPreview(true)}
-                className="inline-flex h-11 items-center rounded-full border border-ir-border bg-white px-4 text-small font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
-                ดูตัวอย่างฟอนต์ที่ทีมเสนอ
-              </button>
-              <button type="button" onClick={() => setFontBrowse(true)}
-                className="inline-flex h-11 items-center rounded-full px-3 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
-                ดูฟอนต์แนะนำอื่น ๆ
-              </button>
-            </span>
+          <div className="mt-3 overflow-hidden rounded-xl border border-ir-border bg-ir-card">
+            <div className="border-b border-ir-border-soft bg-white px-5 py-5 sm:px-6" style={{ fontFamily: familyStack(proposedFont) }}>
+              <p className="truncate text-heading font-semibold leading-snug text-ir-t1 sm:text-display-sm">{draft.company?.trim() || "บริษัท ตัวอย่าง จำกัด (มหาชน)"}</p>
+              <p className="mt-1 text-lead text-ir-t2">นักลงทุนสัมพันธ์ · กขค Aa 0123456789</p>
+            </div>
+            <div className="flex flex-col gap-3 px-5 py-3.5 sm:flex-row sm:items-center sm:px-6">
+              <div className="min-w-0 flex-1">
+                <p className="text-caption text-ir-t3">{dirn ? `ฟอนต์ตามแนวทาง ${dirn.label}` : "ฟอนต์ตั้งต้นที่ทีมเสนอ"}</p>
+                <p className="text-body font-semibold text-ir-t1">{proposedFont}</p>
+                {dirn ? (
+                  <p className="mt-1 flex items-center gap-1.5 text-caption text-ir-t3">
+                    <span className="flex gap-1" aria-hidden="true">
+                      {dirn.colors.map((c: string) => <span key={c} className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10" style={{ background: c }} />)}
+                    </span>
+                    {dirn.palette}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-caption leading-snug text-ir-t3">ทีมจะปรับสีและฟอนต์ให้เข้ากับแนวทางที่ได้ในขั้นสำรวจแนวทาง</p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                <button type="button" onClick={() => setFontPreview(true)}
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-ir-dark px-4 text-small font-semibold text-white transition-[background-color,scale] hover:bg-ir-dark/90 active:scale-[0.98] focus-ring">
+                  ดูตัวอย่างเต็ม
+                </button>
+                <button type="button" onClick={() => setFontBrowse(true)}
+                  className="inline-flex h-11 items-center justify-center rounded-full border border-ir-border bg-white px-4 text-small font-semibold text-ir-t1 transition-[border-color,scale] hover:border-ir-border-hi active:scale-[0.98] focus-ring">
+                  เลือกฟอนต์ที่สนใจ
+                </button>
+              </div>
+            </div>
             {/* a font they liked while browsing: a preference for the team, not a choice */}
             {interestFont && (
-              <span className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 border-t border-ir-border-soft pt-2 text-small text-ir-t2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-ir-border-soft bg-primary-50/60 px-5 py-2 text-small text-ir-t2 sm:px-6">
                 <span>สนใจ: <span className="font-semibold text-ir-t1" style={{ fontFamily: familyStack(interestFont) }}>{interestFont}</span></span>
                 <span className="text-caption text-ir-t3">· ทีมจะนำไปพิจารณา</span>
                 <button type="button" onClick={() => updateDraft({ fontInterest: "" })} aria-label="ล้างฟอนต์ที่สนใจ"
                   className="ml-auto inline-flex h-11 items-center rounded-full px-2.5 text-caption font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">ล้าง</button>
-              </span>
+              </div>
             )}
           </div>
         )}
@@ -580,10 +630,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
         )}
       </div>
 
-      {/* Missing info clicking Next when form is incomplete shows specific guide */}
-      <StepNav onBack={() => router.push("/")} backLabel="หน้าหลัก" next={
-        <NextButton onClick={() => go(2)} blocked={!ok} onBlocked={(b) => nudge.nudge("company-field", b)}>ถัดไป</NextButton>
-      } />
+      <StepNav onBack={() => go(1)} next={<NextButton onClick={() => go(3)}>ถัดไป</NextButton>} />
     </>
   );
 }
@@ -613,7 +660,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
 
   return (
     <>
-      <Head n={2} required title="ใครจะเข้ามาดูเว็บไซต์" sub="กดเลือกเรียงจากกลุ่มที่สำคัญที่สุด" />
+      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="กดเลือกเรียงจากกลุ่มที่สำคัญที่สุด" />
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
       <div id="audience-field" className="scroll-mt-28">
@@ -625,8 +672,8 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
         />
       </div>
 
-      <StepNav onBack={() => go(1)} next={
-        <NextButton onClick={() => go(3)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>ถัดไป</NextButton>
+      <StepNav onBack={() => go(2)} next={
+        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -723,8 +770,8 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
         )}
       </div>
 
-      <StepNav onBack={() => go(2)} next={
-        <NextButton onClick={() => go(4)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
+      <StepNav onBack={() => go(3)} next={
+        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
       } />
     </>
   );
@@ -829,7 +876,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         {opts.map(([o, letter]) => (
           <button key={letter} type="button" onClick={() => selectOption(o, letter)}
             aria-pressed={pending === letter}
-            aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.hint}`}
+            aria-label={`ตัวเลือก ${letter}: ${o.label}`}
             className={[
               "group/sel relative flex flex-col rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-fast focus-ring",
               pending === letter
@@ -839,10 +886,9 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 ? "border-ir-border bg-ir-card opacity-70 hover:opacity-100 hover:border-ir-select-soft"
                 : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-e2 active:scale-[0.98]",
             ].join(" ")}>
-            {/* Words lead, the picture supports them (user feedback: the mock out-shouted the
-                label). Name large, then one plain-Thai line on what this choice means for
-                the people who visit the site; the mock sits below, pinned to the card's foot
-                so A and B line up whatever the text length. */}
+            {/* Name, then the picture (internal review 18 Nov 2026: no description line, the
+                picture shows the difference itself). The mock is pinned to the card's foot
+                so A and B line up whatever the label length. */}
             <div className="px-1.5 sm:px-2 pt-1.5 sm:pt-1 pb-2.5 sm:pb-3">
               {/* phones: badge and select dot share the top row, the label takes the full width
                   below (beside the badge, Thai labels broke one word per line). The selected
@@ -852,7 +898,6 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <span className="order-last w-full min-w-0 text-lead sm:order-none sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug">{o.label}</span>
                 <SelectDot on={pending === letter} className="ml-auto sm:ml-0" />
               </div>
-              <p className="mt-1.5 sm:mt-2 text-small sm:text-lead leading-snug sm:leading-relaxed text-ir-t1/80">{o.hint}</p>
             </div>
             <div className="mt-auto"><QuizVisual mock={o.mock} /></div>
           </button>
@@ -870,7 +915,6 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 {/* same order as the cards: words first, picture under them */}
                 <figcaption className="mb-2">
                   <span className="flex items-center gap-2 text-lead font-bold text-ir-t1"><LetterBadge letter={letter} />{o.label}</span>
-                  <span className="mt-1 block text-body leading-snug text-ir-t1/80">{o.hint}</span>
                 </figcaption>
                 <QuizVisual mock={o.mock} />
                 {/* choose straight from the big view — no scrolling back up to the small cards */}
@@ -1145,7 +1189,7 @@ function S4Structure({ go, draft, updateDraft }: any) {
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
       </div>
-      <StepNav onBack={() => go(4)} next={<NextButton onClick={() => go(6)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
+      <StepNav onBack={() => go(5)} next={<NextButton onClick={() => go(7)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
     </>
   );
 }
@@ -1995,8 +2039,8 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก และมีวิดีโอแนะนำองค์กร" />
 
       <StepNav
-        onBack={() => go(5)}
-        next={<NextButton onClick={() => go(7)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
+        onBack={() => go(6)}
+        next={<NextButton onClick={() => go(8)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
       />
     </div>
   );
@@ -2519,7 +2563,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             </p>
 
             <div className="flex justify-center mt-4">
-              <BackButton onClick={() => go(6)}>ย้อนกลับ</BackButton>
+              <BackButton onClick={() => go(7)}>ย้อนกลับ</BackButton>
             </div>
           </div>
         </aside>

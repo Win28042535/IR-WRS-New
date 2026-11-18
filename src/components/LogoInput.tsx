@@ -1,5 +1,5 @@
 "use client";
-// ── Company logo (step 1, under the CI cards; optional) ──────────────────────────────
+// ── Company logo (brand step, under the "keep the CI" card; optional) ──────────────────────────────
 // User test CBG: the team wants the logo to see what the brand looks like, whether the CI is
 // kept from the website or the team proposes a new one. Kept in the draft as a data URL
 // (this demo stores everything in the browser), so raster images are scaled down to at most
@@ -37,6 +37,7 @@ export function LogoInput({ draft, updateDraft }: { draft: Requirement; updateDr
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [over, setOver] = useState(false);
 
   const onFile = async (file?: File) => {
     if (!file) return;
@@ -55,13 +56,19 @@ export function LogoInput({ draft, updateDraft }: { draft: Requirement; updateDr
     }
   };
 
+  // Same look as the image upload on the inspiration step (internal review 18 Nov 2026):
+  // a dashed drop zone you can click or drop a file on, then the file as a small tile.
   return (
-    <div className="mt-3">
+    <div className="mt-4">
+      <div className="mb-2 flex items-baseline gap-2">
+        <span className="text-body font-semibold text-ir-t1">โลโก้บริษัท</span>
+        <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+      </div>
       <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,.svg" className="sr-only" tabIndex={-1}
         onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
       {draft.logo ? (
-        <div className="flex items-center gap-3 rounded-xl border border-ir-border bg-ir-card px-3 py-2.5">
-          <span className="grid h-14 w-20 shrink-0 place-items-center overflow-hidden rounded-md border border-ir-border-soft bg-white p-1.5">
+        <div className="flex items-center gap-3 rounded-lg border border-ir-border bg-ir-card p-2.5">
+          <span className="grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-sm border border-ir-border bg-white p-1.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={draft.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
           </span>
@@ -76,12 +83,16 @@ export function LogoInput({ draft, updateDraft }: { draft: Requirement; updateDr
         </div>
       ) : (
         <button type="button" onClick={() => inputRef.current?.click()} disabled={busy}
-          className="flex w-full items-center gap-3 rounded-xl border border-dashed border-ir-border px-4 py-3 text-left transition-colors hover:border-ir-border-hi hover:bg-ir-card focus-ring disabled:opacity-60">
-          <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-muted text-lead text-ir-t2">+</span>
-          <span className="min-w-0">
-            <span className="block text-small font-semibold text-ir-t1">{busy ? "กำลังแนบ…" : "แนบโลโก้"} <span className="font-normal text-ir-t3">(ไม่บังคับ)</span></span>
-            <span className="block text-caption text-ir-t3">ช่วยให้ทีมเห็นหน้าตาแบรนด์ · PNG, JPG หรือ SVG ไม่เกิน 2 MB</span>
-          </span>
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => { e.preventDefault(); setOver(false); onFile(e.dataTransfer.files?.[0]); }}
+          className={`flex w-full select-none flex-col items-center gap-1.5 rounded-lg border-2 border-dashed px-5 py-6 text-center transition-colors focus-ring disabled:opacity-60 ${
+            over ? "border-ir-accent bg-ir-accent/[0.06]" : "border-ir-border bg-ir-card hover:border-ir-accent/40 hover:bg-ir-accent/[0.03] active:border-ir-accent/40 active:bg-ir-accent/[0.03]"
+          }`}>
+          <span aria-hidden="true" className="mb-1 flex h-10 w-10 items-center justify-center rounded-md bg-ir-accent/10 text-title">🏷️</span>
+          <span className="text-body font-semibold text-ir-t1">{busy ? "กำลังแนบ…" : "ลากโลโก้มาวางที่นี่"}</span>
+          <span className="text-small text-ir-t3">หรือ <span className="font-medium text-ir-accent-text">เลือกจากเครื่อง</span></span>
+          <span className="text-small text-ir-t3">รองรับ PNG, JPG หรือ SVG (ไม่เกิน 2 MB) · ช่วยให้ทีมเห็นหน้าตาแบรนด์</span>
         </button>
       )}
       {error && <p className="mt-1.5 text-small text-ir-error" role="alert">{error}</p>}
