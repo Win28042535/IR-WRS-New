@@ -37,6 +37,9 @@ const SHOW_QUIZ_RESULT = false;
 // Structure step: the #story-style builder (StructureBuilder). The older picker + live
 // workspace (S3) is kept; flip to bring it back.
 const LEGACY_STRUCTURE = false;
+// Inspiration step: "ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง" (the curated board) is parked for a later
+// phase, so the step goes straight to the link / upload editor. Flip to bring the picker back.
+const SHOW_CURATED_REFERENCES = false;
 
 const STEPS = FLOW_STEPS;
 const STEPS_EN = FLOW_STEPS_EN;
@@ -379,7 +382,7 @@ export default function Flow2() {
   );
 }
 
-function Head({ n: _n, title, sub }: { n: number; title: string; sub?: string }) {
+function Head({ n: _n, title, sub, optional }: { n: number; title: string; sub?: string; optional?: boolean }) {
   return (
     // Mobile trims a bit of the dead space above the fold (mb-4 pb-4 vs the desktop mb-5
     // pb-5) — small on its own, but it stacks with the card's own padding and every
@@ -388,8 +391,12 @@ function Head({ n: _n, title, sub }: { n: number; title: string; sub?: string })
     // from the body below at a glance, so a border here was reinforcing something
     // typography had already established, not adding a distinction of its own.
     <div className="mb-4 pb-4 md:mb-5 md:pb-5">
-      <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>{title}</h2>
-      {sub && <p className="text-lead text-ir-t2 leading-relaxed mt-2">{sub}</p>}
+      <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>
+        {title}
+        {/* same "(ไม่บังคับ)" as optional fields elsewhere — plain grey text, not a badge */}
+        {optional && <span className="ml-2 whitespace-nowrap text-lead font-normal tracking-normal text-ir-t3">(ไม่บังคับ)</span>}
+      </h2>
+      {sub &&<p className="text-lead text-ir-t2 leading-relaxed mt-2">{sub}</p>}
     </div>
   );
 }
@@ -1946,10 +1953,18 @@ type UrlValidationState = "empty" | "invalid" | "unsupported" | "existing" | "va
 // Video links (user test CPALL: "Ref เป็น Video ได้มั้ย?"). Many videos share one host, so
 // duplicates are judged by the full link there, not by domain.
 const VIDEO_HOST = /^(?:www\.|m\.)?(youtube\.com|youtu\.be|vimeo\.com|tiktok\.com|facebook\.com\/watch|fb\.watch)/i;
+// Google Drive links (user request: clients share their own video this way). Treated like a
+// video link: matched by the full link, not the domain, so several Drive files can be added.
+const DRIVE_HOST = /^(?:drive|docs)\.google\.com\//i;
+function isDriveUrl(raw: string) {
+  return DRIVE_HOST.test(raw.trim().replace(/^https?:\/\//i, ""));
+}
 function isVideoUrl(raw: string) {
   const v = raw.trim().replace(/^https?:\/\//i, "");
-  return VIDEO_HOST.test(v) || /\.(mp4|mov|webm)(\?|$)/i.test(v);
+  return VIDEO_HOST.test(v) || DRIVE_HOST.test(v) || /\.(mp4|mov|webm)(\?|$)/i.test(v);
 }
+/** Label for a link tile: "Google Drive" rather than the bare domain. */
+const linkLabel = (raw: string) => (isDriveUrl(raw) ? "Google Drive" : domainOf(raw));
 const normLink = (v: string) => v.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
 function validateUrlInput(raw: string, existing: { value: string }[]): UrlValidationState {
   const value = raw.trim();
@@ -2241,8 +2256,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         <span className="w-full h-full flex items-center justify-center" style={{ background: URL_THUMB_THEMES[0] }}>
           {isVideoUrl(value) ? <span className="text-[9px] text-white">▶</span> : <IconGlobe width={11} height={11} className="text-white/80" />}
         </span>,
-        isVideoUrl(value) ? "เพิ่มวิดีโอแล้ว" : "เพิ่มเว็บไซต์แล้ว",
-        domainOf(value)
+        isDriveUrl(value) ? "เพิ่มลิงก์ Google Drive แล้ว" : isVideoUrl(value) ? "เพิ่มวิดีโอแล้ว" : "เพิ่มเว็บไซต์แล้ว",
+        linkLabel(value)
       );
       setIsCommittingUrl(false);
       setUrlJustCompleted(true);
@@ -2276,7 +2291,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
           <IconGlobe width={11} height={11} className="text-white/80" />
         </span>,
         "ลบเว็บไซต์แล้ว",
-        removed ? domainOf(removed.value) : undefined
+        removed ? linkLabel(removed.value) : undefined
       );
     }, 220);
   };
@@ -2364,16 +2379,13 @@ function ReferenceEditor({ draft, updateDraft }: any) {
 
   return (
     <div>
-      {/* ── AI-learning reassurance — one merged sentence (was two separate, overlapping
-          descriptions split across this component and its parent section header) ── */}
-      <p className="text-body text-ir-t3 mb-4 leading-relaxed">
-        เพิ่มเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ แล้วบอกว่าชอบอะไร ทีม IR Plus จะใช้เป็นแนวทางให้ตรงใจคุณมากขึ้น โดยไม่คัดลอกดีไซน์ของใคร
-      </p>
+      {/* No intro sentence here: the step's own subtitle already says what to add (the
+          two read as a repeat once the mode picker was gone). */}
       {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
-      <div className="-mt-2 mb-5 rounded-xl bg-ir-sunken px-4 py-3">
+      <div className="mb-5 rounded-xl bg-ir-sunken px-4 py-3">
         <p className="text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</p>
         <ul className="mt-1.5 grid gap-1 text-small text-ir-t2 sm:grid-cols-2">
-          {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบโทนภาพ", "ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (PDF)"].map((t) => (
+          {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบ (ลิงก์ YouTube หรือ Google Drive)", "ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (PDF)"].map((t) => (
             <li key={t} className="flex items-start gap-1.5"><span aria-hidden="true" className="text-ir-accent-text">•</span>{t}</li>
           ))}
         </ul>
@@ -2405,7 +2417,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             <span className="shrink-0 flex items-center pl-4 pr-2 text-lead text-ir-t3">🌐</span>
             <input
               type="url"
-              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์เว็บไซต์ หรือ YouTube / Vimeo..."}
+              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์เว็บไซต์ YouTube / Vimeo หรือ Google Drive..."}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
@@ -2448,6 +2460,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               {URL_VALIDATION_COPY[urlValidation].label}
             </p>
           )}
+          {/* A Drive file the team can't open is useless — remind them to share it. */}
+          {urlValidation === "valid" && isDriveUrl(urlInput) && (
+            <p className="mt-1 text-small text-ir-t2">ตั้งค่าการแชร์ไฟล์ใน Google Drive เป็น “ทุกคนที่มีลิงก์” ก่อน เพื่อให้ทีมเปิดดูได้</p>
+          )}
         </div>
 
         {/* ── Compact reference thumbnail grid — fixed-size small tiles that don't stretch to fill the row.
@@ -2475,7 +2491,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                       {isVideoUrl(u.value)
                         ? <span aria-label="วิดีโอ" className="grid h-5 w-5 place-items-center rounded-full bg-white/90 text-[9px] text-ir-t1">▶</span>
                         : <IconGlobe width={12} height={12} className="text-white/70" />}
-                      <span className="text-white text-[8px] font-medium truncate max-w-full px-1">{isVideoUrl(u.value) ? "วิดีโอ · " : ""}{domainOf(u.value)}</span>
+                      <span className="text-white text-[8px] font-medium truncate max-w-full px-1">{isVideoUrl(u.value) && !isDriveUrl(u.value) ? "วิดีโอ · " : ""}{linkLabel(u.value)}</span>
                     </div>
                     {/* No per-tile checkmark — every tile in this gallery is, by definition,
                         already added (that's what the "เพิ่มแล้ว N" header above it means),
@@ -2584,7 +2600,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                           : <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" />
                       )}
                       <span className="text-small font-medium text-ir-t2 truncate flex-1">
-                        {editingUrl ? domainOf(editingUrl.value) : editingImage!.name}
+                        {editingUrl ? linkLabel(editingUrl.value) : editingImage!.name}
                       </span>
                       <button
                         onClick={() => setNoteEditing(null)}
@@ -2594,7 +2610,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         <IconClose width={9} height={9} />
                       </button>
                     </div>
-                    <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? (isVideoUrl(editingUrl.value) ? "วิดีโอนี้" : "เว็บนี้") : editingImage!.kind === "pdf" ? "เอกสารนี้" : "ภาพนี้"}?</p>
+                    <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? (isDriveUrl(editingUrl.value) ? "ไฟล์นี้" : isVideoUrl(editingUrl.value) ? "วิดีโอนี้" : "เว็บนี้") : editingImage!.kind === "pdf" ? "เอกสารนี้" : "ภาพนี้"}?</p>
                     <div role="group" aria-label="สิ่งที่ชอบ" className="mb-2.5 flex flex-wrap gap-1.5">
                       {REFERENCE_LIKES.map((like) => {
                         const on = (editingUrl ? editingUrl.likes : editingImage!.likes)?.includes(like) ?? false;
@@ -2704,12 +2720,14 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
   const dir = (draft?.selectedDirection && directionById(draft.selectedDirection)) || ai?.direction || (ranked[0] && directionById(ranked[0].id));
 
   const hasCustom = (draft?.references?.length ?? 0) > 0;
-  const hasCurated = (draft?.curatedSelected?.length ?? 0) > 0;
+  // With the curated path off there's nothing to choose: the editor shows straight away
+  // and old curated picks (never sent to the team anyway) don't count as content.
+  const hasCurated = SHOW_CURATED_REFERENCES && (draft?.curatedSelected?.length ?? 0) > 0;
   // Persisted on draft so leaving and returning to this step remembers the choice. Never
   // defaulted to either option on a genuinely fresh draft — only inferred from content
   // that already exists, so a first-time visitor sees the picker, not a path pre-chosen
   // for them.
-  const mode: "custom" | "curated" | null = draft?.referenceMode ?? (hasCustom ? "custom" : hasCurated ? "curated" : null);
+  const mode: "custom" | "curated" | null = !SHOW_CURATED_REFERENCES ? "custom" : draft?.referenceMode ?? (hasCustom ? "custom" : hasCurated ? "curated" : null);
   const setMode = (m: "custom" | "curated") => updateDraft({ referenceMode: m });
 
   return (
@@ -2718,25 +2736,25 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
         sub="แนบเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
+        optional
       />
-      {/* User test #1 read "ไม่บังคับ" in the subtitle but still thought they couldn't move on. */}
-      <div className="-mt-2 mb-5 inline-flex items-center gap-2 rounded-full border border-ir-select-soft bg-primary-50 py-1 pl-1 pr-3.5 text-small font-semibold text-ir-t1">
-        <span className="rounded-full bg-ir-dark px-2.5 py-0.5 text-caption text-white">ข้ามได้</span>
-        ขั้นนี้ไม่บังคับ กด “ข้ามขั้นนี้” ด้านล่างได้ทันที
-      </div>
+      {/* "Skippable" is said in plain text, not a badge: "(ไม่บังคับ)" on the title, the
+          subtitle, and the next button reading "ข้ามขั้นนี้" until something is added. The
+          earlier pill badge read as a button or tab, and a hint beside the button repeated
+          the subtitle, so both are gone. */}
 
       {/* Same rhythm as the other steps (user test BTS: this page looked unlike the rest):
           a section label + one-line description per group, dividers between groups. */}
-      <ReferenceModePicker mode={mode} setMode={setMode} hasCustom={hasCustom} hasCurated={hasCurated} />
+      {SHOW_CURATED_REFERENCES && <ReferenceModePicker mode={mode} setMode={setMode} hasCustom={hasCustom} hasCurated={hasCurated} />}
 
       {mode === "custom" && (
         <>
-          <SectionDivider />
+          {SHOW_CURATED_REFERENCES && <SectionDivider />}
           <ReferenceEditor draft={draft} updateDraft={updateDraft} />
         </>
       )}
 
-      {mode === "curated" && (
+      {SHOW_CURATED_REFERENCES && mode === "curated" && (
         <>
           <SectionDivider />
           <div className="mb-2">

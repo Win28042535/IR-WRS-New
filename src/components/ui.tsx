@@ -327,7 +327,7 @@ export function BackButton({ children, onClick }: { children: ReactNode; onClick
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-2 h-11 pl-4 pr-6 rounded-full text-lead font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast"
+      className="inline-flex shrink-0 items-center gap-1.5 sm:gap-2 h-11 pl-3 pr-4 sm:pl-4 sm:pr-6 whitespace-nowrap rounded-full text-lead font-medium text-ir-t2 bg-ir-muted hover:bg-ir-border hover:text-ir-t1 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast"
     >
       <IconArrowLeft width={24} height={24} />
       {children}
@@ -445,10 +445,12 @@ export function StepNav({
   onBack,
   backLabel = "ย้อนกลับ",
   next,
+  nextHint,
 }: {
   onBack: () => void;
   backLabel?: string;
   next: ReactNode;
+  nextHint?: ReactNode;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showFloating, setShowFloating] = useState(false);
@@ -468,9 +470,15 @@ export function StepNav({
           existing mt-8/pt-5 gap already reads as "a new section" (the primary/secondary
           buttons are visually distinct from body content on their own), so the border was
           adding a second signal for something spacing alone already communicated. */}
-      <div ref={sentinelRef} className="flex items-center justify-between mt-8 pt-5 pb-20 md:pb-0">
+      {/* nextHint: a plain grey line beside the next button (e.g. "ข้ามได้" on an optional
+          step) — said where the decision is made. Phones: right-aligned above the row. */}
+      {nextHint && <p className="mt-8 -mb-6 text-right text-body text-ir-t3 sm:hidden">{nextHint}</p>}
+      <div ref={sentinelRef} className="flex items-center justify-between gap-1.5 mt-8 pt-5 pb-20 md:pb-0">
         <BackButton onClick={onBack}>{backLabel}</BackButton>
-        {next}
+        <div className="flex shrink-0 items-center gap-4">
+          {nextHint && <span className="hidden text-body text-ir-t3 sm:inline">{nextHint}</span>}
+          {next}
+        </div>
       </div>
 
       {/* Portaled to <body>: the step card animates in with a transform, and any transformed
