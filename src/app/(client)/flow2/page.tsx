@@ -14,6 +14,7 @@ import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
+import { FontPickerSheet, FontPreviewSheet } from "@/components/FontPicker";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import type { SheetData } from "@/lib/moodboardExport";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -301,6 +302,13 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   // proposes); without a link it can never stay on "keep".
   const siteHost = siteHostOf(draft.website);
   const keepCi = draft.hasCorporateIdentity === "yes" && !!siteHost;
+  // Step 1 comes before Explore, so the team's font shown here is the starting pairing.
+  const proposedFont = DEFAULT_PAIRING.thai;
+  const [fontPreview, setFontPreview] = useState(false);
+  const [fontBrowse, setFontBrowse] = useState(false);
+  const interestFont: string = fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : "";
+  useGoogleFont(!keepCi && interestFont ? previewFamily(interestFont) : undefined, [400, 600]);
+  useGoogleFont(keepCi ? undefined : proposedFont, [400, 600]);
   useEffect(() => {
     // a picked answer is kept as is (everything downstream also checks the link)
     if (draft.ciPicked) return;
@@ -531,6 +539,42 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             placeholder="มีโทนในใจ บอกไว้ได้ (ไม่บังคับ) เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม"
             className="mt-2.5 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-2.5 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
           />
+        )}
+        {/* the team's font, previewed before Explore: the starting pairing, as a draft */}
+        {!keepCi && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-ir-border bg-ir-card px-4 py-3">
+            <span aria-hidden="true" className="text-heading leading-none text-ir-t1" style={{ fontFamily: familyStack(proposedFont), fontWeight: 600 }}>กข Aa</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-small font-semibold text-ir-t1">ฟอนต์ตั้งต้น: <span style={{ fontFamily: familyStack(proposedFont) }}>{proposedFont}</span></span>
+              <span className="block text-caption leading-snug text-ir-t3">ฟอนต์จริงจะเลือกตามแนวทางที่ได้ในขั้นสำรวจแนวทาง</span>
+            </span>
+            <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+              <button type="button" onClick={() => setFontPreview(true)}
+                className="inline-flex h-10 items-center rounded-full border border-ir-border bg-white px-4 text-small font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
+                ดูตัวอย่างฟอนต์ที่ทีมเสนอ
+              </button>
+              <button type="button" onClick={() => setFontBrowse(true)}
+                className="inline-flex h-10 items-center rounded-full px-3 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
+                ดูฟอนต์แนะนำอื่น ๆ
+              </button>
+            </span>
+            {/* a font they liked while browsing: a preference for the team, not a choice */}
+            {interestFont && (
+              <span className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 border-t border-ir-border-soft pt-2 text-small text-ir-t2">
+                <span>สนใจ: <span className="font-semibold text-ir-t1" style={{ fontFamily: familyStack(interestFont) }}>{interestFont}</span></span>
+                <span className="text-caption text-ir-t3">· ทีมจะนำไปพิจารณา</span>
+                <button type="button" onClick={() => updateDraft({ fontInterest: "" })} aria-label="ล้างฟอนต์ที่สนใจ"
+                  className="ml-auto inline-flex h-9 items-center rounded-full px-2.5 text-caption font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">ล้าง</button>
+              </span>
+            )}
+          </div>
+        )}
+        {fontPreview && <FontPreviewSheet family={proposedFont} company={draft.company} onClose={() => setFontPreview(false)} />}
+        {fontBrowse && (
+          <FontPickerSheet interest initialFamily={interestFont || undefined} value={interestFont || undefined} teamFont={proposedFont}
+            company={draft.company?.trim() || "บริษัท ตัวอย่าง จำกัด (มหาชน)"}
+            onClose={() => setFontBrowse(false)}
+            onChoose={(family) => { updateDraft({ fontInterest: family }); setFontBrowse(false); }} />
         )}
       </div>
 
@@ -2061,6 +2105,7 @@ function sheetData(draft: any): SheetData {
     ownPending: c.ownPending,
     colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีตามแนวทาง${draft.ciNote?.trim() ? ` · ${draft.ciNote.trim()}` : ""}`,
     ciSite: c.keepOwn ? c.siteUrl : undefined,
+    fontInterest: !c.keepOwn && fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : undefined,
     // three colours only — main, accent, background; text/muted greys add nothing here
     swatches: c.paletteRoles.slice(0, 3).map((r) => ({ hex: r.hex, role: SHEET_ROLE_TH[r.role] ?? r.role, use: r.use })),
     primary: c.primary,
@@ -2165,6 +2210,7 @@ function ProjectOverview({ draft }: { draft: any }) {
               <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
               <p className="mt-2 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
               <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง{d.fontNote ? " · " + d.fontNote : ""}</p>
+              {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
             </>
           )}
         </Chapter>

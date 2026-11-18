@@ -14,7 +14,8 @@ export type SheetData = {
   answers: { topic: string; choice: string }[];
   /** true → the team takes colours from the client's site / logo; no swatches shown */
   ownPending: boolean;
-  ciSite?: string;      // "ใช้ CI เดิม": colours and font come from this website
+  ciSite?: string;
+  fontInterest?: string; // a font the client liked; the team decides      // "ใช้ CI เดิม": colours and font come from this website
   colorSource: string;
   swatches: { hex: string; role: string; use: string }[];
   primary: string;
@@ -189,6 +190,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
     const fnote = `ทีมเสนอตามแนวทาง${d.fontNote ? ` · ${d.fontNote}` : ""}`;
     font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });
+    if (d.fontInterest) { y += 56; font(500, 34); text(`ลูกค้าสนใจ · ${d.fontInterest}`, M, y); }
   }
 
   // 04 photos — 2 × 2, captioned

@@ -236,6 +236,7 @@ export interface Requirement {
   // fonts on their current site, "selected" = a Google font they picked (selectedFont = family)
   fontMode?: "team" | "website" | "selected";
   selectedFont?: string;
+  fontInterest?: string;  // a font the client liked while browsing ("ให้ทีมเสนอใหม่"): a preference, the team decides
 
   // design decisions
   selectedMoods: string[];

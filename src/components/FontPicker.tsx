@@ -123,11 +123,13 @@ export function FontChoice({ draft, updateDraft, dir }: { draft: Requirement; up
 }
 
 // ── The sheet ─────────────────────────────────────────────────────────────────────────
+// interest: browsing the team's options in step 1 ("ดูฟอนต์แนะนำอื่น ๆ") — the pinned button
+// marks a font the client likes ("สนใจฟอนต์นี้"); the team still makes the final call.
 export function FontPickerSheet({
-  initialFamily, value, teamFont, company, dir, onClose, onChoose,
+  initialFamily, value, teamFont, company, dir, onClose, onChoose, interest = false,
 }: {
   initialFamily?: string; value?: string; teamFont: string; company: string; dir?: Direction | null;
-  onClose: () => void; onChoose: (family: string) => void;
+  onClose: () => void; onChoose: (family: string) => void; interest?: boolean;
 }) {
   const [collection, setCollection] = useState<FontCollection>("all");
   const [structure, setStructure] = useState<"all" | FontStructure>("all");
@@ -174,7 +176,7 @@ export function FontPickerSheet({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={font ? `ฟอนต์ ${font.family}` : "เลือกฟอนต์"}
+        aria-label={font ? `ฟอนต์ ${font.family}` : interest ? "ฟอนต์แนะนำ" : "เลือกฟอนต์"}
         className="sheet-in relative flex h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-ir-card shadow-e3 outline-none sm:h-[min(860px,92dvh)] sm:max-w-[1180px] sm:rounded-2xl"
       >
         {/* header */}
@@ -192,7 +194,7 @@ export function FontPickerSheet({
             </>
           ) : (
             <div className="min-w-0 pl-2">
-              <p className="text-lead font-semibold text-ir-t1">เลือกฟอนต์</p>
+              <p className="text-lead font-semibold text-ir-t1">{interest ? "ฟอนต์แนะนำ" : "เลือกฟอนต์"}</p>
               <p className="text-small text-ir-t3">{visible.length} ฟอนต์ · กดที่ฟอนต์เพื่อดูตัวอย่างบนเว็บไซต์ IR</p>
             </div>
           )}
@@ -311,15 +313,60 @@ export function FontPickerSheet({
             </div>
             {font.family === value ? (
               <button type="button" onClick={onClose} className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-ir-accent-soft px-6 text-lead font-semibold text-ir-t1 focus-ring sm:flex-none">
-                <IconCheck width={18} height={18} /> เลือกฟอนต์นี้อยู่แล้ว
+                <IconCheck width={18} height={18} /> {interest ? "สนใจฟอนต์นี้แล้ว" : "เลือกฟอนต์นี้อยู่แล้ว"}
               </button>
             ) : (
               <button type="button" onClick={() => onChoose(font.family)} className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-ir-dark px-6 text-lead font-semibold text-white transition-colors hover:bg-neutral-800 focus-ring sm:flex-none">
-                เลือก {font.family}
+                {interest ? "สนใจฟอนต์นี้" : `เลือก ${font.family}`}
               </button>
             )}
           </div>
         )}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// ── Read-only preview of the font the team proposes (step 1, "ให้ทีมออกแบบเสนอใหม่") ──
+// Nothing to pick: one font's specimen (their company name, an IR page, a type tester with
+// heading / body / numbers, weights, sizes, Thai marks), compared with a plain standard
+// font on the same IR page. Before Explore there's no Direction yet, so it's the starting
+// pairing, labelled as a draft (user test AOT asked to compare fonts; CI decides the rest).
+export function FontPreviewSheet({ family, company, compareWith = "IBM Plex Sans Thai", onClose }: {
+  family: string; company?: string; compareWith?: string; onClose: () => void;
+}) {
+  const font = fontByFamily(family);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, []);
+  if (!font) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6">
+      <button type="button" aria-label="ปิด" onClick={onClose} className="sheet-backdrop absolute inset-0 bg-ir-dark/45 backdrop-blur-[2px]" />
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`ตัวอย่างฟอนต์ ${font.family}`}
+        className="sheet-in relative flex h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-ir-card shadow-e3 outline-none sm:h-[min(860px,92dvh)] sm:max-w-[960px] sm:rounded-2xl">
+        <div className="flex min-h-16 shrink-0 items-center gap-2 border-b border-ir-border-soft px-3 sm:px-5">
+          <div className="min-w-0 pl-2">
+            <p className="text-lead font-semibold text-ir-t1">ฟอนต์ที่ทีมเสนอ <span className="font-normal text-ir-t3">(ร่าง)</span></p>
+            <p className="text-small text-ir-t3">ดูอย่างเดียว ไม่ต้องเลือกอะไร</p>
+          </div>
+          <IconBtn label="ปิด" onClick={onClose} className="ml-auto"><IconClose width={20} height={20} /></IconBtn>
+        </div>
+        <div className="ir-scroll min-h-0 flex-1 overflow-y-auto">
+          <p className="mx-4 mt-4 rounded-lg bg-primary-50 px-4 py-3 text-small leading-relaxed text-ir-t2 sm:mx-8">
+            ข้อเสนอเบื้องต้นจากทีม · ฟอนต์จริงจะเลือกตามแนวทางที่ได้ในขั้นสำรวจแนวทาง และปรับได้ตอนคุยรายละเอียด
+          </p>
+          <Specimen font={font} company={company?.trim() || FALLBACK_COMPANY} teamFont={compareWith} compareLabel={`เทียบกับ ${compareWith}`} />
+        </div>
       </div>
     </div>,
     document.body,
@@ -374,7 +421,7 @@ function ListItem({ f, active, chosen, onClick }: { f: CatalogFont; active: bool
 }
 
 // ── Specimen page ───────────────────────────────────────────────────────────────────
-function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company: string; teamFont: string; dir?: Direction | null }) {
+function Specimen({ font, company, teamFont, dir, compareLabel }: { font: CatalogFont; company: string; teamFont: string; dir?: Direction | null; compareLabel?: string }) {
   const weights = webWeights(font);
   useGoogleFont(previewFamily(font.family), webWeights(fontByFamily(previewFamily(font.family)) ?? font));
   useGoogleFont(teamFont, [400, 500, 600, 700]);
@@ -431,7 +478,7 @@ function Specimen({ font, company, teamFont, dir }: { font: CatalogFont; company
       <Block title="บนเว็บไซต์ IR ของคุณ" sub="หน้าจำลองที่ใช้ฟอนต์นี้ทั้งหน้า กับชุดสีของแนวทางที่ได้"
         aside={font.family !== teamFont ? (
           <div role="group" aria-label="เปรียบเทียบฟอนต์" className="inline-flex rounded-full bg-ir-muted p-1">
-            {([["this", font.family], ["team", `ทีมแนะนำ: ${teamFont}`]] as const).map(([k, l]) => (
+            {([["this", font.family], ["team", compareLabel ?? `ทีมแนะนำ: ${teamFont}`]] as const).map(([k, l]) => (
               <button key={k} type="button" aria-pressed={compare === k} onClick={() => setCompare(k)}
                 className={`h-10 rounded-full px-3.5 text-small font-semibold transition-colors focus-ring ${compare === k ? "bg-ir-card text-ir-t1 shadow-e1" : "text-ir-t2 hover:text-ir-t1"}`}>{l}</button>
             ))}
