@@ -2221,7 +2221,8 @@ function ProjectOverview({ draft }: { draft: any }) {
               {/* sample text, labelled so it isn't read as content (user test SCGP) */}
               <p className="mt-3"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างฟอนต์</span></p>
               <p className="mt-1.5 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
-              <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง{d.fontNote ? " · " + d.fontNote : ""}</p>
+              {/* no font description: too specific for a summary (user test CBG) */}
+              <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง</p>
               {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
             </>
           )}
@@ -2230,12 +2231,12 @@ function ProjectOverview({ draft }: { draft: any }) {
         {d.shots.length > 0 && (
           <Chapter n="04" title="แนวภาพ">
             {d.visualMood && <p className="mb-4 text-body leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
-            <div className="grid grid-cols-2 gap-x-3 gap-y-4 md:grid-cols-4">
+            {/* photos without captions: a caption per photo read as a promise of that exact shot (user test CBG) */}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {d.shots.slice(0, 4).map((s) => (
                 <figure key={s.url} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none object-cover" style={{ aspectRatio: "4 / 3" }} />
-                  <figcaption className="mt-1.5 text-caption text-[#8A8578]">{s.cap}</figcaption>
                 </figure>
               ))}
             </div>

@@ -202,7 +202,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     y += 44; font(600, 26);
     { const tw = ctx.measureText("ตัวอย่างฟอนต์").width; ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.beginPath(); ctx.roundRect(M, y, tw + 36, 46, 23); ctx.fill(); text("ตัวอย่างฟอนต์", M + 18, y + 32, "#6F6A5E"); y += 46; }
     font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
-    const fnote = `ทีมเสนอตามแนวทาง${d.fontNote ? ` · ${d.fontNote}` : ""}`;
+    const fnote = "ทีมเสนอตามแนวทาง"; // no font description (user test CBG)
     font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });
     if (d.fontInterest) { y += 56; font(500, 34); text(`ลูกค้าสนใจ · ${d.fontInterest}`, M, y); }
   }
@@ -216,7 +216,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     const gap = 24, pw = (CW - gap) / 2, ph = pw * 0.75;
     imgs.forEach((img, i) => {
       const px = M + (i % 2) * (pw + gap);
-      const py = y + Math.floor(i / 2) * (ph + 96);
+      const py = y + Math.floor(i / 2) * (ph + 24); // no captions (user test CBG)
       ctx.fillStyle = "#ECE9E1"; ctx.fillRect(px, py, pw, ph);
       if (img) {
         ctx.save(); ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
@@ -224,9 +224,8 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
         ctx.drawImage(img, px + (pw - img.width * s) / 2, py + (ph - img.height * s) / 2, img.width * s, img.height * s);
         ctx.restore();
       }
-      font(400, 32); text(wrap(ctx, d.shots[i]?.cap ?? "", pw, 1)[0] ?? "", px, py + ph + 52, MUTED);
     });
-    y += Math.ceil(imgs.length / 2) * (ph + 96) - 96 + 52;
+    y += Math.ceil(imgs.length / 2) * (ph + 24) - 24;
     font(400, 32); wrap(ctx, "ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง", CW, 2).forEach((ln, i) => { y += i ? 46 : 80; text(ln, M, y, MUTED); });
   }
 
