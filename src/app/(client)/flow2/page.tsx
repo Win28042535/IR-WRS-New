@@ -3,16 +3,14 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, STEP_SCHEME, flowStepOf, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, STEP_SCHEME, flowStepOf, siteHostOf, keepsCi, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
-import { IconCheck, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
+import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
-import { FontChoice } from "@/components/FontPicker";
-import { BrandColorInput } from "@/components/BrandColors";
 import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
@@ -298,11 +296,18 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
   const nudge = useNudge();
   const companyErr = nudge.field === "company-field" && !draft.company.trim();
 
-  // Older drafts never answered the CI question; existing colours are the default now.
+  // CI: keeping it means taking colours + font from the current website, so it needs the
+  // link. Until the client picks, the default follows the link (link → keep, none → team
+  // proposes); without a link it can never stay on "keep".
+  const siteHost = siteHostOf(draft.website);
+  const keepCi = draft.hasCorporateIdentity === "yes" && !!siteHost;
   useEffect(() => {
-    if (!draft.hasCorporateIdentity) updateDraft({ hasCorporateIdentity: "yes" });
+    // a picked answer is kept as is (everything downstream also checks the link)
+    if (draft.ciPicked) return;
+    const want = siteHost ? "yes" : "no";
+    if (draft.hasCorporateIdentity !== want) updateDraft({ hasCorporateIdentity: want });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [siteHost, draft.ciPicked]);
 
   // Auto-select IR as the only website type
   useEffect(() => {
@@ -457,7 +462,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
       {/* Company identity grouped */}
-      <div className="mb-0 space-y-4">
+      <div className="mb-0 grid gap-4 md:grid-cols-2">
         <div>
           <SectionLabel><span>ชื่อบริษัท / องค์กร<RequiredMark /></span></SectionLabel>
           <input
@@ -492,59 +497,41 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       <SectionDivider />
 
-      {/* Corporate identity — keep the existing brand colours, or have the team propose new ones.
-          Stored as hasCorporateIdentity: "yes" = keep existing, "no" = propose new (unchanged
-          values, so earlier answers carry over). */}
+      {/* Corporate identity: colours AND font, one decision, and "keep" only means "take them
+          from the current website" (no hex codes, no font picking: IR teams don't pick fonts,
+          they follow their site — user tests BTS / AOT / CPALL). Two equal cards; keeping the
+          CI needs the website link above. hasCorporateIdentity "yes" = from the website,
+          "no" = the team proposes new colours and font. */}
       <div>
-        <div className="flex items-baseline gap-2">
-          <SectionLabel>สีของเว็บไซต์</SectionLabel>
-          <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+        <SectionLabel>สีและฟอนต์ของแบรนด์ (CI)</SectionLabel>
+        <p className="mt-1 text-body text-ir-t3">สำหรับเว็บไซต์ใหม่ ต้องการใช้สีและฟอนต์แบบไหน</p>
+        <div className="mt-3 grid gap-2.5 md:grid-cols-2">
+          <OptionCard
+            icon={IconPalette}
+            title="ใช้ CI เดิม"
+            desc={siteHost ? `ทีมจะใช้สีและฟอนต์จาก ${siteHost}` : "กรอกลิงก์เว็บไซต์ปัจจุบันด้านบนก่อน จึงเลือกข้อนี้ได้"}
+            selected={keepCi}
+            disabled={!siteHost}
+            onSelect={() => updateDraft({ hasCorporateIdentity: "yes", ciPicked: true })}
+          />
+          <OptionCard
+            icon={IconSparkle}
+            title="ให้ทีมออกแบบเสนอใหม่"
+            desc="ทีมเสนอสีและฟอนต์ที่เข้ากับแนวทางและกลุ่มผู้อ่าน"
+            selected={!keepCi}
+            onSelect={() => updateDraft({ hasCorporateIdentity: "no", ciPicked: true })}
+          />
         </div>
-        {/* Existing brand colours are the default (user tests #1–2: two equal choices
-            confused people; CPALL: "base it on the corporate colours, and make 'team
-            proposes' a note"). The team-proposal path is a secondary link with a note. */}
-        {draft.hasCorporateIdentity !== "no" ? (
-          <>
-            <p className="text-body text-ir-t3 mt-1">เว็บไซต์ใหม่จะใช้ชุดสีเดิมของแบรนด์</p>
-            {/* With a current website the team takes the colours from it, so nothing to fill
-                in; without one, they can give the codes (else the team works from the logo). */}
-            {draft.website?.trim()
-              ? (
-                <p className="mt-3 flex items-start gap-2 rounded-xl border border-ir-select-soft bg-primary-50 px-4 py-3 text-small leading-relaxed text-ir-t2">
-                  <span aria-hidden="true" className="mt-0.5 shrink-0">🎨</span>
-                  <span>ทีมจะใช้สีจากเว็บไซต์ <span className="font-semibold text-ir-t1">{draft.website.trim().replace(/^https?:\/\//, "")}</span> ของคุณ ไม่ต้องกรอกสีเพิ่ม</span>
-                </p>
-              )
-              : <BrandColorInput draft={draft} updateDraft={updateDraft} />}
-            <button type="button" onClick={() => updateDraft({ hasCorporateIdentity: "no" })}
-              className="mt-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
-              อยากให้ทีมเสนอชุดสีใหม่แทน
-            </button>
-          </>
-        ) : (
-          <div className="mt-2 rounded-xl border border-ir-border bg-ir-card p-4">
-            <p className="text-body font-semibold text-ir-t1">ให้ทีมเสนอชุดสีใหม่</p>
-            <p className="mt-0.5 text-small text-ir-t3">ทีมจะเสนอชุดสีที่เข้ากับแนวทางและกลุ่มผู้อ่าน · ถ้ามีโทนในใจ บอกไว้ได้</p>
-            <textarea
-              aria-label="โทนสีที่อยากได้"
-              rows={2}
-              value={draft.ciNote ?? ""}
-              onChange={(e) => updateDraft({ ciNote: e.target.value })}
-              placeholder="เช่น อยากให้ดูสดใสขึ้น หรือยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม"
-              className="mt-2.5 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-2.5 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
-            />
-            <button type="button" onClick={() => updateDraft({ hasCorporateIdentity: "yes" })}
-              className="mt-1.5 inline-flex min-h-11 items-center px-1 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
-              กลับไปใช้ชุดสีเดิม
-            </button>
-          </div>
+        {!keepCi && (
+          <textarea
+            aria-label="โทนสีหรือฟอนต์ที่อยากได้"
+            rows={2}
+            value={draft.ciNote ?? ""}
+            onChange={(e) => updateDraft({ ciNote: e.target.value })}
+            placeholder="มีโทนในใจ บอกไว้ได้ (ไม่บังคับ) เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม"
+            className="mt-2.5 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-2.5 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
+          />
         )}
-      </div>
-
-      {/* Font — sits with the CI question (brand look in one place). It used to live at the
-          bottom of the optional Inspiration step, where user test #1 never saw it. */}
-      <div className="mt-6">
-        <FontChoice draft={draft} updateDraft={updateDraft} dir={directionById(draft.selectedDirection)} />
       </div>
 
       {/* Missing info clicking Next when form is incomplete shows specific guide */}
@@ -2010,17 +1997,15 @@ function conceptData(draft: any) {
 
   const p: DesignProfile | undefined = draft.designProfile;
   const dataDriven = p?.densityData ?? 0;
-  // "ใช้ชุดสีเดิม": their own colours from step 1 drive the whole board. Without codes, the
-  // board says the team will take them from the site/logo instead of passing the
-  // Direction's palette off as theirs (user test #1: BTS is red, the board showed navy & gold).
-  // With a current website the colours come from the site, so typed codes aren't used.
-  const keepOwn = draft.hasCorporateIdentity === "yes";
-  const siteUrl = (draft.website ?? "").trim().replace(/^https?:\/\//, "");
-  const own: string[] = keepOwn && !siteUrl ? ((draft.brandColors as string[] | undefined) ?? []).filter(Boolean) : [];
-  const ownPending = keepOwn && own.length === 0;
-  const swatches = own.length
-    ? own.map((hex, i) => ({ hex: hex.toUpperCase(), name: ["สีหลัก", "สีรอง", "สีเสริม"][i] ?? `สี ${i + 1}`, main: i === 0 }))
-    : namedPalette(dir);
+  // "ใช้ CI เดิม" = colours and font come from the current website, which this system doesn't
+  // read: the board says so instead of passing the Direction's palette off as theirs (user
+  // test #1: BTS is red, the board showed navy & gold). "ให้ทีมเสนอใหม่" shows the
+  // Direction's palette as the team's proposal. No typed colour codes any more.
+  const keepOwn = keepsCi(draft);
+  const siteUrl = siteHostOf(draft.website);
+  const own: string[] = [];
+  const ownPending = keepOwn;
+  const swatches = namedPalette(dir);
   const primary = swatches[0]?.hex ?? "#151823";
   const accent = own.length ? (own[1] ?? own[0]).toUpperCase() : swatches[1]?.hex ?? "#BCC416";
   const surface = own.length ? (own[2] && isLightHex(own[2]) ? own[2].toUpperCase() : "#FFFFFF") : swatches[2]?.hex ?? "#FFFFFF";
@@ -2074,7 +2059,8 @@ function sheetData(draft: any): SheetData {
       return q ? [{ topic: q.topic, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
     }),
     ownPending: c.ownPending,
-    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ทีมเสนอชุดสีตามแนวทาง",
+    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีตามแนวทาง${draft.ciNote?.trim() ? ` · ${draft.ciNote.trim()}` : ""}`,
+    ciSite: c.keepOwn ? c.siteUrl : undefined,
     // three colours only — main, accent, background; text/muted greys add nothing here
     swatches: c.paletteRoles.slice(0, 3).map((r) => ({ hex: r.hex, role: SHEET_ROLE_TH[r.role] ?? r.role, use: r.use })),
     primary: c.primary,
@@ -2154,7 +2140,7 @@ function ProjectOverview({ draft }: { draft: any }) {
 
         <Chapter n="02" title="สี">
           {d.ownPending ? (
-            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้ชุดสีเดิมของแบรนด์</span> <span className="text-[#6F6A5E]">· ทีมจะใช้สีจากเว็บไซต์หรือโลโก้ปัจจุบันของคุณ</span></p>
+            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้สีจากเว็บไซต์เดิม</span> <span className="text-[#6F6A5E]">· ทีมจะใช้สีจาก {d.ciSite ?? "เว็บไซต์ปัจจุบันของคุณ"}</span></p>
           ) : (
             <>
               <div className="grid grid-cols-3">
@@ -2172,9 +2158,15 @@ function ProjectOverview({ draft }: { draft: any }) {
         </Chapter>
 
         <Chapter n="03" title="ตัวอักษร">
-          <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
-          <p className="mt-2 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
-          {d.fontNote && <p className="mt-2 text-small text-[#8A8578]">{d.fontNote}</p>}
+          {d.ciSite ? (
+            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้ฟอนต์จากเว็บไซต์เดิม</span> <span className="text-[#6F6A5E]">· ทีมจะใช้ฟอนต์จาก {d.ciSite}</span></p>
+          ) : (
+            <>
+              <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
+              <p className="mt-2 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
+              <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง{d.fontNote ? " · " + d.fontNote : ""}</p>
+            </>
+          )}
         </Chapter>
 
         {d.shots.length > 0 && (

@@ -481,6 +481,11 @@ export const FLOW_STEPS_EN = ["Understand", "Audience", "Define", "Explore", "St
 // Step numbering version saved with the draft. 2 = audience split out of step 1 (7 steps).
 // Drafts saved before that (no stepScheme) count steps 2–6 one lower, so shift them up.
 export const STEP_SCHEME = 2;
+
+// "efinancethai.com" from whatever was typed in the website field ("" when empty).
+export const siteHostOf = (url?: string) => (url ?? "").trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");
+// Keeping the CI = colours and font from the current website, so it needs the link.
+export const keepsCi = (r: { hasCorporateIdentity?: string; website?: string }) => r.hasCorporateIdentity === "yes" && !!siteHostOf(r.website);
 export function flowStepOf(draft: { flowStep?: number; stepScheme?: number } | null | undefined): number {
   const n = draft?.flowStep ?? 1;
   const migrated = (draft?.stepScheme ?? 1) < STEP_SCHEME && n >= 2 ? n + 1 : n;

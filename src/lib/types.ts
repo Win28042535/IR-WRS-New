@@ -224,6 +224,7 @@ export interface Requirement {
   hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered (new drafts start at "yes")
   /** "no" (team proposes new colours): what tone they have in mind, free text. */
   ciNote?: string;
+  ciPicked?: boolean;     // the client chose a CI card themselves (else it follows the website link)
   /** Inspiration step: likes described in words, no link or picture needed. */
   inspirationNote?: string;
   // brand colours captured earlier (older drafts); the colour reader has been removed, the

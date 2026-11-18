@@ -3,7 +3,7 @@
 
 import { SOURCE_LABEL, chosenThaiFont } from "./fontCatalog";
 import type { Requirement, RequirementStatus } from "./types";
-import { directionById } from "./data";
+import { directionById, keepsCi, siteHostOf } from "./data";
 
 const IR_SECTIONS = ["financial", "ir-info", "reports", "ir-calendar", "shareholder-info"];
 const ESG_SECTIONS: string[] = [];
@@ -33,7 +33,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Industry", value: r.industry || "-" },
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
-    { label: "Colours", value: r.hasCorporateIdentity === "no" ? `ทีมเสนอชุดสีใหม่${r.ciNote?.trim() ? ` · ${r.ciNote.trim()}` : ""}` : r.website?.trim() ? "ชุดสีเดิม · จากเว็บไซต์ปัจจุบัน" : (r.brandColors?.length ? `ชุดสีเดิม · ${r.brandColors.join(", ")}` : "ชุดสีเดิม · จากโลโก้") },
+    { label: "Colours", value: !keepsCi(r) ? `ทีมเสนอชุดสีใหม่${r.ciNote?.trim() ? ` · ${r.ciNote.trim()}` : ""}` : `ชุดสีเดิม · จาก ${siteHostOf(r.website)}` },
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },

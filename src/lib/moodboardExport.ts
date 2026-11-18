@@ -14,6 +14,7 @@ export type SheetData = {
   answers: { topic: string; choice: string }[];
   /** true → the team takes colours from the client's site / logo; no swatches shown */
   ownPending: boolean;
+  ciSite?: string;      // "ใช้ CI เดิม": colours and font come from this website
   colorSource: string;
   swatches: { hex: string; role: string; use: string }[];
   primary: string;
@@ -162,8 +163,8 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   // 02 colours — three flat fields
   chapter("02", "สี");
   if (d.ownPending) {
-    y += 70; font(600, 42); text("ใช้ชุดสีเดิมของแบรนด์", M, y);
-    font(400, 36); wrap(ctx, "ทีมจะใช้สีจากเว็บไซต์หรือโลโก้ปัจจุบันของคุณ", CW, 2).forEach((ln) => { y += 56; text(ln, M, y, "#6F6A5E"); });
+    y += 70; font(600, 42); text("ใช้สีจากเว็บไซต์เดิม", M, y);
+    font(400, 36); wrap(ctx, d.ciSite ? `ทีมจะใช้สีจาก ${d.ciSite}` : "ทีมจะใช้สีจากเว็บไซต์ปัจจุบันของคุณ", CW, 2).forEach((ln) => { y += 56; text(ln, M, y, "#6F6A5E"); });
   } else {
     y += 40;
     const gap = 24, sw = (CW - gap * 2) / 3, fh = 240;
@@ -180,9 +181,15 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
 
   // 03 font
   chapter("03", "ตัวอักษร");
-  y += 120; font(700, 110, head); text(d.fontName, M, y);
-  font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
-  if (d.fontNote) { font(400, 32); wrap(ctx, d.fontNote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); }); }
+  if (d.ciSite) {
+    y += 70; font(600, 42); text("ใช้ฟอนต์จากเว็บไซต์เดิม", M, y);
+    font(400, 36); wrap(ctx, `ทีมจะใช้ฟอนต์จาก ${d.ciSite}`, CW, 2).forEach((ln) => { y += 56; text(ln, M, y, "#6F6A5E"); });
+  } else {
+    y += 120; font(700, 110, head); text(d.fontName, M, y);
+    font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
+    const fnote = `ทีมเสนอตามแนวทาง${d.fontNote ? ` · ${d.fontNote}` : ""}`;
+    font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });
+  }
 
   // 04 photos — 2 × 2, captioned
   const hasShots = imgs.length > 0;

@@ -7,6 +7,7 @@
 //   group     — personality inside that structure. Exactly one per font.
 // What a font is good for (headings / body) is a label on the card, not a category.
 import { DEFAULT_PAIRING, FONT_PAIRINGS } from "./fonts";
+import { keepsCi } from "./data";
 import type { Requirement } from "./types";
 
 export type FontStructure = "loopless" | "looped";
@@ -113,12 +114,12 @@ export const familyStack = (family: string) => {
 
 // ── Which Thai heading font a requirement ends up with ──
 export type FontSource = "selected" | "website" | "team";
-export function chosenThaiFont(req: Pick<Requirement, "fontMode" | "selectedFont" | "selectedDirection" | "brandFonts">) {
+// The font follows the CI answer in step 1: keep the CI → the website's own font; otherwise
+// the team proposes one with the Direction. Picking a font by hand is no longer offered, so
+// an older draft's fontMode / selectedFont is ignored.
+export function chosenThaiFont(req: Pick<Requirement, "selectedDirection" | "hasCorporateIdentity" | "website">) {
   const team = (FONT_PAIRINGS[req.selectedDirection] ?? DEFAULT_PAIRING).thai;
-  if (req.fontMode === "selected" && req.selectedFont && fontByFamily(req.selectedFont)) {
-    return { family: req.selectedFont, source: "selected" as FontSource, team };
-  }
-  if (req.fontMode === "website") return { family: team, source: "website" as FontSource, team };
+  if (keepsCi(req)) return { family: team, source: "website" as FontSource, team };
   return { family: team, source: "team" as FontSource, team };
 }
 export const SOURCE_LABEL: Record<FontSource, string> = {
