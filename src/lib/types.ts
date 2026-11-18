@@ -98,6 +98,7 @@ export interface QuizOption {
   value: number;        // contribution to axis (-1 .. +1 scale via weight)
   preview: string;      // visual hint (gradient)
   mock: string;         // ExploreMock id drawn for this choice, e.g. "q1-a"
+  hint: string;         // one plain-Thai line: what the visitor gets with this choice (leads the card; the mock only supports it)
 }
 
 // Accumulated design profile (-100..100 per axis)

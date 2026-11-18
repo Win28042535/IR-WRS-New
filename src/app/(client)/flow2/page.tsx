@@ -180,6 +180,9 @@ export default function Flow2() {
   }
 
   const go = (n: number) => {
+    // Back moves a whole step: from a later step, Explore reopens at question 1 (not the
+    // last question), with the earlier answers still picked.
+    if (n === 3 && prevStep.current > 3 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
     setDir(n > prevStep.current ? "forward" : "backward");
     prevStep.current = n;
     setStep(n);
@@ -288,7 +291,7 @@ export default function Flow2() {
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
                   {step === 2 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 3 && quizDone && <QuizResult draft={draft} onContinue={() => go(4)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
-                  {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} />}
+                  {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
                   {step === 4 && !LEGACY_STRUCTURE && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
                   {step === 4 && LEGACY_STRUCTURE && <S3 go={go} draft={draft} updateDraft={updateDraft} enterDir={dir} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 5 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
@@ -838,13 +841,16 @@ const LetterBadge = ({ letter }: { letter: string }) => (
 );
 
 // ── S2 Smart Discovery Quiz (A/B) ──
-function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebookEntry, quizIdx }: any) {
+function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebookEntry, quizIdx, answered }: any) {
   const opts: [QuizOption, string][] = [[q.optionA, "A"], [q.optionB, "B"]];
   // Pick first, then "ข้อถัดไป" (user test #1: auto-advancing on tap left them unsure what
   // happened — they tapped A and B, then scrolled looking for a next button). The pick is
-  // keyed to the question so it resets when the question changes.
+  // keyed to the question so it resets when the question changes. A question answered
+  // before (coming back to Explore) opens with that answer already picked, so "ข้อถัดไป"
+  // walks through unchanged answers and only the ones being revised need a tap.
   const [chosen, setChosen] = useState<{ q: string; letter: string } | null>(null);
-  const pending = chosen && chosen.q === q.id ? chosen.letter : null;
+  const prevLetter = answered ? (answered === q.optionA ? "A" : answered === q.optionB ? "B" : null) : null;
+  const pending = chosen && chosen.q === q.id ? chosen.letter : prevLetter;
   // Phones only: the two-up mocks are ~150px wide each, too small to read the details that
   // tell A from B. "ดูภาพใหญ่" shows both full width, stacked, right under the cards —
   // inline, no modal, and it stays open across questions once opened.
@@ -915,9 +921,9 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         {opts.map(([o, letter]) => (
           <button key={letter} type="button" onClick={() => selectOption(o, letter)}
             aria-pressed={pending === letter}
-            aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.desc}`}
+            aria-label={`ตัวเลือก ${letter}: ${o.label} — ${o.hint}`}
             className={[
-              "group/sel relative rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-fast focus-ring",
+              "group/sel relative flex flex-col rounded-md sm:rounded-xl border p-1 sm:p-2.5 text-left select-none transition-[background-color,border-color,box-shadow,opacity,filter,transform,scale] duration-fast focus-ring",
               pending === letter
                 ? "wrs-quiz-selected border-ir-select bg-primary-50 shadow-selected"
                 : pending
@@ -925,18 +931,22 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 ? "border-ir-border bg-ir-card opacity-70 hover:opacity-100 hover:border-ir-select-soft"
                 : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60 hover:shadow-e2 active:scale-[0.98]",
             ].join(" ")}>
-            <QuizVisual mock={o.mock} />
-            <div className="px-1.5 sm:px-2 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2">
+            {/* Words lead, the picture supports them (user feedback: the mock out-shouted the
+                label). Name large, then one plain-Thai line on what this choice means for
+                the people who visit the site; the mock sits below, pinned to the card's foot
+                so A and B line up whatever the text length. */}
+            <div className="px-1.5 sm:px-2 pt-1.5 sm:pt-1 pb-2.5 sm:pb-3">
               {/* phones: the badge sits above the label so the label gets the card's full width
                   (beside it, Thai labels broke one word per line) */}
-              <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+              <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-2.5">
                 <LetterBadge letter={letter} />
-                <span className="w-full min-w-0 text-body sm:w-auto sm:flex-1 sm:text-lead font-semibold text-ir-t1 leading-snug">{o.label}</span>
+                <span className="w-full min-w-0 text-lead sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug">{o.label}</span>
                 <SelectDot on={pending === letter} className="hidden sm:grid" />
               </div>
+              <p className="mt-1.5 sm:mt-2 text-small sm:text-lead leading-snug sm:leading-relaxed text-ir-t1/80">{o.hint}</p>
               {pending === letter && <span className="mt-1.5 inline-flex items-center gap-1 text-small font-semibold text-ir-accent-text sm:hidden">✓ เลือกแล้ว</span>}
-              <div className="text-body text-ir-t3 mt-0.5 leading-snug">{o.desc}</div>
             </div>
+            <div className="mt-auto"><QuizVisual mock={o.mock} /></div>
           </button>
         ))}
       </div>
@@ -949,10 +959,12 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           <div className="mt-3 space-y-3">
             {opts.map(([o, letter]) => (
               <figure key={letter} className="m-0">
-                <QuizVisual mock={o.mock} />
-                <figcaption className="mt-1.5 flex items-center gap-2 text-body font-semibold text-ir-t1">
-                  <LetterBadge letter={letter} />{o.label}
+                {/* same order as the cards: words first, picture under them */}
+                <figcaption className="mb-2">
+                  <span className="flex items-center gap-2 text-lead font-bold text-ir-t1"><LetterBadge letter={letter} />{o.label}</span>
+                  <span className="mt-1 block text-body leading-snug text-ir-t1/80">{o.hint}</span>
                 </figcaption>
+                <QuizVisual mock={o.mock} />
                 {/* choose straight from the big view — no scrolling back up to the small cards */}
                 <button
                   type="button"
@@ -968,7 +980,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         )}
       </div>
       <p className="mt-4 text-center text-small text-ir-t3" aria-live="polite">
-        {pending ? `เลือก ${pending} แล้ว · กด${isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}เพื่อไปต่อ หรือกดอีกภาพเพื่อเปลี่ยน` : "เลือกภาพที่ใกล้กับเว็บไซต์ที่อยากได้มากกว่า"}
+        {pending ? `เลือก ${pending} แล้ว · กด${isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}เพื่อไปต่อ หรือกดอีกแบบเพื่อเปลี่ยน` : "เลือกแบบที่ใกล้กับเว็บไซต์ที่อยากได้มากกว่า"}
       </p>
       <StepNav onBack={onBack} next={<NextButton onClick={confirm} disabled={!pending}>{isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}</NextButton>} />
     </>

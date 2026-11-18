@@ -361,28 +361,28 @@ export const DIRECTIONS: Direction[] = [
 export const QUIZ: QuizQuestion[] = [
   {
     id: "q1", topic: "บุคลิกแบรนด์", question: "เว็บไซต์ควรให้ความรู้สึกเป็นแบบไหน?", axis: "toneCorporate",
-    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", mock: "q1-a" },
-    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b" },
+    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", mock: "q1-a", hint: "ภาษาเป็นกันเอง อธิบายตัวเลขให้นักลงทุนทั่วไปเข้าใจได้ทันที" },
+    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b", hint: "น้ำเสียงสุภาพ เป็นระเบียบ เน้นความน่าเชื่อถือแบบองค์กร" },
   },
   {
     id: "q2", topic: "โทนภาพรวม", question: "ภาพรวมของเว็บไซต์ควรให้อารมณ์แบบไหน?", axis: "contrastDark",
-    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a" },
-    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b" },
+    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a", hint: "พื้นสว่าง สะอาดตา อ่านได้นานไม่ล้าตา" },
+    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b", hint: "พื้นสีเข้ม ดูพรีเมียม ให้ตัวเลขและภาพเด่นขึ้น" },
   },
   {
     id: "q3", topic: "การเน้นเนื้อหา", question: "คุณอยากให้ผู้เข้าชม “รับข้อมูล” จากเว็บไซต์แบบไหน?", axis: "densityData",
-    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", mock: "q3-a" },
-    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", mock: "q3-b" },
+    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", mock: "q3-a", hint: "เล่าผลงานผ่านภาพและเรื่องราว ให้เห็นที่มาของตัวเลข" },
+    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", mock: "q3-b", hint: "ตัวเลข กราฟ และตาราง ให้นักลงทุนหาข้อมูลได้เร็ว" },
   },
   {
     id: "q4", topic: "ความหนาแน่นข้อมูล", question: "คุณอยากให้หนึ่งหน้ามีข้อมูลมากน้อยแค่ไหน?", axis: "densityData",
-    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a" },
-    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b" },
+    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a", hint: "หนึ่งหน้าเน้นเรื่องเดียว เว้นที่ว่าง อ่านสบายตา" },
+    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b", hint: "เห็นข้อมูลหลายเรื่องในหน้าเดียว ไม่ต้องคลิกหลายครั้ง" },
   },
   {
     id: "q5", topic: "การแสดงออกทางภาพ", question: "เว็บไซต์ควรแสดงตัวตนมากแค่ไหน?", axis: "energyBold",
-    optionA: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b" },
-    optionB: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a" },
+    optionA: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b", hint: "ตัวอักษรใหญ่ ภาพเต็มจอ มีการเคลื่อนไหว จดจำได้ง่าย" },
+    optionB: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a", hint: "จัดวางเรียบ นิ่ง ให้เนื้อหาเป็นตัวนำ" },
   },
 ];
 
