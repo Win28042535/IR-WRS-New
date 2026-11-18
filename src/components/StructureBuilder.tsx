@@ -13,7 +13,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, TRAILING_REQUIRED_IDS,
+  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, SECTION_BLURB, TRAILING_REQUIRED_IDS,
   audienceById, directionById, sectionById,
 } from "@/lib/data";
 import { profileToDirection, rankDirections } from "@/lib/recommend";
@@ -225,90 +225,53 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); remove(id); }
   };
 
+  // Why these: the reader + top goal the proposal is built on, said once in the result card
+  // (instead of a reason under every row).
+  const basis = [
+    audienceById(draft.primaryAudience ?? "")?.label && `ผู้อ่านหลัก: ${audienceById(draft.primaryAudience ?? "")?.label}`,
+    draft.businessGoals?.[0] && `เป้าหมายแรก: ${BUSINESS_GOALS.find((b) => b.id === draft.businessGoals?.[0])?.label ?? ""}`,
+  ].filter(Boolean).join(" · ");
+
   return (
     <div>
-      {/* AI panel — the outline is already the AI's proposal; say so loudly enough to be
-          noticed (user test #1 never saw the old quiet hint), and treat it as a template
-          they accept ("ใช้หน้าแรกนี้" on the step's next button) or adjust. */}
-      <div className={`mb-4 flex flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-xl border px-4 py-3.5 ${isRecommended ? "border-ir-select-soft bg-primary-50" : "border-ir-border bg-ir-sunken"}`}>
-        <span aria-hidden="true" className="ir-grad-fill grid h-10 w-10 shrink-0 place-items-center rounded-full text-body text-ir-on-accent">✦</span>
-        <div className="min-w-0 flex-1">
-          <p className="text-lead font-semibold leading-snug text-ir-t1">
-            {isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : optional.length === 0 ? "จัดหน้าแรกเองตั้งแต่ต้น" : "คุณปรับจากที่ AI จัดให้แล้ว"}
-          </p>
-          <p className="mt-0.5 text-small leading-snug text-ir-t2">
-            {isRecommended
-              ? `${recList.length} ส่วน เลือกจากกลุ่มเป้าหมายและเป้าหมายที่คุณเรียงไว้ · ถ้าเห็นด้วย กด “ใช้หน้าแรกนี้” ได้เลย หรือเพิ่ม ลบ ลากสลับก่อนก็ได้`
-              : optional.length === 0
-                ? `เลือกส่วนที่ต้องการจากรายการด้านซ้าย อย่างน้อย ${MIN_OPT} ส่วน แล้วลากเรียงลำดับ · หรือกลับไปใช้ชุดที่ AI จัดให้`
-                : "ปรับต่อได้ตามต้องการ หรือกลับไปใช้ชุดที่ AI จัดให้"}
-          </p>
-        </div>
-        {!isRecommended && recList.length > 0 && (
-          <button type="button" onClick={resetToRec}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-ir-border bg-white px-3.5 text-caption font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
-            ✦ กลับไปใช้ที่ AI จัดให้
-          </button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-5">
-        {/* sources — the few recommended first, everything else under "เพิ่มได้" */}
-        <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2">
-          {([
-            { label: "✦ AI แนะนำสำหรับคุณ", ids: recList },
-            { label: "เพิ่มได้", ids: otherSources },
-          ]).filter((g) => g.ids.length > 0).map((g, gi) => (
-            <div key={g.label} className={`grid grid-cols-[minmax(0,1fr)] gap-2 ${gi > 0 ? "mt-3" : ""}`}>
-              <p className="px-1 text-caption font-semibold text-ir-t3">{g.label} <span className="font-mono">{g.ids.length}</span></p>
-              {g.ids.map((id) => {
-                const n = optional.indexOf(id) + 1;
-                const used = n > 0;
-                const dim = full && !used;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    ref={(el) => { srcRefs.current[id] = el; }}
-                    onClick={() => toggleSource(id)}
-                    disabled={dim}
-                    aria-pressed={used}
-                    title={sectionById(id)?.desc}
-                    className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left text-body transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
-                      used ? "border-ir-select bg-primary-50" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-select-soft hover:bg-white"
-                    }`}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-ir-t1">{shortName(id)}</span>
-                      {reasons[id] && <span className="mt-0.5 block truncate text-caption text-ir-t3">{reasons[id]}</span>}
-                    </span>
-                    <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-dark text-white" : "bg-ir-muted text-body font-normal text-ir-t3"}`}>{used ? n : "+"}</span>
-                  </button>
-                );
-              })}
+      {/* Result first, customising second (user feedback): the AI's homepage is a dark card
+          that reads first — left on desktop, top on phones — and the picks are a quiet
+          "ปรับเอง (ถ้าต้องการ)" list beside / below it. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-6">
+        {/* ── result: the homepage outline ── */}
+        <section aria-label="หน้าแรกของคุณ" className="rounded-2xl bg-ir-dark p-3 text-white shadow-e3 sm:p-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
+          <div className="flex items-start gap-3 px-1 pb-3 pt-1">
+            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-lead font-semibold leading-snug">
+                {isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : optional.length === 0 ? "หน้าแรกของคุณ (ยังว่าง)" : "หน้าแรกของคุณ · ปรับจากที่ AI จัดให้"}
+              </p>
+              <p className="mt-0.5 text-small leading-snug text-white/70">
+                {isRecommended
+                  ? <>เรียงจากบนลงล่าง{basis ? ` · ${basis}` : ""} · เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย</>
+                  : optional.length === 0
+                    ? `เลือกจากรายการ “ปรับเอง” อย่างน้อย ${MIN_OPT} ส่วน`
+                    : "เรียงจากบนลงล่าง · ลากที่ ⋮⋮ เพื่อสลับลำดับ"}
+              </p>
             </div>
-          ))}
-        </div>
-
-        {/* outline */}
-        {/* lg+: pinned just under the top of the scrolling column, so it stays level with the
-            list on the left while only that list scrolls; scrolls inside itself if taller
-            than the screen (many sections) */}
-        <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
-          <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
-            {/* reads as one page top→bottom, so it isn't mistaken for the top menu (user test #1) */}
-            <p className="text-body font-semibold text-ir-t1">หน้าแรก <span className="font-normal text-ir-t3">· เรียงจากบนลงล่าง</span></p>
-            <span className="flex items-center gap-1.5">
-              {/* for clients who'd rather set up every section themselves */}
-              {optional.length > 0 && (
-                <button type="button" onClick={() => commit([])}
-                  className="-my-1 inline-flex h-10 items-center rounded-full px-3 text-caption font-semibold text-ir-t2 transition-colors hover:bg-white hover:text-ir-t1 focus-ring">
-                  ล้างทั้งหมด
-                </button>
-              )}
-              <span className="rounded-full bg-white px-2.5 py-0.5 text-caption font-semibold text-ir-t2 tabular-nums" role="status">{optional.length} ส่วน</span>
-            </span>
           </div>
+          <div className="flex flex-wrap items-center gap-1.5 px-1 pb-3">
+            <span className="rounded-full bg-white/10 px-2.5 py-1 text-caption font-semibold tabular-nums" role="status">{optional.length} ส่วน</span>
+            <span className="flex-1" />
+            {!isRecommended && recList.length > 0 && (
+              <button type="button" onClick={resetToRec}
+                className="inline-flex h-9 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 transition-colors hover:bg-ir-accent focus-ring">
+                ✦ กลับไปใช้ที่ AI จัดให้
+              </button>
+            )}
+            {optional.length > 0 && (
+              <button type="button" onClick={() => commit([])}
+                className="inline-flex h-9 items-center rounded-full px-3 text-caption font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-ring">
+                ล้างทั้งหมด
+              </button>
+            )}
+          </div>
+
           <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
             {/* the filled rows, then ONE dashed "next" slot — no row of empty slots to fill
@@ -317,9 +280,9 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               const id = optional[i];
               if (!id) {
                 return (
-                  <li key="next-slot" ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-sm border border-dashed border-ir-border px-2 text-small text-ir-t3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-ir-border-hi text-caption">+</span>
-                    {optional.length === 0 ? "เลือกส่วนจากรายการด้านซ้าย" : "เพิ่มส่วนอื่นได้จากรายการด้านซ้าย"}
+                  <li key="next-slot" ref={(el) => { slotRefs.current[i] = el; }} className="flex min-h-11 items-center gap-2 rounded-md border border-dashed border-white/25 px-2 text-small text-white/60">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed border-white/35 text-caption">+</span>
+                    {optional.length === 0 ? "ยังไม่มีส่วน · เลือกจากรายการ “ปรับเอง”" : "เพิ่มส่วนอื่นได้จากรายการ “ปรับเอง”"}
                   </li>
                 );
               }
@@ -348,8 +311,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     ...(delay !== undefined ? { animationDelay: `${delay}ms` } : null),
                   }}
                   className={[
-                    "relative flex min-h-11 select-none items-center gap-2 rounded-sm bg-white pl-0.5 pr-1 text-small font-bold text-ir-t1 outline-none focus-ring",
-                    dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "cursor-grab",
+                    "relative flex min-h-[52px] select-none items-center gap-2 rounded-md bg-white py-1.5 pl-0.5 pr-1 text-ir-t1 outline-none focus-ring",
+                    dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-accent" : "cursor-grab",
                     drag && !dragging ? "transition-transform duration-fast ease-out" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
@@ -363,8 +326,11 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   >
                     <svg width={12} height={18} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                   </span>
-                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
-                  <span className="min-w-0 flex-1 truncate">{shortName(id)}</span>
+                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-small font-bold leading-snug">{shortName(id)}</span>
+                    {SECTION_BLURB[id] && <span className="block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
+                  </span>
                   <button
                     type="button"
                     onClick={() => remove(id)}
@@ -378,23 +344,66 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             })}
           </ol>
           {optional.length > SOFT_MAX && (
-            <p className="mb-1.5 rounded-sm bg-white px-2.5 py-2 text-small leading-snug text-ir-t2">
+            <p className="mb-1.5 rounded-md bg-white/10 px-2.5 py-2 text-small leading-snug text-white/85">
               หน้าแรกเริ่มยาวแล้ว ({optional.length} ส่วน) · เลือกต่อได้ ทีมอาจย้ายบางส่วนไปไว้หน้าอื่นเพื่อให้หน้าแรกอ่านง่าย
             </p>
           )}
           <FixedRow label="ส่วนท้ายเว็บ" />
-          <p className="flex min-h-8 items-center px-1.5 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
+          <p className="flex min-h-8 items-center px-1 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
             {movedMsg && (
-              <span key={movedMsg} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent-soft px-3 py-1">
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-ir-accent-text"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+              <span key={movedMsg} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent px-3 py-1 text-ir-on-accent">
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
                 {movedMsg}
               </span>
             )}
           </p>
-          <p className="px-1.5 pb-1 pt-1 text-small text-ir-t3">
-            {optional.length < MIN_OPT ? `เลือกอย่างน้อย ${MIN_OPT} เรื่อง · ` : optional.length > 1 ? "ลากที่ ⋮⋮ เพื่อเลื่อนลำดับ · " : null}
+          <p className="px-1 pb-1 text-caption text-white/55">
+            {optional.length < MIN_OPT ? `เลือกอย่างน้อย ${MIN_OPT} ส่วน · ` : null}
             เมนู ส่วนเปิดหน้า และส่วนท้าย ระบบจัดให้
           </p>
+        </section>
+
+        {/* ── customise (optional): the picks, quieter than the result ── */}
+        <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-2">
+          <div className="px-1 pb-1">
+            <p className="text-body font-semibold text-ir-t1">ปรับเอง <span className="font-normal text-ir-t3">(ถ้าต้องการ)</span></p>
+            <p className="mt-0.5 text-small text-ir-t3">แตะเพื่อเพิ่มหรือเอาออกจากหน้าแรก</p>
+          </div>
+          {([
+            { label: "✦ AI แนะนำสำหรับคุณ", ids: recList },
+            { label: "เพิ่มได้", ids: otherSources },
+          ]).filter((g) => g.ids.length > 0).map((g, gi) => (
+            <div key={g.label} className={`grid grid-cols-[minmax(0,1fr)] gap-1.5 ${gi > 0 ? "mt-3" : ""}`}>
+              <p className="px-1 text-caption font-semibold text-ir-t3">{g.label} <span className="font-mono">{g.ids.length}</span></p>
+              {g.ids.map((id) => {
+                const n = optional.indexOf(id) + 1;
+                const used = n > 0;
+                const dim = full && !used;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    ref={(el) => { srcRefs.current[id] = el; }}
+                    onClick={() => toggleSource(id)}
+                    disabled={dim}
+                    aria-pressed={used}
+                    title={reasons[id] ? `AI แนะนำ เพราะ${reasons[id]}` : undefined}
+                    className={`flex min-h-[52px] items-center gap-2.5 rounded-md border px-3 py-2 text-left transition-[background-color,border-color,opacity,transform] duration-fast active:scale-[0.97] focus-ring ${
+                      used ? "border-ir-border bg-white" : dim ? "cursor-not-allowed border-ir-border-soft bg-ir-card-idle opacity-45" : "border-ir-border-soft bg-ir-card-idle hover:border-ir-border hover:bg-white"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className={`block truncate text-small font-semibold ${used ? "text-ir-t1" : "text-ir-t2"}`}>{shortName(id)}</span>
+                      {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
+                    </span>
+                    <span key={used ? `n${n}` : "plus"} className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${used ? "rk-no bg-ir-muted text-ir-t1" : "border border-ir-border text-body font-normal text-ir-t3"}`}>
+                      {used ? <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-label={`อยู่ในหน้าแรก ลำดับ ${n}`}><path d="M5 12.5 9.5 17 19 7.5" /></svg> : "+"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -421,13 +430,14 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   );
 }
 
+// System-made rows (menu + opening, footer) on the dark result card: present but muted.
 const FixedRow = ({ label, hint }: { label: string; hint?: string }) => (
-  <div className="flex min-h-10 items-center gap-2 rounded-sm bg-white/55 px-2 py-1.5 text-small font-medium text-ir-t3">
-    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-caption" aria-hidden="true">
+  <div className="flex min-h-10 items-center gap-2 rounded-md bg-white/[0.07] px-2 py-1.5 text-small font-medium text-white/65">
+    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-caption" aria-hidden="true">
       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block truncate">{label}</span>
+      <span className="block leading-snug">{label}</span>
       {hint && <span className="block text-caption font-normal leading-snug">{hint}</span>}
     </span>
     <span className="pr-2 text-caption">ระบบจัดให้</span>

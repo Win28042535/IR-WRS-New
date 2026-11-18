@@ -30,6 +30,24 @@ export const REQUIRED_SECTION_IDS = [...LEADING_REQUIRED_IDS, ...TRAILING_REQUIR
 // note (user test #1 — they wanted to jot extra needs, not pick a section type).
 export const RETIRED_SECTION_IDS = ["cta"];
 
+// One plain line per homepage section: what it is, for clients who don't know the IR terms.
+// Shown under the name on the homepage step (picks and outline).
+export const SECTION_BLURB: Record<string, string> = {
+  financial: "ตัวเลขหลัก เช่น รายได้ กำไร ปันผล ดูแล้วรู้ผลงานทันที",
+  "ir-calendar": "วันประชุม วันจ่ายปันผล และข่าวล่าสุดของบริษัท",
+  "ir-info": "ราคาหุ้นและข้อมูลการซื้อขายบน SET",
+  "shareholder-info": "ผู้ถือหุ้นใหญ่ นโยบายปันผล และการประชุมผู้ถือหุ้น",
+  about: "บริษัททำอะไร วิสัยทัศน์ และจุดเด่น",
+  history: "เส้นทางและเหตุการณ์สำคัญตั้งแต่ก่อตั้ง",
+  "chairman-message": "ข้อความจากผู้นำถึงนักลงทุน",
+  board: "รายชื่อและโครงสร้างผู้บริหาร",
+  reports: "รายงานประจำปี งบการเงิน และเอกสารให้ดาวน์โหลด",
+  analyst: "บทวิเคราะห์และราคาเป้าหมายจากโบรกเกอร์",
+  sustainability: "การดูแลสิ่งแวดล้อม สังคม และธรรมาภิบาล",
+  governance: "นโยบายความโปร่งใสและจรรยาบรรณ",
+  contact: "ช่องทางติดต่อฝ่ายนักลงทุนสัมพันธ์",
+};
+
 export const ESTIMATED_MINUTES: Record<string, number> = {
   flow1: 12,
   flow2: 18,

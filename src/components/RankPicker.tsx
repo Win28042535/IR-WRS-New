@@ -207,6 +207,20 @@ export function RankPicker({
               ].join(" ")}
             >
               {target && <span className="rk-drop-hint pointer-events-none absolute -top-3 left-4 z-10 rounded-full bg-ir-dark px-2.5 py-0.5 text-caption font-semibold text-ir-accent">วางที่นี่</span>}
+              {/* Drag handle on the leading edge, before the number (same as the homepage
+                  step); every screen size; on touch this is where a drag starts. Unpicked
+                  cards keep the same space empty so the titles line up. */}
+              {on ? (
+                <span
+                  aria-hidden="true"
+                  onPointerDown={(e) => { e.stopPropagation(); onDown(e, it.id, true); }}
+                  className="-ml-1.5 -mr-1.5 grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07]"
+                >
+                  <svg width={12} height={18} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
+                </span>
+              ) : (
+                <span aria-hidden="true" className="-ml-1.5 -mr-1.5 w-8 shrink-0" />
+              )}
               {on ? (
                 <span key={rank} className="rk-no grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-body font-bold text-white">{rank}</span>
               ) : (
@@ -217,18 +231,6 @@ export function RankPicker({
                 <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{it.label}</span>
                 {it.desc && <span className={`mt-0.5 block text-caption leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
               </span>
-              {on && (
-                <>
-                {/* Drag handle — every screen size; on touch this is where a drag starts. */}
-                <span
-                  aria-hidden="true"
-                  onPointerDown={(e) => { e.stopPropagation(); onDown(e, it.id, true); }}
-                  className={`grid h-12 w-10 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07] ${rank === 1 ? "mt-4" : ""}`}
-                >
-                  <svg width={14} height={20} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
-                </span>
-                </>
-              )}
               {rank === 1 && (
                 <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-caption font-semibold text-ir-on-accent">★ {topLabel}</span>
               )}

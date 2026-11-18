@@ -2355,15 +2355,35 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
-        {/* ── LEFT: project overview (main visual) ── */}
+        {/* ── LEFT: project overview (main visual) ──
+            The sheet sits on a dark backdrop like a printed document laid out for review, so
+            it reads as the finished result, nothing to fill in, apart from the contact form
+            on the right. Not the homepage step's dark card: no rows or controls here, just
+            the paper. Print drops the backdrop. */}
         <div className="flex-1 min-w-0 w-full">
-          <ProjectOverview draft={draft} />
+          <div className="rounded-2xl bg-ir-dark p-3 sm:p-5 md:p-7 print:bg-transparent print:p-0">
+            <div className="no-print mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 sm:mb-4">
+              <span className="inline-flex items-center gap-1.5 text-small font-semibold text-white">
+                <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-accent text-ir-on-accent">
+                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+                </span>
+                สรุปผลจากคำตอบของคุณ
+              </span>
+              <span className="text-small text-white/60">ไม่ต้องกรอกอะไรเพิ่ม · บันทึกเป็น PDF / PNG ได้</span>
+            </div>
+            {/* faint light outline so a dark cover colour still separates from the backdrop */}
+            <div className="rounded-sm shadow-[0_24px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 print:shadow-none print:ring-0">
+              <ProjectOverview draft={draft} />
+            </div>
+          </div>
         </div>
 
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}
         <aside className="no-print w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
+            {/* the only thing left to do on this step lives here */}
+            <p className="mb-2 text-caption font-semibold text-ir-accent-text">ขั้นสุดท้าย · ส่งให้ทีม</p>
             <p className="text-lead font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
             <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับโดยเร็ว</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
