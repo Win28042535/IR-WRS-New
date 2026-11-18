@@ -188,6 +188,12 @@ export function Chip({ children, dark }: { children: ReactNode; dark?: boolean }
   );
 }
 
+// The one "required" mark: red *, normal weight, a small gap after the label text. Put it
+// right after the text (same inline run) so the gap is the same in every kind of label.
+export function RequiredMark() {
+  return <span className="ml-1 font-normal text-red-500" aria-label="จำเป็น">*</span>;
+}
+
 export function SectionLabel({ children, badge }: { children: ReactNode; badge?: ReactNode }) {
   return (
     <div className="type-title text-ir-t1 mb-2 flex items-center flex-wrap gap-2">

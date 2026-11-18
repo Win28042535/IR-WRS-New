@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, STEP_SCHEME, flowStepOf, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
+import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
@@ -254,7 +254,7 @@ function Head({ n: _n, title, sub, optional, required }: { n: number; title: str
     <div className="mb-4 pb-4 md:mb-5 md:pb-5">
       <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>
         {title}
-        {required && <span className="ml-1.5 text-red-500 font-normal" aria-label="จำเป็น">*</span>}
+        {required && <RequiredMark />}
         {/* same "(ไม่บังคับ)" as optional fields elsewhere — plain grey text, not a badge */}
         {optional && <span className="ml-2 whitespace-nowrap text-lead font-normal tracking-normal text-ir-t3">(ไม่บังคับ)</span>}
       </h2>
@@ -459,7 +459,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
       {/* Company identity grouped */}
       <div className="mb-0 space-y-4">
         <div>
-          <SectionLabel>ชื่อบริษัท / องค์กร <span className="text-red-500 font-normal">*</span></SectionLabel>
+          <SectionLabel><span>ชื่อบริษัท / องค์กร<RequiredMark /></span></SectionLabel>
           <input
             id="company-field"
             aria-label="ชื่อบริษัท / องค์กร"
@@ -2470,7 +2470,7 @@ function F({
   const inputId = id ?? autoId;
   return (
     <div>
-      <label htmlFor={inputId} className="text-body font-medium block mb-1.5">{label}</label>
+      <label htmlFor={inputId} className="text-body font-medium block mb-1.5">{label}{required && <RequiredMark />}</label>
       <input
         id={inputId}
         required={required}
