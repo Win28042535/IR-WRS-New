@@ -1045,3 +1045,17 @@ input:focus, textarea:focus, select:focus {
 .ir-scroll { scrollbar-width: thin; scrollbar-color: transparent transparent; --sb-thumb: rgba(20,22,19,0.28); transition: scrollbar-color var(--motion-fast) ease-out; }
 .ir-scroll[data-scrolling] { scrollbar-color: var(--sb-thumb) transparent; }
 .ir-scroll-dark { --sb-thumb: rgba(255,255,255,0.35); }
+
+/* ── Reduced motion: safety net (motion audit) ──
+   Several looping or entrance animations (mascot float/breathe, live dot, toasts, row
+   landings, the home hero's drift) had no reduce rule of their own. With "reduce motion" on,
+   everything finishes at once and loops stop after one pass; state still changes, it just
+   isn't animated. Specific reduce rules above stay as they are. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

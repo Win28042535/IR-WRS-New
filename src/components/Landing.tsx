@@ -2,7 +2,7 @@
 
 import { BackToTop } from "@/components/BackToTop";
 import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { FLOW_STEPS } from "@/lib/data";
+import { CONTACT_DAYS, FLOW_STEPS } from "@/lib/data";
 import { IconCheck, IconArrowRight } from "@/components/icons";
 import { BriefFlow, DemoPanel, HeroFragments, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
@@ -23,25 +23,26 @@ const balance = { textWrap: "balance" } as CSSProperties;
 // "ทีมได้รับอะไร" (the transformation machine) is switched off for now; flip to bring it back.
 const SHOW_BRIEF = false;
 
-const REASSURE = ["ไม่ต้องสมัครสมาชิก", "บันทึกอัตโนมัติ", "แก้ไขได้ภายหลัง"];
+// user test BTS asked how much to prepare: "no documents, unsure answers can be left to the team" sits in the first screen
+const REASSURE = ["ไม่ต้องเตรียมเอกสาร", "ข้อไหนไม่แน่ใจ ให้ AI และทีมเลือกให้ได้", "ไม่ต้องสมัครสมาชิก", "บันทึกอัตโนมัติ"];
 
 const STATS = [
   { pre: "ไม่เกิน", n: "20", post: "นาที" },
   { n: String(FLOW_STEPS.length), post: "ขั้นตอน" },
-  { pre: "ทีมติดต่อกลับ", n: "โดยเร็ว" },
+  { pre: "ทีมติดต่อกลับภายใน", n: CONTACT_DAYS.split(" ")[0], post: "วันทำการ" },
 ];
 
 const PREP = [
   "ชื่อบริษัท และเว็บไซต์ปัจจุบัน (ถ้ามี)",
-  "รหัสสีของแบรนด์จากคู่มือ CI (ถ้าไม่มีเว็บไซต์ปัจจุบัน)",
+  "โลโก้บริษัท (ไม่บังคับ)",
   "กลุ่มนักลงทุนที่สำคัญ เช่น รายย่อย สถาบัน นักวิเคราะห์",
   "เว็บไซต์ที่ชอบ (ไม่บังคับ)",
-  "ชื่อ อีเมล และเบอร์โทรของผู้ติดต่อ",
+  "ชื่อ ตำแหน่ง และอีเมลของผู้ติดต่อ (เบอร์โทรไม่บังคับ)",
 ];
 
 const FAQ = [
   { q: "ต้องมีความรู้ด้านการออกแบบไหม", a: "ไม่ต้อง ทุกข้อตอบด้วยการเลือกจากภาพหรือตัวเลือกที่อธิบายไว้ ระบบสรุปเป็นแนวทางการออกแบบให้เอง" },
-  { q: "ใครในบริษัทควรเป็นคนกรอก", a: "ผู้ที่ดูแลงานนักลงทุนสัมพันธ์หรือเว็บไซต์ IR เช่น ฝ่าย IR ฝ่ายการตลาด หรือเลขานุการบริษัท" },
+  { q: "ใครในบริษัทควรเป็นคนกรอก", a: "ผู้ที่ดูแลงานนักลงทุนสัมพันธ์หรือเว็บไซต์ IR เช่น ฝ่าย IR ฝ่ายการตลาด หรือเลขานุการบริษัท · ถ้ามีผู้ร่วมตัดสินใจ ใส่ชื่อไว้ในขั้นส่งมอบได้สูงสุด 2 คน" },
   { q: "ทำไม่เสร็จ ปิดหน้าไปก่อนได้ไหม", a: "ได้ ข้อมูลบันทึกอัตโนมัติในเบราว์เซอร์นี้ กลับมาที่หน้านี้ด้วยเครื่องและเบราว์เซอร์เดิม แล้วกด \"ทำต่อ\"" },
   { q: "ส่งไปแล้ว แก้ไขได้ไหม", a: "ได้ แจ้งทีม IR Plus ตอนที่ทีมติดต่อกลับ ทีมจะปรับให้ก่อนเริ่มออกแบบ" },
 ];
@@ -98,7 +99,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
           <span className="ir-grad-text whitespace-nowrap px-[0.02em] py-[0.15em]">ให้ตรงใจองค์กรคุณ</span>
         </h1>
         <p className={`mx-auto mt-3 sm:mt-5 max-w-[38rem] text-lead sm:text-title leading-relaxed text-ir-t2 ${demo ? "lg:mx-0" : ""}`} style={balance}>
-          ตอบคำถาม {FLOW_STEPS.length} ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับโดยเร็ว
+          ตอบคำถาม {FLOW_STEPS.length} ขั้นจากภาพ ไม่ต้องรู้เรื่องดีไซน์ ทีม IR Plus นำไปออกแบบ และติดต่อกลับภายใน {CONTACT_DAYS}
         </p>
 
         <div id="hero-cta" className={`mx-auto mt-5 sm:mt-8 max-w-[34rem] text-left ${demo ? "lg:mx-0" : ""}`}>

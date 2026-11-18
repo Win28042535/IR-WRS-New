@@ -413,7 +413,7 @@ const MOCKS: Record<string, { label: string; draw: (id: string) => ReactNode; bg
   "q2-b": { label: "เข้ม", bg: DARK, draw: (id) => <StandardHome t={DARK} id={id} /> },
   "q3-a": { label: "เล่าเรื่อง", bg: LIGHT, draw: (id) => <StoryHome t={LIGHT} id={id} /> },
   "q3-b": { label: "เน้นข้อมูล", bg: LIGHT, draw: () => <DataHome t={LIGHT} /> },
-  "q4-a": { label: "โล่ง", bg: LIGHT, draw: (id) => <SpaciousHome t={LIGHT} id={id} /> },
+  "q4-a": { label: "เน้นพื้นที่ว่าง", bg: LIGHT, draw: (id) => <SpaciousHome t={LIGHT} id={id} /> },
   "q4-b": { label: "ข้อมูลแน่น", bg: LIGHT, draw: () => <DenseHome t={LIGHT} /> },
   "q5-a": { label: "เรียบ / สุขุม", bg: LIGHT, draw: (id) => <SubtleHome t={LIGHT} id={id} /> },
   "q5-b": { label: "โดดเด่น", bg: LIGHT, draw: (id) => <ExpressiveHome t={LIGHT} id={id} /> },

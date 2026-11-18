@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { directionById, BUSINESS_GOALS, APPROVER_PROFILES, MOODS, SECTION_CATEGORIES, SECTIONS } from "@/lib/data";
+import { directionById, BUSINESS_GOALS, APPROVER_PROFILES, MOODS, SECTION_CATEGORIES, SECTIONS, CONTACT_DAYS } from "@/lib/data";
 import { summarizeStakeholders } from "@/lib/recommend";
 import { STATUS_LABEL, requirementSummary, designInsight, recommendedGroups, approvalSummary } from "@/lib/insight";
 import { SitemapView } from "@/components/SitemapView";
@@ -20,7 +20,7 @@ export const fmtDate = (t: number) => new Date(t).toLocaleString("th-TH", { day:
 
 export function nextStepText(status: Requirement["status"]): string {
   switch (status) {
-    case "submitted": return "IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว ทีมงานจะตรวจสอบและติดต่อกลับโดยเร็ว";
+    case "submitted": return `IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว ทีมงานจะติดต่อกลับภายใน ${CONTACT_DAYS}`;
     case "in_review": return "ทีมงานกำลังตรวจสอบข้อมูล หากต้องการข้อมูลเพิ่มเติม เราจะติดต่อกลับทาง Email ที่แจ้งไว้";
     case "approved": return "IR Plus พร้อมเริ่มงานออกแบบแล้ว ทีมออกแบบจะติดต่อเพื่อนัดหมาย Project Kickoff";
     case "frozen": return "โครงการพร้อมเริ่มต้น ทีมออกแบบจะติดต่อเพื่อนัดหมาย Kickoff Meeting โดยเร็ว";
@@ -87,6 +87,9 @@ export function ProjectInfo({ req }: { req: Requirement }) {
       <Info k="Industry" v={req.industry} />
       <Info k="Company Type" v={req.companyType} />
       {req.projectType && <Info k="Website Type" v={req.projectType} />}
+      {(req.coDeciders ?? []).length > 0 && (
+        <Info k="ผู้ร่วมตัดสินใจ" v={(req.coDeciders ?? []).map((p) => [p.name, p.position, p.email].filter(Boolean).join(" · ")).join(" / ")} />
+      )}
       <Info k="Submitted" v={fmtDate(req.createdAt)} />
     </div>
   );

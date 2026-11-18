@@ -109,6 +109,8 @@ export interface DesignProfile {
   energyBold: number;      // + bold / - minimal
 }
 
+export interface CoDecider { name: string; position: string; email: string }
+
 export interface Stakeholder {
   id: string;
   name: string;
@@ -224,7 +226,11 @@ export interface Requirement {
   hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered (new drafts start at "yes")
   /** "no" (team proposes new colours): what tone they have in mind, free text. */
   ciNote?: string;
-  ciPicked?: boolean;     // the client chose a CI card themselves (else it follows the website link)
+  logo?: string;          // company logo as a data URL (step 1, optional), shown on the Deliver sheet
+  logoName?: string;
+  ciPicked?: boolean;
+  /** Up to 2 other people at the company who help decide (Deliver, optional) — user test CPALL. */
+  coDeciders?: CoDecider[];     // the client chose a CI card themselves (else it follows the website link)
   /** Inspiration step: likes described in words, no link or picture needed. */
   inspirationNote?: string;
   // brand colours captured earlier (older drafts); the colour reader has been removed, the

@@ -13,7 +13,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, SECTION_BLURB, TRAILING_REQUIRED_IDS,
+  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, SECTION_BLURB, IR_HOMEPAGE_ORDER, OTHER_PAGE_SECTION_IDS, TRAILING_REQUIRED_IDS,
   audienceById, directionById, sectionById,
 } from "@/lib/data";
 import { profileToDirection, rankDirections } from "@/lib/recommend";
@@ -22,6 +22,7 @@ import type { Requirement } from "@/lib/types";
 import { DUR, EASE } from "@/lib/motion";
 import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
 import { onScrollShowBar } from "@/lib/useScrollBar";
+import { NoteField } from "@/components/NoteField";
 
 // The AI proposes REC_MAX sections; the client can add up to MAX_OPT in all (header, hero and
 // footer not counted). A cap again, but a roomy one, shown as "n / 8".
@@ -45,17 +46,23 @@ export function homepageRecommendation(draft: Requirement): { list: string[]; re
   const dir = directionById(draft.selectedDirection);
   const dirSuggested: string[] = dir?.sections ?? [];
   const audienceOrder: string[] = [draft.primaryAudience ?? "", ...(draft.secondaryAudiences ?? [])].flatMap((a: string) => audienceById(a)?.prioritizes ?? []);
-  const pageRank = (id: string) => {
+  // which sections make the cut: audience first, then goals (what the client said matters)
+  const pickRank = (id: string) => {
     const a = audienceOrder.indexOf(id);
     if (a >= 0) return a;
     const g = goalSuggested.indexOf(id);
     if (g >= 0) return 100 + g;
     return 200 + SECTIONS.findIndex((s) => s.id === id);
   };
+  // where they sit on the page: the standard IR homepage order
+  const pageRank = (id: string) => {
+    const i = IR_HOMEPAGE_ORDER.indexOf(id);
+    return i >= 0 ? i : 100 + SECTIONS.findIndex((s) => s.id === id);
+  };
   const pool = [...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]
-    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && sectionById(id));
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !OTHER_PAGE_SECTION_IDS.includes(id) && sectionById(id));
   // Only the top few — tagging every candidate (9–10) read as "pick all of these".
-  const list = [...new Set(pool)].sort((a, b) => pageRank(a) - pageRank(b)).slice(0, REC_MAX);
+  const list = [...new Set(pool)].sort((a, b) => pickRank(a) - pickRank(b)).slice(0, REC_MAX).sort((a, b) => pageRank(a) - pageRank(b));
   const reasons: Record<string, string> = {};
   for (const id of list) {
     const goal = goalIds.find((g) => (GOAL_SECTIONS[g] ?? []).includes(id));
@@ -94,7 +101,9 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
   const recSet = new Set(recList);
   // what can still be added: AI picks that were removed first, then the rest
   const addable = [...recList, ...SECTIONS.map((s) => s.id).filter((id) => !recSet.has(id))]
-    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !optional.includes(id));
+    .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !optional.includes(id))
+    // "มักอยู่หน้าอื่น" ones at the end of the list
+    .sort((a, b) => Number(OTHER_PAGE_SECTION_IDS.includes(a)) - Number(OTHER_PAGE_SECTION_IDS.includes(b)));
   const isRecommended = isRecommendedHomepage(draft);
 
   // First visit: start from the recommended homepage instead of an empty outline, so the
@@ -249,7 +258,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               </p>
               <p className="mt-0.5 text-small leading-snug text-white/70">
                 {isRecommended
-                  ? <>เรียงจากบนลงล่าง{basis ? ` · ${basis}` : ""} · เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย</>
+                  ? <>เรียงตามลำดับที่เว็บ IR ส่วนใหญ่ใช้{basis ? ` · ${basis}` : ""} · เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย</>
                   : optional.length === 0
                     ? `เลือกจากรายการ “เพิ่มส่วนอื่น” อย่างน้อย ${MIN_OPT} ส่วน`
                     : "เรียงจากบนลงล่าง · ลากที่ ⋮⋮ เพื่อสลับลำดับ"}
@@ -261,13 +270,13 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             <span className="flex-1" />
             {!isRecommended && recList.length > 0 && (
               <button type="button" onClick={resetToRec}
-                className="inline-flex h-9 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 transition-colors hover:bg-ir-accent focus-ring">
+                className="inline-flex h-11 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 transition-colors hover:bg-ir-accent focus-ring">
                 ✦ กลับไปใช้ที่ AI จัดให้
               </button>
             )}
             {optional.length > 0 && (
               <button type="button" onClick={() => commit([])}
-                className="inline-flex h-9 items-center rounded-full px-3 text-caption font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-ring">
+                className="inline-flex h-11 items-center rounded-full px-3 text-caption font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-ring">
                 ล้างทั้งหมด
               </button>
             )}
@@ -336,7 +345,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                     type="button"
                     onClick={() => remove(id)}
                     aria-label={`เอา ${shortName(id)} ออก`}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ir-disabled transition-colors hover:bg-ir-error-soft hover:text-ir-error focus-ring"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ir-disabled transition-colors hover:bg-ir-error-soft hover:text-ir-error focus-ring"
                   >
                     <svg width={14} height={14} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" /></svg>
                   </button>
@@ -387,6 +396,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="text-small font-semibold text-ir-t1">{shortName(id)}</span>
                   {recSet.has(id) && <span className="rounded-full bg-primary-50 px-2 py-px text-caption font-semibold text-ir-accent-text">✦ AI แนะนำ</span>}
+                  {OTHER_PAGE_SECTION_IDS.includes(id) && <span className="rounded-full bg-ir-muted px-2 py-px text-caption font-medium text-ir-t3">มักอยู่หน้าอื่น</span>}
                 </span>
                 {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
               </span>
@@ -401,21 +411,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
       {/* หมายเหตุ — replaces the old "CTA หรือ Section อื่นๆ" pick: a free note for anything
           else they want, without having to name a section type or format */}
-      <div className="mt-6">
-        <label htmlFor="structure-note" className="flex items-baseline gap-2">
-          <span className="text-body font-semibold text-ir-t1">หมายเหตุ</span>
-          <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
-        </label>
-        <p className="mt-0.5 text-small text-ir-t3">มีอะไรอยากได้เพิ่มบนหน้าแรก หรืออยากบอกทีม เขียนไว้ได้เลย</p>
-        <textarea
-          id="structure-note"
-          rows={3}
-          value={draft.structureNote ?? ""}
-          onChange={(e) => updateDraft({ structureNote: e.target.value })}
-          placeholder="รายละเอียดเพิ่มเติม เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ"
-          className="mt-2 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-3 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
-        />
-      </div>
+      <NoteField id="structure-note" className="mt-6" label="หมายเหตุ"
+        hint="มีอะไรอยากได้เพิ่มบนหน้าแรก หรืออยากบอกทีม เขียนไว้ได้เลย"
+        value={draft.structureNote ?? ""} onChange={(v) => updateDraft({ structureNote: v })}
+        placeholder="เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ" />
 
       <FlightLayer flights={flights} onDone={(key) => setFlights((f) => f.filter((x) => x.key !== key))} />
     </div>

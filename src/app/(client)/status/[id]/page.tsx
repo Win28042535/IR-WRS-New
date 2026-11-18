@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { nextStepText, fmtDate } from "@/components/requirement";
 import { IconCheck, IconPalette } from "@/components/icons";
 import { LumaLoader, LumaChip } from "@/components/AIMascot";
-import { directionById } from "@/lib/data";
+import { directionById, CONTACT_DAYS } from "@/lib/data";
 import { DesignDNACard } from "@/components/DesignDNA";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -62,7 +62,7 @@ export default function SubmittedPage() {
             IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว
           </p>
           <p className="text-white/70 text-body max-w-xs mx-auto mb-6">
-            ทีมงานจะติดต่อกลับโดยเร็ว
+            ทีมงานจะติดต่อกลับภายใน {CONTACT_DAYS}
           </p>
           <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/15 rounded-full pl-3.5 pr-4 py-1.5">
             <span className="text-small text-white/70">หมายเลขอ้างอิง</span>
@@ -89,7 +89,7 @@ export default function SubmittedPage() {
             <dl className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
                 ["ใครจะติดต่อ", "ผู้ดูแลโครงการจากทีม IR Plus"],
-                ["เมื่อไร", "โดยเร็ว"],
+                ["เมื่อไร", `ภายใน ${CONTACT_DAYS}`],
                 ["ทางไหน", (() => { const ways = req.callbackOk === false ? [req.email] : [req.phone, req.lineId && `LINE ${req.lineId}`, req.email]; return ways.filter(Boolean).join(" · ") || "ข้อมูลติดต่อที่ให้ไว้"; })()],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-md bg-white px-4 py-3">

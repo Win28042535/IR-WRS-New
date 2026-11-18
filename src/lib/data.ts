@@ -32,6 +32,15 @@ export const RETIRED_SECTION_IDS = ["cta"];
 
 // One plain line per homepage section: what it is, for clients who don't know the IR terms.
 // Shown under the name on the homepage step (picks and outline).
+// The order most listed-company IR homepages follow, top to bottom (user tests BTS / CBG:
+// people don't know what goes first, so the AI's picks are laid out in this order).
+export const IR_HOMEPAGE_ORDER = [
+  "ir-info", "financial", "ir-calendar", "reports", "shareholder-info", "analyst",
+  "about", "chairman-message", "history", "board", "sustainability", "governance", "contact",
+];
+// Usually their own page on an IR site, not on the homepage: still addable, never proposed.
+export const OTHER_PAGE_SECTION_IDS = ["history", "board", "governance", "analyst"];
+
 export const SECTION_BLURB: Record<string, string> = {
   financial: "ตัวเลขหลัก เช่น รายได้ กำไร ปันผล ดูแล้วรู้ผลงานทันที",
   "ir-calendar": "วันประชุม วันจ่ายปันผล และข่าวล่าสุดของบริษัท",
@@ -289,7 +298,7 @@ export const BUSINESS_GOALS: BusinessGoalDef[] = [
   { id: "ir", label: "นักลงทุนสัมพันธ์ (IR)", emoji: "📈", desc: "สื่อสารข้อมูลการเงินให้นักลงทุนเข้าถึงง่าย", impact: "นักลงทุนหาข้อมูลได้เร็ว ลด IR workload และสร้างความเชื่อมั่น", comps: ["Financial Highlights", "Stock Ticker", "Annual Reports", "IR Calendar"] },
   { id: "lead", label: "หาลูกค้าใหม่ / Lead Generation", emoji: "🎯", desc: "ดึงดูดผู้สนใจและเปลี่ยนเป็นลูกค้า", impact: "ผู้เยี่ยมชมติดต่อได้ง่ายขึ้น ได้ Lead มากขึ้น ลด Sales Cycle", comps: ["Hero + CTA", "Services", "Contact Form", "Testimonials"], hidden: true },
   { id: "awareness", label: "สร้างการรับรู้แบรนด์", emoji: "📣", desc: "เพิ่มการรับรู้แบรนด์ในตลาด", impact: "แบรนด์ถูกจดจำมากขึ้น เพิ่มการค้นหาชื่อองค์กรใน Google", comps: ["Hero Banner", "Brand Story", "News & Media"] },
-  { id: "digital", label: "แสดงความเป็นองค์กรดิจิทัล", emoji: "⚡", desc: "สื่อสารว่าองค์กรก้าวทันเทคโนโลยี", impact: "องค์กรดูล้ำหน้า ดิจิทัล ทันสมัย ดึงดูดทั้งลูกค้าและบุคลากร Tech", comps: ["Animated Hero", "Feature Comparison", "Case Studies"] },
+  { id: "digital", label: "ดูทันสมัย ใช้เทคโนโลยี", emoji: "⚡", desc: "เว็บไซต์ดูทันสมัย มีเครื่องมือออนไลน์ เช่น กราฟราคาหุ้นแบบโต้ตอบ", impact: "องค์กรดูล้ำหน้า ดิจิทัล ทันสมัย ดึงดูดทั้งลูกค้าและบุคลากร Tech", comps: ["Animated Hero", "Feature Comparison", "Case Studies"] },
   { id: "esg", label: "ESG / ความยั่งยืน", emoji: "🌱", desc: "สื่อสารความรับผิดชอบต่อสังคมและสิ่งแวดล้อม", impact: "ตอบโจทย์นักลงทุน ESG รายงานตามมาตรฐาน GRI / TCFD", comps: ["ESG Overview", "Sustainability Report", "CSR Activities"] },
   { id: "talent", label: "รับสมัครงาน · ร่วมงานกับเรา", emoji: "👥", desc: "แสดงวัฒนธรรมองค์กร ให้คนเก่งอยากมาร่วมงาน", impact: "เพิ่มคุณภาพ Applicant ลด Time-to-hire แสดงวัฒนธรรมองค์กร", comps: ["Careers", "Company Culture", "Team Photos"] },
   { id: "product", label: "เปิดตัวสินค้า / บริการ", emoji: "🚀", desc: "นำเสนอสินค้าหรือบริการใหม่อย่างน่าสนใจ", impact: "ลูกค้าเข้าใจ Value Proposition ชัดขึ้น ตัดสินใจซื้อได้เร็วขึ้น", comps: ["Product Catalog", "Feature Comparison", "Pricing"], hidden: true },
@@ -394,7 +403,7 @@ export const QUIZ: QuizQuestion[] = [
   },
   {
     id: "q4", topic: "ความหนาแน่นข้อมูล", question: "คุณอยากให้หนึ่งหน้ามีข้อมูลมากน้อยแค่ไหน?", axis: "densityData",
-    optionA: { label: "โล่ง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a", hint: "หนึ่งหน้าเน้นเรื่องเดียว เว้นที่ว่าง อ่านสบายตา" },
+    optionA: { label: "เน้นพื้นที่ว่าง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a", hint: "อ่านสบาย หนึ่งหน้าเน้นเรื่องสำคัญ" },
     optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b", hint: "เห็นข้อมูลหลายเรื่องในหน้าเดียว ไม่ต้องคลิกหลายครั้ง" },
   },
   {
@@ -481,6 +490,9 @@ export const FLOW_STEPS_EN = ["Understand", "Audience", "Define", "Explore", "St
 // Step numbering version saved with the draft. 2 = audience split out of step 1 (7 steps).
 // Drafts saved before that (no stepScheme) count steps 2–6 one lower, so shift them up.
 export const STEP_SCHEME = 2;
+
+// What the client is told after sending (agreed with the IR Plus team).
+export const CONTACT_DAYS = "3 วันทำการ";
 
 // "efinancethai.com" from whatever was typed in the website field ("" when empty).
 export const siteHostOf = (url?: string) => (url ?? "").trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");

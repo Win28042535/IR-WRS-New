@@ -13,7 +13,9 @@ import { FONT_PAIRINGS, fontStack } from "@/lib/fonts";
 import { ExploreMock } from "@/components/ExploreMock";
 
 const SAMPLE: { dir: string; picks: Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B"> } = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "B" } };
-const SAMPLE_SECTIONS = ["ส่วนเปิดหน้าเว็บ", "ข้อมูลสำคัญทางการเงิน", "ราคาหลักทรัพย์", "เอกสารนักลงทุน"];
+// the sections a client picks, in the standard IR order the homepage step uses (the opening
+// and the menu are added by the system, so they aren't in this list)
+const SAMPLE_SECTIONS = ["ข้อมูลหลักทรัพย์", "ข้อมูลสำคัญทางการเงิน", "ปฏิทินกิจกรรม", "เอกสารนักลงทุน"];
 
 // Motion (globals.css .mb-*): tiles assemble on a diagonal (--d), each plays its content
 // once (--j). Hover lifts the tile and names the step that produces it.
@@ -80,7 +82,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Palette */}
-        <Tile label={`ชุดสี · ${d.palette}`} step={4} d={1} className="col-span-1 md:col-span-3 lg:col-span-4">
+        <Tile label={`ชุดสี · ${d.palette}`} step={1} d={1} className="col-span-1 md:col-span-3 lg:col-span-4">
           <div className="grid flex-1 grid-cols-3 gap-1.5">
             {d.colors.slice(0, 3).map((c, j) => (
               <div key={c} className="flex min-h-[96px] flex-col justify-end" style={v({ j })}>
@@ -92,7 +94,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Type */}
-        <Tile label="ตัวอักษร" step={4} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
+        <Tile label="ตัวอักษร" step={1} d={2} className="col-span-1 md:col-span-3 lg:col-span-3">
           <div className="flex flex-1 items-end gap-2 text-ir-t1">
             <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.heading), fontWeight: 700 }}>Aa</span>
             <span className="mb-item text-display-lg leading-none" style={{ fontFamily: fontStack(pair.thai), fontWeight: 700, ...v({ j: 1 }) }}>กข</span>
@@ -175,10 +177,14 @@ function MockUnderstand() {
   return (
     <Frame>
       <div className="w-full max-w-[220px] rounded-full border border-ir-border bg-white px-4 py-2 text-caption text-ir-t1"><span className="sg-type inline-block">บริษัทของคุณ จำกัด</span></div>
-      {/* brand look sits in step 1: their own colours + font */}
-      <div className="sg-a mt-3 flex items-center gap-1.5 rounded-full border border-ir-border bg-white py-1 pl-1 pr-3" style={v({ t: 4 })}>
-        {["#E31E24", "#1B1B1B", "#FFFFFF"].map((c) => <span key={c} className="h-5 w-5 rounded-full ring-1 ring-inset ring-black/10" style={{ background: c }} />)}
-        <span className="ml-1 text-caption font-medium text-ir-t2">สีแบรนด์ · ฟอนต์</span>
+      {/* CI: keep the colours + font of the current site, or let the team propose */}
+      <div className="mt-3 grid w-full max-w-[240px] grid-cols-2 gap-1.5">
+        {["ใช้ CI เดิม", "ให้ทีมเสนอใหม่"].map((t, i) => (
+          <span key={t} className={`sg-a flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold ${i === 0 ? "sg-pick border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border bg-white text-ir-t2"}`} style={v({ t: 3 + i })}>
+            {i === 0 && <span className="sg-check ir-grad-fill grid h-4 w-4 shrink-0 place-items-center rounded-full text-ir-on-accent"><Tick className="h-2.5 w-2.5" /></span>}
+            <span className="truncate">{t}</span>
+          </span>
+        ))}
       </div>
     </Frame>
   );
@@ -275,7 +281,7 @@ function MockDeliver() {
         <span className="h-7 w-7 shrink-0 rounded-full" style={{ background: d.bg }} />
         <span className="min-w-0">
           <span className="block truncate text-caption font-semibold text-ir-t1">{d.label}</span>
-          <span className="block text-[12px] text-ir-t3">{SAMPLE_SECTIONS.length} Section</span>
+          <span className="block text-[12px] text-ir-t3">{SAMPLE_SECTIONS.length} ส่วน</span>
         </span>
       </div>
       <div className="sg-press mt-3 w-full max-w-[230px] rounded-full bg-ir-dark py-2 text-center text-caption font-semibold text-white" style={v({ t: 1.5 })}>ส่งให้ทีม IR Plus</div>
@@ -284,7 +290,7 @@ function MockDeliver() {
 }
 
 const STEPS_INFO: { mock: () => ReactNode; todo: string; how: string; optional?: boolean }[] = [
-  { mock: MockUnderstand, todo: "บอกชื่อบริษัท สีและฟอนต์ของแบรนด์", how: "พิมพ์ + เลือก" },
+  { mock: MockUnderstand, todo: "บอกชื่อบริษัท และเลือกใช้ CI เดิมหรือให้ทีมเสนอใหม่", how: "พิมพ์ + เลือก" },
   { mock: MockAudience, todo: "เลือกว่าใครจะเข้ามาดูเว็บไซต์ เรียงจากกลุ่มที่สำคัญที่สุด", how: "เลือกจากรายการ" },
   { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ต้องทำได้", how: "เลือกจากรายการ" },
   { mock: MockExplore, todo: "ตอบ 5 ข้อ เลือกภาพ A หรือ B แล้วกดข้อถัดไป", how: "เลือกจากภาพ" },
@@ -386,6 +392,8 @@ const ColHead = ({ n, title, sub, tone = "light" }: { n: string; title: string; 
 );
 
 const T = { in: 700, proc: 650, out: 650, gap: 300, hold: 4800, reset: 700 };
+// answers shown going in (CI, readers, goals, Explore, homepage) = result blocks coming out
+const STEPS_N = 5;
 type Phase = "in" | "proc" | "out" | "rest";
 type Geo = { s: { x: number; y: number }[]; e: { x: number; y: number }[] };
 
@@ -397,7 +405,7 @@ export function BriefFlow() {
   const picks = Object.values(SAMPLE.picks);
 
   // step: 0 = nothing processed yet, 1..4 = processing answer k, 5 = page finished
-  const [step, setStep] = useState(5);
+  const [step, setStep] = useState(STEPS_N + 1);
   const [phase, setPhase] = useState<Phase>("rest");
   const [geo, setGeo] = useState<Geo | null>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -441,13 +449,13 @@ export function BriefFlow() {
       stop();
       setStep(0); setPhase("rest");
       let t = T.reset;
-      for (let k = 1; k <= 4; k++) {
+      for (let k = 1; k <= STEPS_N; k++) {
         at(t, () => { setStep(k); setPhase("in"); });
         at(t + T.in, () => setPhase("proc"));
         at(t + T.in + T.proc, () => setPhase("out"));
         t += T.in + T.proc + T.out + T.gap;
       }
-      at(t, () => { setStep(5); setPhase("rest"); });
+      at(t, () => { setStep(STEPS_N + 1); setPhase("rest"); });
       at(t + T.hold, run);
     };
     setStep(0);
@@ -457,17 +465,25 @@ export function BriefFlow() {
   }, []);
 
   const inputs: { name: string; q: string; body: ReactNode; token: string }[] = [
+    { name: FLOW_STEPS[0], q: "สีและฟอนต์ของแบรนด์ (CI)", token: "CI เดิม",
+      body: <div className="flex flex-wrap gap-1"><DarkChip on>ใช้ CI เดิม</DarkChip><DarkChip>ให้ทีมเสนอใหม่</DarkChip></div> },
     { name: FLOW_STEPS[1], q: "ใครคือผู้อ่านหลัก", token: audiences[0].label,
       body: <div className="flex flex-wrap gap-1">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div> },
     { name: FLOW_STEPS[2], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
       body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
     { name: FLOW_STEPS[3], q: "ตอบ 5 ข้อจากภาพ", token: picks.join(" "),
       body: <div className="flex gap-1">{picks.map((p, j) => <span key={j} className="grid h-7 w-7 place-items-center rounded-sm border border-white/12 bg-white/[0.05] font-mono text-[12px] font-semibold text-white/85">{p}</span>)}</div> },
-    { name: FLOW_STEPS[4], q: "ตรวจหน้าแรกที่ AI จัดให้", token: `${SAMPLE_SECTIONS.length} Section`,
+    { name: FLOW_STEPS[4], q: "ตรวจหน้าแรกที่ AI จัดให้", token: `${SAMPLE_SECTIONS.length} ส่วน`,
       body: <div className="flex flex-wrap gap-1">{SAMPLE_SECTIONS.map((s, j) => <DarkChip key={s} n={j + 1}>{s}</DarkChip>)}</div> },
   ];
 
   const blocks: { label: string; body: ReactNode }[] = [
+    { label: "สีและฟอนต์", body: (
+      <div className="flex items-center gap-2">
+        {["#E31E24", "#1B1B1B", "#F4F2EC"].map((c) => <span key={c} className="h-5 w-5 rounded-full ring-1 ring-inset ring-black/10" style={{ background: c }} />)}
+        <span className="text-[11px] text-ir-t2">จากเว็บไซต์เดิม</span>
+      </div>
+    ) },
     { label: "ผู้อ่านหลัก", body: (
       <div>
         <p className="text-body font-semibold text-ir-t1">{audiences[0].label}</p>
@@ -500,15 +516,15 @@ export function BriefFlow() {
     { label: "โครงหน้าแรก", body: (
       <div className="grid gap-1">
         <span className="h-1.5 w-full rounded-full bg-ir-border" />
-        <span className="grid h-9 place-items-center rounded-sm bg-ir-dark text-[10px] font-semibold text-ir-accent">{SAMPLE_SECTIONS[0]}</span>
+        <span className="grid h-9 place-items-center rounded-sm bg-ir-dark text-[10px] font-semibold text-ir-accent">ส่วนเปิดหน้าเว็บ</span>
         <span className="grid grid-cols-3 gap-1">{[0, 1, 2].map((j) => <span key={j} className="h-5 rounded-xs bg-ir-accent-soft" />)}</span>
         <span className="grid grid-cols-2 gap-1"><span className="h-4 rounded-xs bg-ir-muted" /><span className="h-4 rounded-xs bg-ir-muted" /></span>
       </div>
     ) },
   ];
 
-  const busy = step >= 1 && step <= 4;
-  const status = step === 0 ? "รอคำตอบ" : step === 5 ? "เรียบเรียงเสร็จ" : `กำลังแปลงคำตอบ ${step}/4`;
+  const busy = step >= 1 && step <= STEPS_N;
+  const status = step === 0 ? "รอคำตอบ" : step === STEPS_N + 1 ? "เรียบเรียงเสร็จ" : `กำลังแปลงคำตอบ ${step}/${STEPS_N}`;
 
   return (
     <div ref={root} data-busy={busy || undefined} data-phase={phase} className="bm relative overflow-clip rounded-2xl sm:rounded-3xl bg-ir-dark p-3 sm:p-5 lg:p-6">
@@ -568,9 +584,9 @@ export function BriefFlow() {
                   <p className="font-mono text-[11px] font-semibold tracking-[0.12em] text-ir-t3">REQUIREMENT</p>
                   <p className="text-body font-semibold text-ir-t1">เว็บไซต์ IR · บริษัทของคุณ</p>
                 </div>
-                <span data-on={step === 5} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-caption font-semibold">
+                <span data-on={step === STEPS_N + 1} className="bm-ready inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full pl-1 pr-3 text-caption font-semibold">
                   <span className="bm-ready-dot grid h-6 w-6 place-items-center rounded-full"><Tick /></span>
-                  {step === 5 ? "พร้อมส่ง" : "รอเรียบเรียง"}
+                  {step === STEPS_N + 1 ? "พร้อมส่ง" : "รอเรียบเรียง"}
                 </span>
               </div>
               <div className="divide-y divide-ir-border">

@@ -15,7 +15,8 @@ export type SheetData = {
   /** true → the team takes colours from the client's site / logo; no swatches shown */
   ownPending: boolean;
   ciSite?: string;
-  fontInterest?: string; // a font the client liked; the team decides      // "ใช้ CI เดิม": colours and font come from this website
+  logo?: string;        // company logo (data URL), top-right of the cover
+  fontInterest?: string; // a font the client liked; the team decides
   colorSource: string;
   swatches: { hex: string; role: string; use: string }[];
   primary: string;
@@ -100,6 +101,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     document.fonts.load(`700 40px ${head}`), document.fonts.load(`400 40px ${head}`),
   ]).catch(() => undefined);
   const imgs = await Promise.all(d.shots.slice(0, 4).map((s) => loadImage(s.url)));
+  const logoImg = d.logo ? await loadImage(d.logo) : null;
 
   // Draw on a tall scratch canvas, then crop to the content's real height.
   const c = document.createElement("canvas");
@@ -129,9 +131,18 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   g.addColorStop(1, isLight(d.primary) ? "#D9D6CC" : "#0B0D12");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, coverH);
+  // logo on a white chip, top right
+  if (logoImg) {
+    const bw = 300, bh = 150, bx = W - M - bw, by = 80, pad = 22;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 18); ctx.fill();
+    const s = Math.min((bw - 2 * pad) / logoImg.naturalWidth, (bh - 2 * pad) / logoImg.naturalHeight);
+    const lw = logoImg.naturalWidth * s, lh = logoImg.naturalHeight * s;
+    ctx.drawImage(logoImg, bx + (bw - lw) / 2, by + (bh - lh) / 2, lw, lh);
+  }
   ctx.globalAlpha = 0.78;
   font(500, 34);
-  wrap(ctx, `แนวทางเว็บไซต์นักลงทุนสัมพันธ์${d.company ? ` · ${d.company}` : ""}`, CW, 2).forEach((ln, i) => text(ln, M, 140 + i * 46, on));
+  wrap(ctx, `แนวทางเว็บไซต์นักลงทุนสัมพันธ์${d.company ? ` · ${d.company}` : ""}`, logoImg ? CW - 340 : CW, 2).forEach((ln, i) => text(ln, M, 140 + i * 46, on));
   text("แนวทางที่ได้จากคำตอบของคุณ", M, 330, on);
   ctx.globalAlpha = 1;
   let y = 330 + 150;
@@ -187,6 +198,9 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     font(400, 36); wrap(ctx, `ทีมจะใช้ฟอนต์จาก ${d.ciSite}`, CW, 2).forEach((ln) => { y += 56; text(ln, M, y, "#6F6A5E"); });
   } else {
     y += 120; font(700, 110, head); text(d.fontName, M, y);
+    // "ตัวอย่างฟอนต์" chip above the sample sentence
+    y += 44; font(600, 26);
+    { const tw = ctx.measureText("ตัวอย่างฟอนต์").width; ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.beginPath(); ctx.roundRect(M, y, tw + 36, 46, 23); ctx.fill(); text("ตัวอย่างฟอนต์", M + 18, y + 32, "#6F6A5E"); y += 46; }
     font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
     const fnote = `ทีมเสนอตามแนวทาง${d.fontNote ? ` · ${d.fontNote}` : ""}`;
     font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });

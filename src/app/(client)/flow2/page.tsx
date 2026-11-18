@@ -3,10 +3,10 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, STEP_SCHEME, flowStepOf, siteHostOf, keepsCi, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, flowStepOf, siteHostOf, keepsCi, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
-import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
+import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
@@ -15,6 +15,9 @@ import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import { FontPickerSheet, FontPreviewSheet } from "@/components/FontPicker";
+import { LogoInput } from "@/components/LogoInput";
+import { NoteField } from "@/components/NoteField";
+import { CoDeciders } from "@/components/CoDeciders";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import type { SheetData } from "@/lib/moodboardExport";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -530,16 +533,8 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
             onSelect={() => updateDraft({ hasCorporateIdentity: "no", ciPicked: true })}
           />
         </div>
-        {!keepCi && (
-          <textarea
-            aria-label="โทนสีหรือฟอนต์ที่อยากได้"
-            rows={2}
-            value={draft.ciNote ?? ""}
-            onChange={(e) => updateDraft({ ciNote: e.target.value })}
-            placeholder="มีโทนในใจ บอกไว้ได้ (ไม่บังคับ) เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม"
-            className="mt-2.5 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-2.5 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
-          />
-        )}
+        {/* keep the CI: their logo (optional) sits where the starting font sits for the other card */}
+        {keepCi && <LogoInput draft={draft} updateDraft={updateDraft} />}
         {/* the team's font, previewed before Explore: the starting pairing, as a draft */}
         {!keepCi && (
           <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-ir-border bg-ir-card px-4 py-3">
@@ -548,13 +543,14 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
               <span className="block text-small font-semibold text-ir-t1">ฟอนต์ตั้งต้น: <span style={{ fontFamily: familyStack(proposedFont) }}>{proposedFont}</span></span>
               <span className="block text-caption leading-snug text-ir-t3">ฟอนต์จริงจะเลือกตามแนวทางที่ได้ในขั้นสำรวจแนวทาง</span>
             </span>
-            <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+            {/* phones: the buttons take their own line under the font name (responsive audit) */}
+            <span className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto sm:shrink-0">
               <button type="button" onClick={() => setFontPreview(true)}
-                className="inline-flex h-10 items-center rounded-full border border-ir-border bg-white px-4 text-small font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
+                className="inline-flex h-11 items-center rounded-full border border-ir-border bg-white px-4 text-small font-semibold text-ir-t1 transition-colors hover:border-ir-border-hi focus-ring">
                 ดูตัวอย่างฟอนต์ที่ทีมเสนอ
               </button>
               <button type="button" onClick={() => setFontBrowse(true)}
-                className="inline-flex h-10 items-center rounded-full px-3 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
+                className="inline-flex h-11 items-center rounded-full px-3 text-small font-semibold text-ir-t2 underline underline-offset-4 transition-colors hover:text-ir-t1 focus-ring">
                 ดูฟอนต์แนะนำอื่น ๆ
               </button>
             </span>
@@ -564,10 +560,16 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
                 <span>สนใจ: <span className="font-semibold text-ir-t1" style={{ fontFamily: familyStack(interestFont) }}>{interestFont}</span></span>
                 <span className="text-caption text-ir-t3">· ทีมจะนำไปพิจารณา</span>
                 <button type="button" onClick={() => updateDraft({ fontInterest: "" })} aria-label="ล้างฟอนต์ที่สนใจ"
-                  className="ml-auto inline-flex h-9 items-center rounded-full px-2.5 text-caption font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">ล้าง</button>
+                  className="ml-auto inline-flex h-11 items-center rounded-full px-2.5 text-caption font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">ล้าง</button>
               </span>
             )}
           </div>
+        )}
+        {/* the note for the team comes last (user feedback) */}
+        {!keepCi && (
+          <NoteField className="mt-4" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้"
+            value={draft.ciNote ?? ""} onChange={(v) => updateDraft({ ciNote: v })}
+            placeholder="เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม" />
         )}
         {fontPreview && <FontPreviewSheet family={proposedFont} company={draft.company} onClose={() => setFontPreview(false)} />}
         {fontBrowse && (
@@ -1174,6 +1176,20 @@ function isVideoUrl(raw: string) {
 /** Label for a link tile: "Google Drive" rather than the bare domain. */
 const linkLabel = (raw: string) => (isDriveUrl(raw) ? "Google Drive" : domainOf(raw));
 const normLink = (v: string) => v.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "").toLowerCase();
+// A link that works but isn't a web page (user test BTS pasted a non-page link): a direct
+// file, or a search / image-results page. Still addable; a hint says what fits better.
+function linkKindHint(raw: string): string {
+  const v = raw.trim();
+  let u: URL;
+  try { u = new URL(/^[a-z][a-z\d+\-.]*:\/\//i.test(v) ? v : `https://${v}`); } catch { return ""; }
+  const path = u.pathname.toLowerCase();
+  if (/\.(png|jpe?g|gif|webp|svg|heic)$/.test(path)) return "ลิงก์นี้เป็นไฟล์รูป · บันทึกรูปแล้วแนบในช่องรูปภาพด้านล่างจะเห็นชัดกว่า";
+  if (/\.pdf$/.test(path)) return "ลิงก์นี้เป็นไฟล์ PDF · แนบไฟล์ในช่องด้านล่างได้เลย";
+  if (/(^|\.)google\.[a-z.]+$/.test(u.hostname) && (path.startsWith("/search") || path.startsWith("/imgres") || u.searchParams.has("q")))
+    return "ลิงก์นี้เป็นหน้าผลการค้นหา · เปิดเว็บที่ชอบแล้วคัดลอกลิงก์จากหน้านั้นแทน";
+  return "";
+}
+
 function validateUrlInput(raw: string, existing: { value: string }[]): UrlValidationState {
   const value = raw.trim();
   if (!value) return "empty";
@@ -1510,6 +1526,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
     setUploadError("");
     Array.from(files).forEach((file) => {
       const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+      // video files can't be kept here (answers stay in this browser): point to a link instead
+      if (file.type.startsWith("video/")) { setUploadError(`${file.name}: ไฟล์วิดีโอแนบตรงไม่ได้ · อัปโหลดไว้ที่ Google Drive หรือ YouTube แล้ววางลิงก์ในช่องด้านบน`); return; }
       if (!file.type.startsWith("image/") && !isPdf) { setUploadError(`${file.name}: รองรับเฉพาะรูปภาพและไฟล์ PDF`); return; }
       // the demo keeps files in the browser, so documents are capped
       if (isPdf && file.size > MAX_PDF_BYTES) { setUploadError(`${file.name}: ไฟล์ PDF ต้องไม่เกิน 5 MB`); return; }
@@ -1528,6 +1546,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         });
         syncToDraft(urls, nextImages);
         flashNew(newImg.id);
+        setNoteEditing(newImg.id);
         // Floating preview (all widths) — an actual thumbnail crop of the uploaded image,
         // the clearest possible confirmation of what just got added.
         useFloatingPreview.getState().show(
@@ -1668,6 +1687,9 @@ function ReferenceEditor({ draft, updateDraft }: any) {
               {URL_VALIDATION_COPY[urlValidation].label}
             </p>
           )}
+          {urlValidation === "valid" && linkKindHint(urlInput) && (
+            <p className="mt-1 flex items-start gap-1.5 text-small text-ir-t2"><span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ir-warn" />{linkKindHint(urlInput)}</p>
+          )}
           {/* A Drive file the team can't open is useless — remind them to share it. */}
           {urlValidation === "valid" && isDriveUrl(urlInput) && (
             <p className="mt-1 text-small text-ir-t2">ตั้งค่าการแชร์ไฟล์ใน Google Drive เป็น “ทุกคนที่มีลิงก์” ก่อน เพื่อให้ทีมเปิดดูได้</p>
@@ -1693,7 +1715,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     style={{ width: 72, height: 72, animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     <div
-                      className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 text-center"
+                      className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 pb-6 text-center"
                       style={{ background: URL_THUMB_THEMES[i % URL_THUMB_THEMES.length] }}
                     >
                       {isVideoUrl(u.value)
@@ -1712,7 +1734,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => removeUrl(u.id)}
                       aria-label="ลบเว็บไซต์นี้"
-                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
+                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
                       style={{ width: 24, height: 24 }}
                     >
                       <IconClose width={8} height={8} />
@@ -1721,21 +1743,18 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         opposite corner. A filled accent dot stays visible even when this
                         button itself is hover-hidden, so "this one has a note" reads at a
                         glance without needing to hover every tile. */}
+                    {/* note: an always-visible band on the tile (user test AOT couldn't find the old
+                        hover-only pencil) — "+ โน้ต" when empty, "✎ โน้ต" once written */}
                     <button
                       onClick={() => setNoteEditing(noteEditing === u.id ? null : u.id)}
                       aria-label={u.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-ring ${
-                        noteEditing === u.id
-                          ? "bg-ir-accent text-ir-on-accent opacity-100"
-                          : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"
+                      aria-expanded={noteEditing === u.id}
+                      className={`absolute inset-x-0 bottom-0 flex h-6 items-center justify-center text-[10px] font-semibold transition-colors focus-ring ${
+                        noteEditing === u.id || (u.note || u.likes?.length) ? "bg-ir-accent text-ir-on-accent" : "bg-black/60 text-white hover:bg-black/75"
                       }`}
-                      style={{ width: 24, height: 24 }}
                     >
-                      <IconEdit width={8} height={8} />
+                      {(u.note || u.likes?.length) ? "✎ โน้ต" : "+ โน้ต"}
                     </button>
-                    {(u.note || u.likes?.length) && noteEditing !== u.id && (
-                      <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ir-accent ring-1 ring-white/70" />
-                    )}
                   </div>
                 ))}
                 {images.map((img) => (
@@ -1762,26 +1781,23 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                     <button
                       onClick={() => removeImage(img.id)}
                       aria-label="ลบรูปภาพนี้"
-                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
+                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
                       style={{ width: 24, height: 24 }}
                     >
                       <IconClose width={8} height={8} />
                     </button>
+                    {/* note: an always-visible band on the tile (user test AOT couldn't find the old
+                        hover-only pencil) — "+ โน้ต" when empty, "✎ โน้ต" once written */}
                     <button
                       onClick={() => setNoteEditing(noteEditing === img.id ? null : img.id)}
                       aria-label={img.note ? "แก้ไขโน้ต" : "เพิ่มโน้ต"}
-                      className={`absolute -top-0.5 -right-0.5 rounded-full flex items-center justify-center transition-[opacity,transform,scale] active:scale-[0.95] focus-ring ${
-                        noteEditing === img.id
-                          ? "bg-ir-accent text-ir-on-accent opacity-100"
-                          : "bg-black/50 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-black/70 active:bg-black/70"
+                      aria-expanded={noteEditing === img.id}
+                      className={`absolute inset-x-0 bottom-0 flex h-6 items-center justify-center text-[10px] font-semibold transition-colors focus-ring ${
+                        noteEditing === img.id || (img.note || img.likes?.length) ? "bg-ir-accent text-ir-on-accent" : "bg-black/60 text-white hover:bg-black/75"
                       }`}
-                      style={{ width: 24, height: 24 }}
                     >
-                      <IconEdit width={8} height={8} />
+                      {(img.note || img.likes?.length) ? "✎ โน้ต" : "+ โน้ต"}
                     </button>
-                    {(img.note || img.likes?.length) && noteEditing !== img.id && (
-                      <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-ir-accent ring-1 ring-white/70" />
-                    )}
                   </div>
                 ))}
               </div>
@@ -1838,15 +1854,10 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         );
                       })}
                     </div>
-                    <textarea
-                      rows={2}
+                    <NoteField key={noteEditing ?? ""} className="mt-1" label="โน้ตสำหรับรายการนี้" rows={2}
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
-                      onChange={(e) =>
-                        editingUrl ? updateUrlNote(editingUrl.id, e.target.value) : updateImageNote(editingImage!.id, e.target.value)
-                      }
-                      placeholder="โน้ตเพิ่มเติม (ไม่บังคับ)"
-                      className="w-full bg-ir-card border border-ir-border rounded-sm text-small text-ir-t1 placeholder:text-ir-t3 outline-none focus:border-ir-accent/50 px-3 py-2 resize-none"
-                    />
+                      onChange={(v) => (editingUrl ? updateUrlNote(editingUrl.id, v) : updateImageNote(editingImage!.id, v))}
+                      placeholder="เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน หรือโทนสีของหน้านี้" />
                   </div>
                 );
               })()}
@@ -1975,21 +1986,10 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       {/* Text-only inspiration (user test AOT: "Note เป็น Text ได้") — describe what they
           like without needing a link or picture. Available whichever way they chose above. */}
       <SectionDivider />
-      <div className="mb-6">
-        <label htmlFor="inspiration-note" className="flex items-baseline gap-2">
-          <SectionLabel>เล่าเป็นข้อความ</SectionLabel>
-          <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
-        </label>
-        <p className="-mt-1 text-body text-ir-t3">ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน</p>
-        <textarea
-          id="inspiration-note"
-          rows={3}
-          value={draft.inspirationNote ?? ""}
-          onChange={(e) => updateDraft({ inspirationNote: e.target.value })}
-          placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก และมีวิดีโอแนะนำองค์กร"
-          className="mt-2 w-full resize-y rounded-md border border-ir-border bg-white px-3.5 py-3 text-body leading-relaxed outline-none transition-colors focus:border-ir-accent"
-        />
-      </div>
+      <NoteField id="inspiration-note" className="mb-6" label="เล่าเป็นข้อความ"
+        hint="ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน"
+        value={draft.inspirationNote ?? ""} onChange={(v) => updateDraft({ inspirationNote: v })}
+        placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก และมีวิดีโอแนะนำองค์กร" />
 
       <StepNav
         onBack={() => go(5)}
@@ -2105,6 +2105,7 @@ function sheetData(draft: any): SheetData {
     ownPending: c.ownPending,
     colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีตามแนวทาง${draft.ciNote?.trim() ? ` · ${draft.ciNote.trim()}` : ""}`,
     ciSite: c.keepOwn ? c.siteUrl : undefined,
+    logo: c.keepOwn && draft.logo ? draft.logo : undefined,
     fontInterest: !c.keepOwn && fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : undefined,
     // three colours only — main, accent, background; text/muted greys add nothing here
     swatches: c.paletteRoles.slice(0, 3).map((r) => ({ hex: r.hex, role: SHEET_ROLE_TH[r.role] ?? r.role, use: r.use })),
@@ -2162,7 +2163,16 @@ function ProjectOverview({ draft }: { draft: any }) {
     <section aria-label="ภาพรวมผลลัพธ์" className="cursor-default overflow-clip rounded-sm bg-[#FBFAF6] text-[#2B2A26] ring-1 ring-black/[0.06]">
       {/* cover */}
       <div className="px-6 pb-9 pt-7 md:px-10 md:pb-12 md:pt-9" style={{ background: d.coverBg, color: d.moodInk }}>
-        <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์นักลงทุนสัมพันธ์{d.company ? ` · ${d.company}` : ""}</p>
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์นักลงทุนสัมพันธ์{d.company ? ` · ${d.company}` : ""}</p>
+          {/* their logo, on a white chip so a dark or transparent logo still shows */}
+          {d.logo && (
+            <span className="grid h-14 w-28 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
+            </span>
+          )}
+        </div>
         <p className="mt-10 text-small font-medium opacity-75 md:mt-14">แนวทางที่ได้จากคำตอบของคุณ</p>
         <h3 className="mt-1 font-bold leading-[1.05] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(40px, 9vw, 68px)", textWrap: "balance" } as CSSProperties}>{d.directionLabel}</h3>
         {d.tagline && <p className="mt-3 max-w-[34rem] text-lead leading-relaxed opacity-90" style={head}>{d.tagline}</p>}
@@ -2208,7 +2218,9 @@ function ProjectOverview({ draft }: { draft: any }) {
           ) : (
             <>
               <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
-              <p className="mt-2 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
+              {/* sample text, labelled so it isn't read as content (user test SCGP) */}
+              <p className="mt-3"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างฟอนต์</span></p>
+              <p className="mt-1.5 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
               <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง{d.fontNote ? " · " + d.fontNote : ""}</p>
               {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
             </>
@@ -2432,7 +2444,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             {/* the only thing left to do on this step lives here */}
             <p className="mb-2 text-caption font-semibold text-ir-accent-text">ขั้นสุดท้าย · ส่งให้ทีม</p>
             <p className="text-lead font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
-            <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับโดยเร็ว</p>
+            <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน {CONTACT_DAYS}</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
                 sub-parts of one field, so they get a touch more breathing room between them. */}
             <div className="space-y-4">
@@ -2465,6 +2477,11 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />
           </div>
 
+          {/* Others who help decide (user test CPALL: some roles can't decide alone). No shared
+              editing here (answers live in this browser), so the team gets their names and
+              contacts, and the PDF / PNG above can be passed to them first. */}
+          <CoDeciders draft={draft} updateDraft={updateDraft} />
+
           {/* Confirm + submit — one CTA, since "confirm" and "submit" were saying the
               same thing to the customer. The confirm copy now lives as a caption below
               the button instead of its own separate checkbox card. */}
@@ -2489,6 +2506,10 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             </div>
             <p className="text-body text-ir-t3 text-center leading-relaxed mt-3">
               ฉันตรวจสอบภาพรวมโปรเจกต์แล้ว และยืนยันส่งให้ทีม IR Plus
+            </p>
+            {/* what happens next, with the team's timing */}
+            <p className="mt-3 rounded-lg bg-ir-sunken px-3.5 py-2.5 text-small leading-relaxed text-ir-t2">
+              หลังส่ง ทีมจะติดต่อกลับภายใน <span className="font-semibold text-ir-t1">{CONTACT_DAYS}</span>
             </p>
 
             <div className="flex justify-center mt-4">

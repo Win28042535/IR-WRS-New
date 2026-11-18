@@ -33,6 +33,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Industry", value: r.industry || "-" },
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
+    ...((r.coDeciders ?? []).length ? [{ label: "Co-deciders", value: (r.coDeciders ?? []).map((p) => [p.name, p.position].filter(Boolean).join(" · ")).join(" / ") }] : []),
     { label: "Colours", value: !keepsCi(r) ? `ทีมเสนอชุดสีใหม่${r.ciNote?.trim() ? ` · ${r.ciNote.trim()}` : ""}` : `ชุดสีเดิม · จาก ${siteHostOf(r.website)}` },
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})${r.fontInterest ? ` · ลูกค้าสนใจ ${r.fontInterest}` : ""}`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
