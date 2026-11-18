@@ -294,16 +294,16 @@ export const GOAL_SECTIONS: Record<string, string[]> = {
 
 // ── Business goals (Flow 2) ──
 export const BUSINESS_GOALS: BusinessGoalDef[] = [
-  { id: "credibility", label: "สร้างความน่าเชื่อถือ", emoji: "🏆", desc: "เสริมภาพลักษณ์องค์กรให้ดูมั่นคง น่าเชื่อถือ ระดับสากล", impact: "เว็บไซต์ดูมั่นคง เป็นทางการ และน่าเชื่อถือในสายตาลูกค้าและนักลงทุน", comps: ["Executive Team", "Awards", "Company Timeline", "Testimonials"] },
-  { id: "ir", label: "นักลงทุนสัมพันธ์ (IR)", emoji: "📈", desc: "สื่อสารข้อมูลการเงินให้นักลงทุนเข้าถึงง่าย", impact: "นักลงทุนหาข้อมูลได้เร็ว ลด IR workload และสร้างความเชื่อมั่น", comps: ["Financial Highlights", "Stock Ticker", "Annual Reports", "IR Calendar"] },
+  { id: "credibility", label: "สร้างความน่าเชื่อถือ", emoji: "🏆", desc: "ให้บริษัทดูมั่นคง ด้วยตัวเลขสำคัญ ข้อมูลบริษัท และรางวัลที่เห็นชัดตั้งแต่หน้าแรก", impact: "เว็บไซต์ดูมั่นคง เป็นทางการ และน่าเชื่อถือในสายตาลูกค้าและนักลงทุน", comps: ["Executive Team", "Awards", "Company Timeline", "Testimonials"] },
+  { id: "ir", label: "นักลงทุนสัมพันธ์ (IR)", emoji: "📈", desc: "ให้นักลงทุนหาข้อมูลหุ้น งบการเงิน และเอกสารได้ในไม่กี่คลิก", impact: "นักลงทุนหาข้อมูลได้เร็ว ลด IR workload และสร้างความเชื่อมั่น", comps: ["Financial Highlights", "Stock Ticker", "Annual Reports", "IR Calendar"] },
   { id: "lead", label: "หาลูกค้าใหม่ / Lead Generation", emoji: "🎯", desc: "ดึงดูดผู้สนใจและเปลี่ยนเป็นลูกค้า", impact: "ผู้เยี่ยมชมติดต่อได้ง่ายขึ้น ได้ Lead มากขึ้น ลด Sales Cycle", comps: ["Hero + CTA", "Services", "Contact Form", "Testimonials"], hidden: true },
-  { id: "awareness", label: "สร้างการรับรู้แบรนด์", emoji: "📣", desc: "เพิ่มการรับรู้แบรนด์ในตลาด", impact: "แบรนด์ถูกจดจำมากขึ้น เพิ่มการค้นหาชื่อองค์กรใน Google", comps: ["Hero Banner", "Brand Story", "News & Media"] },
-  { id: "digital", label: "ดูทันสมัย ใช้เทคโนโลยี", emoji: "⚡", desc: "เว็บไซต์ดูทันสมัย มีเครื่องมือออนไลน์ เช่น กราฟราคาหุ้นแบบโต้ตอบ", impact: "องค์กรดูล้ำหน้า ดิจิทัล ทันสมัย ดึงดูดทั้งลูกค้าและบุคลากร Tech", comps: ["Animated Hero", "Feature Comparison", "Case Studies"] },
-  { id: "esg", label: "ESG / ความยั่งยืน", emoji: "🌱", desc: "สื่อสารความรับผิดชอบต่อสังคมและสิ่งแวดล้อม", impact: "ตอบโจทย์นักลงทุน ESG รายงานตามมาตรฐาน GRI / TCFD", comps: ["ESG Overview", "Sustainability Report", "CSR Activities"] },
-  { id: "talent", label: "รับสมัครงาน · ร่วมงานกับเรา", emoji: "👥", desc: "แสดงวัฒนธรรมองค์กร ให้คนเก่งอยากมาร่วมงาน", impact: "เพิ่มคุณภาพ Applicant ลด Time-to-hire แสดงวัฒนธรรมองค์กร", comps: ["Careers", "Company Culture", "Team Photos"] },
+  { id: "awareness", label: "สร้างการรับรู้แบรนด์", emoji: "📣", desc: "ให้คนรู้จักและจำบริษัทได้ ผ่านเรื่องราวและภาพที่ชัดเจน", impact: "แบรนด์ถูกจดจำมากขึ้น เพิ่มการค้นหาชื่อองค์กรใน Google", comps: ["Hero Banner", "Brand Story", "News & Media"] },
+  { id: "digital", label: "ดูทันสมัย ใช้เทคโนโลยี", emoji: "⚡", desc: "ให้เว็บดูทันสมัย มีเครื่องมือออนไลน์ เช่น กราฟราคาหุ้นแบบโต้ตอบ", impact: "องค์กรดูล้ำหน้า ดิจิทัล ทันสมัย ดึงดูดทั้งลูกค้าและบุคลากร Tech", comps: ["Animated Hero", "Feature Comparison", "Case Studies"] },
+  { id: "esg", label: "ESG / ความยั่งยืน", emoji: "🌱", desc: "เล่าเรื่องความยั่งยืน เป้าหมาย ESG และผลงานด้านสิ่งแวดล้อมและสังคม", impact: "ตอบโจทย์นักลงทุน ESG รายงานตามมาตรฐาน GRI / TCFD", comps: ["ESG Overview", "Sustainability Report", "CSR Activities"] },
+  { id: "talent", label: "รับสมัครงาน · ร่วมงานกับเรา", emoji: "👥", desc: "ชวนคนเก่งมาร่วมงาน ด้วยตำแหน่งงานว่างและเรื่องราวของพนักงาน", impact: "เพิ่มคุณภาพ Applicant ลด Time-to-hire แสดงวัฒนธรรมองค์กร", comps: ["Careers", "Company Culture", "Team Photos"] },
   { id: "product", label: "เปิดตัวสินค้า / บริการ", emoji: "🚀", desc: "นำเสนอสินค้าหรือบริการใหม่อย่างน่าสนใจ", impact: "ลูกค้าเข้าใจ Value Proposition ชัดขึ้น ตัดสินใจซื้อได้เร็วขึ้น", comps: ["Product Catalog", "Feature Comparison", "Pricing"], hidden: true },
-  { id: "intl", label: "ขยายตลาดต่างประเทศ", emoji: "🌐", desc: "เตรียมรองรับลูกค้าและนักลงทุนต่างชาติ", impact: "เว็บไซต์ดูเป็นสากล ตอบสนองความคาดหวังของ International Partners", comps: ["About Us", "Global Offices", "Awards"] },
-  { id: "compliance", label: "ความโปร่งใส / Compliance", emoji: "⚖️", desc: "แสดงความโปร่งใสตามกฎระเบียบ SEC, SET, ก.ล.ต.", impact: "ลด Compliance Risk สร้างความเชื่อมั่นให้ผู้กำกับดูแลและนักลงทุน", comps: ["Annual Reports", "Board of Directors", "Governance"] },
+  { id: "intl", label: "ขยายตลาดต่างประเทศ", emoji: "🌐", desc: "รองรับนักลงทุนต่างชาติ ด้วยเว็บไซต์ไทย-อังกฤษที่ข้อมูลครบทั้งสองภาษา", impact: "เว็บไซต์ดูเป็นสากล ตอบสนองความคาดหวังของ International Partners", comps: ["About Us", "Global Offices", "Awards"] },
+  { id: "compliance", label: "ความโปร่งใส / Compliance", emoji: "⚖️", desc: "แสดงความโปร่งใส ด้วยนโยบายกำกับดูแล จรรยาบรรณ และช่องทางแจ้งเบาะแส", impact: "ลด Compliance Risk สร้างความเชื่อมั่นให้ผู้กำกับดูแลและนักลงทุน", comps: ["Annual Reports", "Board of Directors", "Governance"] },
 ];
 
 // ── IR Audiences who the site speaks to (shapes tone, data density, IA) ──
@@ -387,29 +387,29 @@ export const DIRECTIONS: Direction[] = [
 // `value` points each choice at its axis pole: +1 = corporate / dark / data-heavy / bold.
 export const QUIZ: QuizQuestion[] = [
   {
-    id: "q1", topic: "บุคลิกแบรนด์", question: "เว็บไซต์ควรให้ความรู้สึกเป็นแบบไหน?", axis: "toneCorporate",
-    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", mock: "q1-a", hint: "ภาษาเป็นกันเอง อธิบายตัวเลขให้นักลงทุนทั่วไปเข้าใจได้ทันที" },
-    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b", hint: "น้ำเสียงสุภาพ เป็นระเบียบ เน้นความน่าเชื่อถือแบบองค์กร" },
+    id: "q1", topic: "ความรู้สึกของเว็บ", question: "อยากให้เว็บไซต์ดูเป็นแบบไหน?", axis: "toneCorporate",
+    optionA: { label: "เข้าถึงง่าย", desc: "Approachable", value: -1, preview: "linear-gradient(135deg,#00B4D8,#7C3AED)", mock: "q1-a", hint: "ใช้ภาษาง่าย ๆ อธิบายตัวเลขให้นักลงทุนทั่วไปเข้าใจ" },
+    optionB: { label: "เป็นทางการ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b", hint: "ใช้ภาษาสุภาพ จัดวางเป็นระเบียบ ดูน่าเชื่อถือแบบองค์กรใหญ่" },
   },
   {
-    id: "q2", topic: "โทนภาพรวม", question: "ภาพรวมของเว็บไซต์ควรให้อารมณ์แบบไหน?", axis: "contrastDark",
-    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a", hint: "พื้นสว่าง สะอาดตา อ่านได้นานไม่ล้าตา" },
-    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b", hint: "พื้นสีเข้ม ดูพรีเมียม ให้ตัวเลขและภาพเด่นขึ้น" },
+    id: "q2", topic: "โทนสี", question: "ชอบเว็บโทนสว่างหรือโทนเข้ม?", axis: "contrastDark",
+    optionA: { label: "สว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a", hint: "พื้นขาวหรือสีอ่อน ดูสะอาด อ่านนานไม่ล้าตา" },
+    optionB: { label: "เข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b", hint: "พื้นสีเข้ม ดูหรูหรา ตัวเลขและภาพเด่นขึ้น" },
   },
   {
-    id: "q3", topic: "การเน้นเนื้อหา", question: "คุณอยากให้ผู้เข้าชม “รับข้อมูล” จากเว็บไซต์แบบไหน?", axis: "densityData",
-    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", mock: "q3-a", hint: "เล่าผลงานผ่านภาพและเรื่องราว ให้เห็นที่มาของตัวเลข" },
-    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", mock: "q3-b", hint: "ตัวเลข กราฟ และตาราง ให้นักลงทุนหาข้อมูลได้เร็ว" },
+    id: "q3", topic: "วิธีเล่าเนื้อหา", question: "อยากให้คนเข้าชมรู้จักบริษัทผ่านอะไร?", axis: "densityData",
+    optionA: { label: "เล่าเรื่อง", desc: "Story-driven", value: -1, preview: "linear-gradient(135deg,#2D5A2D,#4A8C4A)", mock: "q3-a", hint: "ใช้ภาพและเรื่องราวพาไปรู้จักบริษัท ก่อนพาไปดูตัวเลข" },
+    optionB: { label: "เน้นข้อมูล", desc: "Data-driven", value: 1, preview: "linear-gradient(135deg,#0D3080,#03041C)", mock: "q3-b", hint: "ขึ้นตัวเลข กราฟ และตารางให้เห็นทันที หาข้อมูลได้เร็ว" },
   },
   {
-    id: "q4", topic: "ความหนาแน่นข้อมูล", question: "คุณอยากให้หนึ่งหน้ามีข้อมูลมากน้อยแค่ไหน?", axis: "densityData",
-    optionA: { label: "เน้นพื้นที่ว่าง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a", hint: "อ่านสบาย หนึ่งหน้าเน้นเรื่องสำคัญ" },
-    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b", hint: "เห็นข้อมูลหลายเรื่องในหน้าเดียว ไม่ต้องคลิกหลายครั้ง" },
+    id: "q4", topic: "ปริมาณข้อมูลต่อหน้า", question: "หนึ่งหน้าควรมีข้อมูลมากแค่ไหน?", axis: "densityData",
+    optionA: { label: "เน้นพื้นที่ว่าง", desc: "Spacious", value: -1, preview: "linear-gradient(135deg,#FFFFFF,#E6E7EC)", mock: "q4-a", hint: "แต่ละหน้าเน้นไม่กี่เรื่อง เว้นที่ว่าง อ่านสบาย" },
+    optionB: { label: "ข้อมูลแน่น", desc: "Dense", value: 1, preview: "linear-gradient(135deg,#0D3080,#00B4D8)", mock: "q4-b", hint: "รวมหลายเรื่องไว้ในหน้าเดียว ไม่ต้องกดไปหลายหน้า" },
   },
   {
-    id: "q5", topic: "การแสดงออกทางภาพ", question: "เว็บไซต์ควรแสดงตัวตนมากแค่ไหน?", axis: "energyBold",
-    optionA: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b", hint: "ตัวอักษรใหญ่ ภาพเต็มจอ มีการเคลื่อนไหว จดจำได้ง่าย" },
-    optionB: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a", hint: "จัดวางเรียบ นิ่ง ให้เนื้อหาเป็นตัวนำ" },
+    id: "q5", topic: "ความโดดเด่นของหน้าเว็บ", question: "อยากให้เว็บไซต์ดูมีชีวิตชีวาแค่ไหน?", axis: "energyBold",
+    optionA: { label: "โดดเด่น / มีการเคลื่อนไหว", desc: "Expressive", value: 1, preview: "linear-gradient(135deg,#FFEEAA,#45460C)", mock: "q5-b", hint: "ตัวหนังสือใหญ่ ภาพเต็มจอ มีภาพเคลื่อนไหว จำได้ง่าย" },
+    optionB: { label: "เรียบ / สุขุม", desc: "Subtle", value: -1, preview: "linear-gradient(135deg,#0D1B4B,#C8A855)", mock: "q5-a", hint: "จัดวางเรียบ ๆ ไม่หวือหวา ให้เนื้อหาเป็นตัวเด่น" },
   },
 ];
 

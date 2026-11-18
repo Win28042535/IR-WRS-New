@@ -756,6 +756,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
   // before (coming back to Explore) opens with that answer already picked, so "ข้อถัดไป"
   // walks through unchanged answers and only the ones being revised need a tap.
   const [chosen, setChosen] = useState<{ q: string; letter: string } | null>(null);
+  const quizNudge = useNudge();
   const prevLetter = answered ? (answered === q.optionA ? "A" : answered === q.optionB ? "B" : null) : null;
   const pending = chosen && chosen.q === q.id ? chosen.letter : prevLetter;
   // Phones only: the two-up mocks are ~150px wide each, too small to read the details that
@@ -824,7 +825,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       <p className="text-center text-heading font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div id="quiz-options" className="grid scroll-mt-28 grid-cols-2 gap-2 sm:gap-4">
         {opts.map(([o, letter]) => (
           <button key={letter} type="button" onClick={() => selectOption(o, letter)}
             aria-pressed={pending === letter}
@@ -889,7 +890,9 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       <p className="mt-4 text-center text-small text-ir-t3" aria-live="polite">
         {pending ? `เลือก ${pending} แล้ว · กด${isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}เพื่อไปต่อ หรือกดอีกแบบเพื่อเปลี่ยน` : "เลือกแบบที่ใกล้กับเว็บไซต์ที่อยากได้มากกว่า"}
       </p>
-      <StepNav onBack={onBack} next={<NextButton onClick={confirm} disabled={!pending}>{isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}</NextButton>} />
+      {/* nothing picked: the button stays clickable and says what's missing, like every other step (user test SCGP) */}
+      {quizNudge.field === "quiz-options" && !pending && <div className="-mb-2 mt-3 flex justify-center"><FieldError>เลือกภาพ A หรือ B ก่อน แล้วกด{isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}</FieldError></div>}
+      <StepNav onBack={onBack} next={<NextButton onClick={confirm} blocked={!pending} onBlocked={(b) => quizNudge.nudge("quiz-options", b)}>{isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}</NextButton>} />
     </>
   );
 }
@@ -2232,6 +2235,8 @@ function ProjectOverview({ draft }: { draft: any }) {
           <Chapter n="04" title="แนวภาพ">
             {d.visualMood && <p className="mb-4 text-body leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
             {/* photos without captions: a caption per photo read as a promise of that exact shot (user test CBG) */}
+            {/* labelled as samples so they don't read as something to click or pick (user test AOT) */}
+            <p className="mb-2"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างโทนภาพ · ไม่ต้องเลือก</span></p>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {d.shots.slice(0, 4).map((s) => (
                 <figure key={s.url} className="m-0">
@@ -2542,9 +2547,11 @@ function F({
         onBlur={onBlur}
         placeholder={placeholder}
         aria-invalid={!!error}
+        aria-describedby={error ? `${inputId}-err` : undefined}
         className={`w-full border rounded-md px-3 py-3 text-body outline-none transition-colors ${error ? "border-red-400 focus:border-red-500" : "border-ir-border focus:border-ir-accent"}`}
       />
-      {error && <p className="text-small text-red-600 mt-1">{error}</p>}
+      {/* tied to the field and announced (missing-field re-test, user test SCGP) */}
+      {error && <p id={`${inputId}-err`} role="alert" className="text-small text-red-600 mt-1">{error}</p>}
     </div>
   );
 }

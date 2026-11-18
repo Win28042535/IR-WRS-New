@@ -10,7 +10,7 @@ export type SheetData = {
   tagline?: string;
   mainMood?: string;
   supportMoods: string[];
-  /** quiz answers, e.g. { topic: "บุคลิกแบรนด์", choice: "เป็นทางการ" } */
+  /** quiz answers, e.g. { topic: "ความรู้สึกของเว็บ", choice: "เป็นทางการ" } */
   answers: { topic: string; choice: string }[];
   /** true → the team takes colours from the client's site / logo; no swatches shown */
   ownPending: boolean;
