@@ -936,15 +936,15 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 the people who visit the site; the mock sits below, pinned to the card's foot
                 so A and B line up whatever the text length. */}
             <div className="px-1.5 sm:px-2 pt-1.5 sm:pt-1 pb-2.5 sm:pb-3">
-              {/* phones: the badge sits above the label so the label gets the card's full width
-                  (beside it, Thai labels broke one word per line) */}
-              <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-2.5">
+              {/* phones: badge and select dot share the top row, the label takes the full width
+                  below (beside the badge, Thai labels broke one word per line). The selected
+                  state is the dot, the same as on desktop. */}
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                 <LetterBadge letter={letter} />
-                <span className="w-full min-w-0 text-lead sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug">{o.label}</span>
-                <SelectDot on={pending === letter} className="hidden sm:grid" />
+                <span className="order-last w-full min-w-0 text-lead sm:order-none sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug">{o.label}</span>
+                <SelectDot on={pending === letter} className="ml-auto sm:ml-0" />
               </div>
               <p className="mt-1.5 sm:mt-2 text-small sm:text-lead leading-snug sm:leading-relaxed text-ir-t1/80">{o.hint}</p>
-              {pending === letter && <span className="mt-1.5 inline-flex items-center gap-1 text-small font-semibold text-ir-accent-text sm:hidden">✓ เลือกแล้ว</span>}
             </div>
             <div className="mt-auto"><QuizVisual mock={o.mock} /></div>
           </button>
