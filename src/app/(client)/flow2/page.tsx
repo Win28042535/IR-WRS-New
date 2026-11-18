@@ -3,10 +3,10 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, SECTIONS, SECTION_CATEGORY_LABEL, RELATED_SECTIONS, GOAL_SECTIONS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, LEADING_REQUIRED_IDS, TRAILING_REQUIRED_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
-import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, WorkspaceDividerToggle, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
-import { IconCheck, IconReset, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
+import { StepIndicator, SectionLabel, SectionDivider, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
+import { IconCheck, IconClose, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, IconEdit, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
@@ -22,9 +22,8 @@ import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
 import { useHesitation } from "@/hooks/useHesitation";
 import { ProjectContextProvider } from "@/components/ProjectContextProvider";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useProjectContext } from "@/hooks/useProjectContext";
-import { PreviewPanel, usePreviewPanel } from "@/components/PreviewPanel";
+import { usePreviewPanel } from "@/components/PreviewPanel";
 import { AIMascot } from "@/components/AIMascot";
 import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
@@ -34,9 +33,6 @@ import { DUR, EASE } from "@/lib/motion";
 // Explore result screen is switched off for now: the last answer goes straight to Structure
 // (the Direction is still chosen from the answers). Flip to bring the screen back.
 const SHOW_QUIZ_RESULT = false;
-// Structure step: the #story-style builder (StructureBuilder). The older picker + live
-// workspace (S3) is kept; flip to bring it back.
-const LEGACY_STRUCTURE = false;
 // Inspiration step: "ให้ทีมช่วยหาเว็บไซต์ตัวอย่าง" (the curated board) is parked for a later
 // phase, so the step goes straight to the link / upload editor. Flip to bring the picker back.
 const SHOW_CURATED_REFERENCES = false;
@@ -44,12 +40,10 @@ const SHOW_CURATED_REFERENCES = false;
 const STEPS = FLOW_STEPS;
 const STEPS_EN = FLOW_STEPS_EN;
 
-const IR_CATEGORY_ORDER = ["Core", "People", "Investor", "Sustainability", "Engagement"];
 // Goals offered in the IR flow — the non-IR ones (lead generation, product launch) stay in
 // the data for corporate-site projects but aren't shown here.
 const VISIBLE_GOALS = BUSINESS_GOALS.filter((g) => !g.hidden);
 
-const WS_WIDTH_KEY = "wrs_workspace_left_pct";
 
 export default function Flow2() {
   const router = useRouter();
@@ -61,31 +55,12 @@ export default function Flow2() {
   const [answers, setAnswers] = useState<{ axis: keyof DesignProfile; option: QuizOption }[]>([]);
   const [dir, setDir] = useState<"forward" | "backward">("forward");
   const prevStep = useRef(1);
-  // leftPct = questionnaire share of the split. Workspace now supports section review +
-  // context, not large previews, so its share is capped to ~60% of its old max (70% -> 42%)
-  // and defaults noticeably lighter (~32%) so it reads as secondary to the questionnaire.
-  const [leftPct, setLeftPct] = useState(68);
-  const wsCollapsed = usePreviewPanel((s) => s.wsCollapsed);
-  const toggleWsCollapsed = usePreviewPanel((s) => s.toggleWsCollapsed);
-  // Below lg there isn't room for a side-by-side split — the workspace becomes a
-  // near-full-width overlay with a scrim over the questionnaire instead of a squeezed column.
-  const isOverlayWorkspace = !useMediaQuery("(min-width: 1024px)");
-  // Below md specifically, the overlay drawer itself is replaced by a bottom sheet — see
-  // MobileWorkspaceSheet. Tablet (md–lg) keeps the existing right-side overlay drawer.
-  const isMobile = !useMediaQuery("(min-width: 768px)");
-  const [isResizing, setIsResizing] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const stepCardRef = useRef<HTMLDivElement>(null);
   const hasNavigated = useRef(false);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem(WS_WIDTH_KEY);
-    if (saved) {
-      const v = parseFloat(saved);
-      if (!isNaN(v)) setLeftPct(Math.max(58, Math.min(75, v)));
-    }
     const st = useStore.getState();
     const pid = new URLSearchParams(window.location.search).get("p");
     if (pid) {
@@ -119,25 +94,10 @@ export default function Flow2() {
     }
   }, [startFlow, updateDraft]);
 
-  // Persist panel width whenever it changes (but not while collapsed)
-  useEffect(() => {
-    if (!wsCollapsed) localStorage.setItem(WS_WIDTH_KEY, String(leftPct));
-  }, [leftPct, wsCollapsed]);
-
   // Keep the Blueprint panel in sync with current phase (must be before early return)
   useEffect(() => {
     usePreviewPanel.getState().setCurrentStep(step);
   }, [step]);
-
-  // Default the workspace closed until Structure (step 4) — before that there isn't
-  // enough selected yet for the preview to be meaningful. Once the customer manually
-  // opens/closes it, this stops overriding their choice for the rest of the session.
-  useEffect(() => {
-    // Before Structure there isn't enough selected for a meaningful preview, so keep it
-    // closed. On tablet/mobile the workspace is a full-screen overlay, so it also starts
-    // closed there (Structure included) — the user opens it deliberately from the edge tab.
-    usePreviewPanel.getState().setWsCollapsedAuto(step < 4 || isOverlayWorkspace);
-  }, [step, isOverlayWorkspace]);
 
   // Every new step or quiz question starts at its heading: jump (not smooth-scroll) the
   // questionnaire back to the top so the old scroll offset never carries over, then move
@@ -153,25 +113,6 @@ export default function Flow2() {
     window.scrollTo({ top: 0 });
     stepCardRef.current?.focus({ preventScroll: true });
   }, [step, quizIdx, quizDone]);
-
-  const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
-    if (wsCollapsed) return;
-    e.preventDefault();
-    setIsResizing(true);
-    const onMove = (ev: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
-      setLeftPct(Math.max(58, Math.min(75, pct)));
-    };
-    const onUp = () => {
-      setIsResizing(false);
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  }, [wsCollapsed]);
 
   if (!mounted || !draft) {
     return (
@@ -191,12 +132,6 @@ export default function Flow2() {
     setStep(n);
     updateDraft({ flowStep: n });
   };
-
-  const panelTransition = isResizing ? "none" : "width var(--motion-fast) var(--motion-ease-in-out)";
-  // The shared workspace panel is only meaningful during Structure (step 4) — that's the
-  // one step where a live preview of the picked sections helps. Every other step owns the
-  // full width; step 6 (Deliver) builds its own right sidebar internally.
-  const showWorkspace = step === 4 && LEGACY_STRUCTURE;
 
   const answerQuiz = (option: QuizOption) => {
     const q = QUIZ[quizIdx];
@@ -260,16 +195,12 @@ export default function Flow2() {
 
       {/* ── Full-width split workspace ── */}
       <BackToTop scrollRef={leftPanelRef} threshold={600} />
-      <div ref={containerRef} className="flex-1 min-h-0 flex md:overflow-hidden print:overflow-visible">
+      <div className="flex-1 min-h-0 flex md:overflow-hidden print:overflow-visible">
 
         {/* ── Left: scrollable questionnaire ── */}
         <div
           ref={leftPanelRef}
           className="md:overflow-y-auto shrink-0 print:overflow-visible"
-          style={{
-            width: !showWorkspace || isOverlayWorkspace ? "100%" : wsCollapsed ? "100%" : `${leftPct}%`,
-            transition: panelTransition,
-          }}
         >
           <div className="px-5 lg:px-7 py-6 pb-20">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
@@ -295,86 +226,13 @@ export default function Flow2() {
                   {step === 2 && <S2Define go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
                   {step === 3 && quizDone && <QuizResult draft={draft} onContinue={() => go(4)} onRetake={retakeQuiz} onChoose={chooseDirection} />}
                   {step === 3 && !quizDone && <S2quiz q={QUIZ[quizIdx]} idx={quizIdx} total={QUIZ.length} onAnswer={(opt: QuizOption) => { answerQuiz(opt); }} onBack={() => (quizIdx > 0 ? setQuizIdx(quizIdx - 1) : go(2))} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} quizIdx={quizIdx} answered={answers[quizIdx]?.option} />}
-                  {step === 4 && !LEGACY_STRUCTURE && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
-                  {step === 4 && LEGACY_STRUCTURE && <S3 go={go} draft={draft} updateDraft={updateDraft} enterDir={dir} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} />}
+                  {step === 4 && <S4Structure go={go} draft={draft} updateDraft={updateDraft} />}
                   {step === 5 && <S5DesignBlueprint go={go} draft={draft} updateDraft={updateDraft} />}
                 </div>
               )}
             </div>
           </div>
         </div>
-
-        {/* Workspace + divider only exist from Structure (step 4) onward */}
-        {showWorkspace && !isOverlayWorkspace && (
-          <>
-            <WorkspaceDividerToggle
-              wsCollapsed={wsCollapsed}
-              onDividerMouseDown={onDividerMouseDown}
-              toggleWsCollapsed={toggleWsCollapsed}
-              panelTransition={panelTransition}
-              empty={false}
-            />
-
-            {/* ── Right: Living Workspace (Desktop/Laptop — resizable split) ── */}
-            <div
-              className="shrink-0 overflow-hidden"
-              style={{
-                width: wsCollapsed ? "0%" : `calc(${100 - leftPct}% - 1px)`,
-                transition: panelTransition,
-              }}
-            >
-              <div className="h-full p-3">
-                <PreviewPanel dominant embedded />
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ── Right: Living Workspace (Tablet — full-height overlay drawer that slides in
-            from the right and covers the questionnaire. z sits above the AI guide (z-9999)
-            so the scrim dims it too, avoiding the earlier overlap. Mobile uses the bottom
-            sheet below instead. ── */}
-        {showWorkspace && isOverlayWorkspace && !isMobile && !wsCollapsed && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/45 conf-backdrop-in"
-              style={{ zIndex: 10000 }}
-              onClick={toggleWsCollapsed}
-              aria-hidden="true"
-            />
-            <div
-              className="fixed inset-y-0 right-0 wsdrawer-in"
-              style={{ width: "min(92vw, 460px)", zIndex: 10001 }}
-              role="dialog"
-              aria-label="Living Workspace"
-            >
-              <PreviewPanel dominant embedded flush />
-            </div>
-          </>
-        )}
-
-        {/* Collapsed-state edge tab to reopen the workspace in overlay mode (tablet only) */}
-        {showWorkspace && isOverlayWorkspace && !isMobile && wsCollapsed && (
-          <WorkspaceDividerToggle
-            wsCollapsed={wsCollapsed}
-            onDividerMouseDown={() => {}}
-            toggleWsCollapsed={toggleWsCollapsed}
-            panelTransition={panelTransition}
-            empty={false}
-          />
-        )}
-
-        {/* ── Right: Living Workspace (Mobile <768px — bottom sheet, not a side panel).
-            Never covers the whole screen even at its tallest, and the main form behind it
-            is never dimmed/blocked — collapsed is just a slim bar, so context is always
-            visible. ── */}
-        {showWorkspace && isMobile && (
-          <MobileWorkspaceSheet
-            wsCollapsed={wsCollapsed}
-            setWsCollapsed={(v: boolean) => usePreviewPanel.getState().setWsCollapsed(v)}
-            sectionCount={draft.selectedSections?.length ?? 0}
-          />
-        )}
 
       </div>
     </div>
@@ -1230,208 +1088,6 @@ function FloatingPreviewToast() {
   );
 }
 
-// Mobile (<768px) Living Workspace — a draggable bottom sheet instead of a side panel/drawer.
-// Three heights: collapsed (a slim always-visible bar — tap or drag up opens it), half (~50vh,
-// enough to preview the structure list while the form above stays reachable), and expanded
-// (~85vh — deliberately short of full-screen so the page header stays peeking above it, per
-// "preserve context without hiding the main form"). No dimming scrim — unlike the tablet
-// drawer, the form is never blocked, just partially covered while the sheet is taller.
-const SHEET_COLLAPSED_PX = 64;
-type SheetHeight = "half" | "expanded";
-
-function MobileWorkspaceSheet({
-  wsCollapsed,
-  setWsCollapsed,
-  sectionCount,
-}: {
-  wsCollapsed: boolean;
-  setWsCollapsed: (v: boolean) => void;
-  sectionCount: number;
-}) {
-  const [sheetHeight, setSheetHeight] = useState<SheetHeight>("half");
-  const [dragPx, setDragPx] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  // Refs mirror the drag-in-progress state so the pointer handlers always read the latest
-  // value synchronously — React state updates inside a fast pointerdown→move→up sequence
-  // aren't guaranteed to have committed by the time the next event fires (same reasoning as
-  // the drag-reorder handlers in PreviewPanel's SectionWorkspace).
-  const isDraggingRef = useRef(false);
-  const liveHeightRef = useRef<number | null>(null);
-  const drag = useRef({ startY: 0, startHeight: 0, moved: false });
-
-  const pxFor = (target: "collapsed" | SheetHeight) => {
-    if (target === "collapsed") return SHEET_COLLAPSED_PX;
-    const vh = typeof window === "undefined" ? 700 : window.innerHeight;
-    return Math.round(vh * (target === "half" ? 0.5 : 0.85));
-  };
-
-  const beginDrag = (clientY: number) => {
-    isDraggingRef.current = true;
-    setIsDragging(true);
-    drag.current = {
-      startY: clientY,
-      startHeight: sheetRef.current?.getBoundingClientRect().height ?? pxFor(wsCollapsed ? "collapsed" : sheetHeight),
-      moved: false,
-    };
-  };
-  const moveDrag = (clientY: number) => {
-    const delta = drag.current.startY - clientY;
-    if (Math.abs(delta) > 4) drag.current.moved = true;
-    const next = Math.min(pxFor("expanded"), Math.max(pxFor("collapsed") - 12, drag.current.startHeight + delta));
-    liveHeightRef.current = next;
-    setDragPx(next);
-  };
-  const endDrag = () => {
-    isDraggingRef.current = false;
-    setIsDragging(false);
-    const finalPx = liveHeightRef.current ?? pxFor(wsCollapsed ? "collapsed" : sheetHeight);
-    liveHeightRef.current = null;
-    setDragPx(null);
-
-    if (!drag.current.moved) {
-      // A tap toggles. The handle is the sheet's single open/close control, so the same
-      // spot that opened it closes it again — previously a tap only ever opened, and
-      // closing meant hunting for a separate chevron inside the panel toolbar, which read
-      // as two unrelated controls for one job. Dragging still resizes as before.
-      if (wsCollapsed) { setWsCollapsed(false); setSheetHeight("half"); }
-      else setWsCollapsed(true);
-      return;
-    }
-
-    const collapsedPx = pxFor("collapsed");
-    const halfPx = pxFor("half");
-    const expandedPx = pxFor("expanded");
-    if (finalPx < collapsedPx + (halfPx - collapsedPx) * 0.4) {
-      setWsCollapsed(true);
-    } else if (finalPx < halfPx + (expandedPx - halfPx) * 0.5) {
-      setWsCollapsed(false); setSheetHeight("half");
-    } else {
-      setWsCollapsed(false); setSheetHeight("expanded");
-    }
-  };
-
-  // Tell the floating Back/Next bar (StepNav) to sit above this sheet's collapsed bar.
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty("--wrs-bottom-dock", `${SHEET_COLLAPSED_PX}px`);
-    return () => { root.style.removeProperty("--wrs-bottom-dock"); };
-  }, []);
-
-  const currentHeight = dragPx ?? pxFor(wsCollapsed ? "collapsed" : sheetHeight);
-  // Header/Hero/Footer are fixed structure, not a choice — counting them here read as "3
-  // sections already picked" before the user had touched anything. The bar now only counts
-  // what the user actually added, against how much room is left before the max.
-  const optionalCount = Math.max(0, sectionCount - REQUIRED_SECTION_IDS.length);
-  const optionalMax = RULES.sections.max - REQUIRED_SECTION_IDS.length;
-  const remaining = Math.max(0, optionalMax - optionalCount);
-
-  return (
-    <div
-      ref={sheetRef}
-      // A flat white card + neutral shadow is exactly what a native browser/OS action sheet
-      // looks like. Two deliberate departures from that, both borrowed from the homepage's
-      // own card-hover language (border-ir-accent/40 + a plain neutral shadow, no color in
-      // the glow): (1) an accent-tinted border instead of a plain neutral one — a colored
-      // shadow/glow read as an odd yellow halo, a border reads as the same brand accent the
-      // rest of the app already uses; (2) the handle row sits on its own soft brand-tinted
-      // band (below) rather than flush with the white body — a two-tier "toolbar cap +
-      // content" structure a generic sheet never has.
-      className="md:hidden fixed inset-x-0 bottom-0 z-[10001] bg-ir-card rounded-t-2xl border border-ir-accent/40 shadow-e3-up flex flex-col overflow-hidden"
-      style={{
-        height: currentHeight,
-        paddingBottom: wsCollapsed ? "env(safe-area-inset-bottom, 0px)" : undefined,
-        transition: isDragging ? "none" : "height var(--motion-base) var(--motion-ease-in-out)",
-      }}
-      role="dialog"
-      aria-label="โครงสร้างเว็บไซต์"
-    >
-      {/* Handle band — the outer accent border + shadow already mark this as a distinct WRS
-          surface, so this stays plain white rather than adding its own colored wash on top
-          (a gradient here read as hazy, not "depth"). Drag to resize, tap to open/close. */}
-      <div className="shrink-0 rounded-t-2xl">
-        <div
-          role="button"
-          tabIndex={0}
-          aria-expanded={!wsCollapsed}
-          aria-label={wsCollapsed ? "เปิดโครงสร้างเว็บไซต์" : "ย่อโครงสร้างเว็บไซต์"}
-          className="flex flex-col items-center pt-2 pb-2.5 cursor-grab active:cursor-grabbing touch-none select-none wrs-no-callout focus-ring focus-visible:ring-inset"
-          onPointerDown={(e) => {
-            // Capture failure (e.g. an already-released pointer) must never block the drag
-            // itself from starting — it's just an enhancement that stops the gesture from
-            // "leaking" onto other elements as the finger moves.
-            try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
-            beginDrag(e.clientY);
-          }}
-          onPointerMove={(e) => { if (isDraggingRef.current) moveDrag(e.clientY); }}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-          onKeyDown={(e) => {
-            if (e.key !== "Enter" && e.key !== " ") return;
-            e.preventDefault();
-            if (wsCollapsed) { setWsCollapsed(false); setSheetHeight("half"); }
-            else setWsCollapsed(true);
-          }}
-        >
-          <span className="w-9 h-1 rounded-full bg-ir-accent/35" />
-
-          {/* Text block always left-aligned, chevron chip always right-aligned — same
-              layout in both states so the control reads as one consistent element, not two
-              different bars. Collapsed splits status (what you have) from headroom (what's
-              left) into two distinct weights so they don't read as one flat line; open
-              swaps in a single action hint instead of repeating the panel's own heading. */}
-          <div className="w-full flex items-center justify-between gap-3 mt-2.5 px-5">
-            <div className="min-w-0 text-left">
-              {wsCollapsed ? (
-                <>
-                  <p className="text-body font-semibold text-ir-t1 leading-tight tabular-nums">
-                    {optionalCount} Section
-                  </p>
-                  <p className="text-small text-ir-t3 leading-tight mt-0.5">
-                    {remaining > 0 ? `เพิ่มได้อีก ${remaining}` : "ครบจำนวนสูงสุดแล้ว"}
-                  </p>
-                </>
-              ) : (
-                <p className="text-small font-medium text-ir-t2 leading-tight">
-                  แตะเพื่อย่อหน้าต่างนี้
-                </p>
-              )}
-            </div>
-            {/* Same chip the category accordion chevrons use — bigger and its own circular
-                affordance so it reads as a real control, not decoration. Direction always
-                matches the action it performs: up to open, down to collapse. */}
-            <span className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-ir-t1/[0.06] text-ir-t2">
-              <svg
-                width="24" height="24" viewBox="0 0 12 12" fill="none"
-                className={`transition-transform duration-fast ${wsCollapsed ? "" : "rotate-180"}`}
-              >
-                <path d="M2.5 7.5 L6 4 L9.5 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Content — unmounted while collapsed so it can't intercept taps/scroll behind the bar */}
-      {!wsCollapsed && (
-        <div className="flex-1 min-h-0">
-          <PreviewPanel dominant embedded flush />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Inserts `id` right before the trailing-locked rows (footer) instead of at the very end —
-// keeps the invariant that footer always renders last in the live workspace list, no matter
-// when a section gets added.
-function insertBeforeTrailing(list: string[], id: string) {
-  const trailingPresent = TRAILING_REQUIRED_IDS.filter((t) => list.includes(t)).length;
-  const next = [...list];
-  next.splice(next.length - trailingPresent, 0, id);
-  return next;
-}
-
 // ── S4 Structure (current) — StructureBuilder in the step frame ──
 function S4Structure({ go, draft, updateDraft }: any) {
   const optional = (draft.selectedSections ?? []).filter((id: string) => !REQUIRED_SECTION_IDS.includes(id)).length;
@@ -1445,494 +1101,6 @@ function S4Structure({ go, draft, updateDraft }: any) {
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
       </div>
       <StepNav onBack={() => go(3)} next={<NextButton onClick={() => go(5)} blocked={short > 0} onBlocked={(b) => nudge.nudge("structure-field", b)}>{isRecommendedHomepage(draft) ? "ใช้หน้าแรกนี้" : "ถัดไป"}</NextButton>} />
-    </>
-  );
-}
-
-// ── S3 Structure (legacy) — section picker + reorderable page structure ──
-function S3({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }: any) {
-  // ── Auto-select direction silently (AI picks, not shown as UI) ──
-  const ranked = rankDirections(draft.industry, draft.companyType, draft.businessGoals);
-  const ai = draft.designProfile ? profileToDirection(draft.designProfile) : null;
-  const bestId = ai?.direction.id || ranked[0].id;
-
-  useEffect(() => {
-    if (!draft.selectedDirection && bestId) {
-      const d = directionById(bestId);
-      updateDraft({ selectedDirection: bestId, directionLabel: d?.label || "", selectedLayout: d?.layout || "" });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bestId]);
-
-  // ── Section selection state ──
-  const selected: string[] = draft.selectedSections ?? [];
-  const count = selected.length;
-  const canNext = count >= RULES.sections.min;
-
-  // ── AI recommendations: goal sections → audience priorities → direction sections ──
-  // Goals come first: they're what the customer explicitly asked the site to do, and
-  // "ใช้คำแนะนำ" only fills the room left under the section cap, in this order.
-  const aud = audienceById(draft.primaryAudience);
-  const dirSuggested = directionById(draft.selectedDirection)?.sections ?? [];
-  const goalSuggested = (draft.businessGoals ?? []).flatMap((g: string) => GOAL_SECTIONS[g] ?? []);
-  const recommended = new Set<string>([...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]);
-
-  // Why each section is recommended — shown on its card. Same precedence as above, so the
-  // reason given is the one that actually got the section into the set.
-  const recReason: Record<string, string> = {};
-  const noteWhy = (ids: string[], why: string) => ids.forEach((id) => { recReason[id] ??= why; });
-  (draft.businessGoals ?? []).forEach((g: string) =>
-    noteWhy(GOAL_SECTIONS[g] ?? [], `คุณเลือกเป้าหมาย “${BUSINESS_GOALS.find((b) => b.id === g)?.label ?? g}”`));
-  if (aud) noteWhy(aud.prioritizes, `${aud.label}ต้องหาข้อมูลนี้เจอเร็ว`);
-  const dirLabel = directionById(draft.selectedDirection)?.label;
-  if (dirLabel) noteWhy(dirSuggested.slice(0, 6), `เป็นส่วนสำคัญของแนวทาง ${dirLabel}`);
-
-  // Page order for recommended sections: what the primary audience looks for first leads
-  // (an institutional investor wants Financial Highlights before About Us), then secondary
-  // audiences, then goal sections, then the usual IA order.
-  const audienceOrder = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])]
-    .flatMap((a: string) => audienceById(a)?.prioritizes ?? []);
-  const pageRank = (id: string) => {
-    const a = audienceOrder.indexOf(id);
-    if (a >= 0) return a;
-    const g = goalSuggested.indexOf(id);
-    if (g >= 0) return 100 + g;
-    return 200 + SECTIONS.findIndex((s) => s.id === id);
-  };
-
-  // Source-card DOM refs, keyed by section id — read at click time to know where the
-  // "flying card" ghost should start from (see GhostFlightLayer).
-  const cardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const removingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  // Brief "gently scales" acknowledgement on the card the instant it's selected — a discrete
-  // beat before the ghost departs, not just the CSS `:active` press state.
-  const [selectPulseId, setSelectPulseId] = useState<string | null>(null);
-  const selectPulseTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(selectPulseTimer.current), []);
-
-  // The "X / max Section" counter pops every time the count changes — add or remove — the
-  // same tick used by every other counter in this flow (reference gallery, goal count, etc.).
-  const [countPulse, setCountPulse] = useState(false);
-  const countPulseTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(countPulseTimer.current), []);
-  const pulseCount = () => {
-    setCountPulse(true);
-    clearTimeout(countPulseTimer.current);
-    countPulseTimer.current = setTimeout(() => setCountPulse(false), 260);
-  };
-
-  // Same `landedIds` a ghost lands into on the workspace side — reused here so the picker
-  // card also gets a brief glow: on add it echoes the row settling in, on remove it's the
-  // returning ghost's actual landing spot.
-  const cardLandedIds = useSectionFx((st) => st.landedIds);
-
-  // Contextual "AI recommends" chips — updates to whatever was just picked, so suggestions
-  // stay relevant to the current moment instead of a single static list for the whole step.
-  const [lastPickedId, setLastPickedId] = useState<string | null>(null);
-  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
-
-  // Collapsible category groups (mobile only — see `md:grid` override below, desktop always
-  // shows everything expanded). Categories with more than 2 optional sections start collapsed
-  // so a first-time mobile visit isn't an 11-card wall of scrolling; a 1-2 item category isn't
-  // worth an extra tap to reveal, so those start open. Any category with an existing selection
-  // is always treated as expanded regardless of this set — "context-aware," not just a
-  // one-time default.
-  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(() => {
-    const s = new Set<string>();
-    IR_CATEGORY_ORDER.forEach((cat) => {
-      const n = SECTIONS.filter((sec) => sec.category === cat && !REQUIRED_SECTION_IDS.includes(sec.id)).length;
-      if (n > 2) s.add(cat);
-    });
-    return s;
-  });
-  const toggleCat = (cat: string) => {
-    setCollapsedCats((prev) => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
-  };
-
-  // `sourceRectOverride` lets the recommendation chips (which aren't the section's own grid
-  // card, and must never overwrite that card's entry in `cardRefs`) supply their own rect as
-  // the ghost's starting point instead.
-  const toggle = (id: string, sourceRectOverride?: DOMRect) => {
-    if (REQUIRED_SECTION_IDS.includes(id)) return; // fundamental structure — not user-toggleable
-    // Live store read (see toggleAudience) so quick successive picks don't overwrite each other.
-    const selected: string[] = (useStore.getState().draft ?? draft).selectedSections ?? [];
-    const isAdding = !selected.includes(id);
-
-    if (isAdding) {
-      if (selected.length >= RULES.sections.max) return;
-      const rect = sourceRectOverride ?? cardRefs.current[id]?.getBoundingClientRect();
-      updateDraft({ selectedSections: insertBeforeTrailing(selected, id) });
-      setLastPickedId(id);
-
-      clearTimeout(selectPulseTimer.current);
-      setSelectPulseId(id);
-      selectPulseTimer.current = setTimeout(() => setSelectPulseId(null), 200);
-      pulseCount();
-      if (rect) useSectionFx.getState().flyToStructure(id, rect);
-
-      const s = sectionById(id);
-      addTimelineEntry?.({
-        step: 4, type: "structure",
-        decision: `เพิ่ม ${s?.name?.split(" / ")[0] ?? id}`,
-        reasoning: s?.businessPurpose ?? "",
-      });
-      // Mobile floating preview — the Living Workspace is a collapsed-by-default bottom
-      // sheet there, so without this, adding a section shows nothing about the structure
-      // unless the user opens it. Ghost-flight/glow already cover it when the sheet is open.
-      useFloatingPreview.getState().show(
-        <span className="text-body leading-none">{s?.icon ?? "📄"}</span>,
-        `เพิ่ม ${s?.name?.split(" / ")[0] ?? id} แล้ว`,
-        `${selected.length + 1} Section`
-      );
-    } else {
-      // Ghost travels back from the workspace row to this picker card — "animate the item
-      // back toward the available list" — while the row fades out; the actual removal from
-      // `selectedSections` lands a beat later so the fade has time to play.
-      const rowRect = document.querySelector<HTMLElement>(`[data-section-row="${id}"]`)?.getBoundingClientRect();
-      const cardRect = cardRefs.current[id]?.getBoundingClientRect();
-      if (rowRect && cardRect) {
-        useSectionFx.getState().flyToPicker(id, rowRect, cardRect);
-      } else {
-        useSectionFx.getState().startRemove(id); // no ghost target found — just fade the row
-      }
-
-      clearTimeout(removingTimers.current[id]);
-      removingTimers.current[id] = setTimeout(() => {
-        // Read the freshest selection at execution time (not the stale render-time
-        // `selected` closure) — several removals can be mid-fade at once.
-        const latest = useStore.getState().draft?.selectedSections ?? [];
-        const next = latest.filter((s) => s !== id);
-        updateDraft({ selectedSections: next });
-        useSectionFx.getState().clearRemoving(id);
-        delete removingTimers.current[id];
-        pulseCount();
-
-        const removed = sectionById(id);
-        useFloatingPreview.getState().show(
-          <span className="text-body leading-none opacity-60">{removed?.icon ?? "📄"}</span>,
-          `ลบ ${removed?.name?.split(" / ")[0] ?? id} แล้ว`,
-          `${next.length} Section`
-        );
-      }, 220);
-    }
-  };
-
-  useEffect(() => () => {
-    Object.values(removingTimers.current).forEach(clearTimeout);
-  }, []);
-
-  // Required structure is always present, header/hero pinned first and footer pinned last —
-  // normalize on mount so a fresh draft gets it backfilled and an older saved draft (from
-  // before footer moved to the bottom) gets its order corrected too.
-  useEffect(() => {
-    const current: string[] = draft.selectedSections ?? [];
-    const optional = current.filter((id: string) => !REQUIRED_SECTION_IDS.includes(id));
-    const normalized = [...LEADING_REQUIRED_IDS, ...optional, ...TRAILING_REQUIRED_IDS];
-    const changed = normalized.length !== current.length || normalized.some((id, i) => id !== current[i]);
-    if (changed) {
-      updateDraft({ selectedSections: normalized });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // AI guide: audience-aware message shown once on mount
-  const g = useGuide("analyst");
-  const shownGuide = useRef(false);
-  useEffect(() => {
-    if (shownGuide.current) return;
-    shownGuide.current = true;
-    const t = setTimeout(() => {
-      if (aud) {
-        g.show(
-          `สำหรับ ${aud.label} — ${aud.shapes} AI ไฮไลต์ Section ที่สำคัญไว้ให้แล้วครับ เลือกเพิ่มได้ จัดลำดับได้ด้วย`,
-          { mode: "insight", expert: "analyst", autohide: 11000 }
-        );
-      }
-    }, 900);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // At max capacity there's no room left to add anything anyway, so neither AI-suggest
-  // surface below should keep nudging — a suggestion the user can't act on reads as the step
-  // not being done yet, even once all 9 sections are actually picked.
-  const atCapacity = selected.length >= RULES.sections.max;
-
-  // Contextual recommendations for whatever was just picked — already-selected and
-  // required ids filtered out, capped at 3 so it stays a nudge, not another grid to scan.
-  const suggestionSource = !atCapacity && lastPickedId && dismissedFor !== lastPickedId ? lastPickedId : null;
-  const suggestions = suggestionSource
-    ? (RELATED_SECTIONS[suggestionSource] ?? [])
-        .filter((sid) => !selected.includes(sid) && !REQUIRED_SECTION_IDS.includes(sid))
-        .slice(0, 3)
-    : [];
-
-  // Cards already carry an "AI แนะนำ" badge (below), but badges alone still leave every one
-  // of them as a separate decision to notice and tap. This offers the whole recommended set
-  // in one action instead — still fully optional (sections stay unselected until the user
-  // acts, same as before), just one decision instead of N. Only shown before a first pick —
-  // once the user has engaged (this way or by picking manually themselves), the reactive
-  // suggestion strip above takes over as the nudge mechanism, so the two never stack.
-  const recommendedUnselected = !atCapacity && lastPickedId === null
-    ? [...recommended].filter((id) => !selected.includes(id) && !REQUIRED_SECTION_IDS.includes(id))
-    : [];
-  const acceptAllRecommended = () => {
-    const room = RULES.sections.max - selected.length;
-    // Which sections make the cut follows `recommended` (goals first); where they land on
-    // the page follows pageRank (audience first).
-    const toAdd = recommendedUnselected.slice(0, room).sort((a, b) => pageRank(a) - pageRank(b));
-    if (toAdd.length === 0) return;
-    updateDraft({ selectedSections: toAdd.reduce((acc, id) => insertBeforeTrailing(acc, id), selected) });
-    setLastPickedId(toAdd[toAdd.length - 1]);
-    pulseCount();
-    addTimelineEntry?.({
-      step: 4, type: "structure",
-      decision: `เพิ่ม Section ที่ AI แนะนำ ${toAdd.length} รายการ`,
-      reasoning: aud ? `สำหรับ ${aud.label} — ${aud.shapes}` : "เพิ่มตามคำแนะนำของ AI ตามกลุ่มเป้าหมายและ Direction ที่เลือก",
-    });
-    useFloatingPreview.getState().show(
-      <span className="text-body leading-none">✨</span>,
-      "เพิ่ม Section ที่ AI แนะนำแล้ว",
-      `${selected.length + toAdd.length} Section`
-    );
-  };
-
-  return (
-    <>
-      <Head n={4} title="วางโครงสร้าง"
-        sub="เลือก Section และจัดลำดับหน้าเว็บ AI ไฮไลต์ Section ที่เหมาะกับกลุ่มเป้าหมายของคุณ เลือกได้ตามต้องการ" />
-
-      <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
-
-      {/* Control bar */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <span className={`text-body font-semibold text-ir-t1 tabular-nums ${countPulse ? "wrs-counter-pop" : ""}`}>{count}</span>
-          <span className="text-small text-ir-t3">/ {RULES.sections.max} Section</span>
-        </div>
-        <button
-          onClick={() => {
-            updateDraft({ selectedSections: REQUIRED_SECTION_IDS });
-            setLastPickedId(null);
-            setDismissedFor(null);
-          }}
-          className="flex items-center gap-1.5 -my-3 min-h-11 text-small font-medium text-ir-t3 hover:text-ir-t1 active:text-ir-t1 transition-colors"
-        >
-          <IconReset width={20} height={20} />
-          รีเซ็ต
-        </button>
-      </div>
-
-      {/* Foundation (Header · Hero · Footer) is intentionally NOT rendered here. It's fixed
-          infrastructure every site has — already present and locked in the live workspace
-          panel — so surfacing it in the picker only added a "choice" that isn't one. This
-          step now opens straight into the categories the user actually decides on. A single
-          line still reassures them the base structure is handled, without listing it. */}
-      <p className="text-small text-ir-t3 leading-relaxed mb-6 md:mb-7">
-        เราเตรียมโครงสร้างพื้นฐานของเว็บไซต์ไว้ให้อัตโนมัติแล้ว เลือกเพิ่มเฉพาะ Section ที่ตรงกับธุรกิจของคุณด้านล่าง
-      </p>
-
-      {/* Section picker — grouped by category */}
-      {/* Bulk-accept the initial AI recommendation — one decision instead of finding and
-          tapping each badged card individually. Self-clearing: disappears the moment the
-          user picks anything (via this button or manually), handing off to the reactive
-          suggestion strip below for further nudges. */}
-      {recommendedUnselected.length > 0 && (
-        <div className="wrs-suggest-in flex items-center gap-3 mb-5 px-3.5 py-3 rounded-md bg-ir-accent/[0.05] border border-ir-accent/20">
-          <span className="text-lead shrink-0">✨</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-small font-medium text-ir-t1 leading-snug">
-              AI แนะนำ {recommendedUnselected.length} Section ให้ตามกลุ่มเป้าหมายและ Direction ของคุณ
-            </p>
-            <p className="text-small text-ir-t3 mt-0.5">เพิ่มได้ในคลิกเดียว หรือเลือกเองด้านล่างก็ได้</p>
-          </div>
-          <button
-            type="button"
-            onClick={acceptAllRecommended}
-            className="shrink-0 flex items-center gap-1.5 text-small font-semibold text-ir-on-accent bg-ir-accent px-3.5 py-2 rounded-full hover:bg-ir-accent-hi active:scale-[0.96] focus-ring focus-visible:ring-offset-2 transition-all"
-          >
-            ใช้คำแนะนำ
-            <IconCheck width={10} height={10} />
-          </button>
-        </div>
-      )}
-
-      {/* AI recommends — contextual chips keyed to whatever was just picked, capped at 3 so
-          it's a nudge rather than another grid. One tap adds; dismissible per-suggestion-set. */}
-      {suggestions.length > 0 && (
-        <div key={suggestionSource} className="wrs-suggest-in flex items-start gap-2 mb-5 px-3 py-2.5 rounded-md bg-ir-accent/[0.05] border border-ir-accent/20">
-          <span className="text-body shrink-0 mt-0.5">✨</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-small text-ir-t3 mb-1.5">
-              AI แนะนำเพิ่มจาก <span className="font-medium text-ir-t2">{sectionById(suggestionSource!)?.name?.split(" / ")[0]}</span>
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {suggestions.map((sid) => {
-                const s = sectionById(sid);
-                if (!s) return null;
-                return (
-                  <button
-                    key={sid}
-                    onClick={(e) => toggle(sid, e.currentTarget.getBoundingClientRect())}
-                    className="flex items-center gap-1 text-small font-medium text-ir-accent-text bg-ir-card border border-ir-accent/30 rounded-full pl-2 pr-2.5 py-1 hover:border-ir-accent/60 hover:bg-ir-accent/[0.04] active:scale-[0.95] transition-all focus-ring"
-                  >
-                    <span className="text-small leading-none">{s.icon}</span>
-                    {s.name.split(" / ")[0]}
-                    <IconPlus width={8} height={8} className="text-ir-accent-text/70" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <button
-            onClick={() => setDismissedFor(suggestionSource)}
-            aria-label="ปิดคำแนะนำ"
-            className="shrink-0 w-7 h-7 -m-1 rounded-full flex items-center justify-center text-ir-t3 hover:text-ir-t1 hover:bg-ir-t1/8 active:bg-ir-t1/8 active:scale-90 transition-[background-color,transform]"
-          >
-            {/* Deliberately 16px, under the system's 24px icon floor — the dismiss "x" on
-                every AI-suggest surface reads as a quieter, secondary action against the
-                accent-colored recommendation it's closing, not another primary glyph the
-                same size as the checkmark/plus icons next to it. Same glyph as IconClose,
-                just not routed through that shared component so it isn't clamped back up. */}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      <div className="space-y-6 md:space-y-7">
-        {IR_CATEGORY_ORDER.map((cat) => {
-          const items = SECTIONS.filter((s) => s.category === cat && !REQUIRED_SECTION_IDS.includes(s.id));
-          const selectedInCat = items.filter((s) => selected.includes(s.id)).length;
-          if (!items.length) return null;
-          // Mobile only — desktop always renders expanded (see `md:grid` override below).
-          // A category with a selection in it is never collapsed, regardless of the toggle.
-          const collapsedOnMobile = collapsedCats.has(cat) && selectedInCat === 0;
-          return (
-            <div
-              key={cat}
-              // Open on mobile: header + cards share one soft tinted "tray" so the group
-              // reads as a single unit instead of a bar sitting above a disconnected grid.
-              // A background wash (not a border box) keeps this from becoming a card wrapped
-              // around more cards — the individual section cards still carry their own
-              // border, popping against the tray rather than nesting inside another one.
-              // Collapsed / desktop: no wash, nothing to visually unify.
-              className={`sc-reveal ${!collapsedOnMobile ? "rounded-lg bg-ir-t1/[0.03] md:bg-transparent md:rounded-none" : ""}`}
-            >
-              {/* Category header. On mobile it's a self-evident accordion control: a chevron
-                  in its own circular affordance makes it obvious the group opens/closes on
-                  tap. Collapsed, it's a standalone bordered pill; open, its border/bg drop
-                  away so it reads as the tray's top edge rather than a separate bar. On
-                  desktop (≥md) all that chrome is stripped back to the original plain label
-                  + divider rule — the grid ignores collapse there, so an accordion look
-                  would be misleading. */}
-              <button
-                type="button"
-                onClick={() => toggleCat(cat)}
-                aria-expanded={!collapsedOnMobile}
-                className={[
-                  "w-full flex items-center gap-2 text-left transition-colors",
-                  collapsedOnMobile
-                    ? "rounded-md border border-ir-border bg-ir-card px-3.5 py-3 mb-2 active:bg-ir-t1/[0.04]"
-                    : "px-3.5 pt-3 pb-2",
-                  "md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0 md:min-h-6 md:mb-3 md:active:bg-transparent md:cursor-default",
-                ].join(" ")}
-              >
-                <span className="text-small font-semibold text-ir-t1 md:text-small md:text-ir-t2">{SECTION_CATEGORY_LABEL[cat]}</span>
-                {selectedInCat > 0 && (
-                  <span className="text-small font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none">{selectedInCat}</span>
-                )}
-                {/* Item count — only useful while collapsed, so you know what's hidden
-                    before tapping to reveal it. */}
-                {collapsedOnMobile && (
-                  <span className="md:hidden text-small text-ir-t3">{items.length} รายการ</span>
-                )}
-                {/* Desktop keeps the section-header divider rule; mobile just pushes the chevron right. */}
-                <div className="hidden md:block flex-1 h-px bg-ir-border" />
-                <div className="flex-1 md:hidden" />
-                <span className="md:hidden shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-ir-t1/[0.05] text-ir-t2">
-                  <svg
-                    width="24" height="24" viewBox="0 0 12 12" fill="none"
-                    className={`transition-transform duration-fast ${collapsedOnMobile ? "" : "rotate-180"}`}
-                  >
-                    <path d="M2.5 4.5 L6 8 L9.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-              </button>
-
-              {/* Cards — same tray, so items still read as clearly separated (own border +
-                  gap each) without the tray itself looking like another card around them. */}
-              <div className={`${collapsedOnMobile ? "hidden md:grid" : "grid"} grid-cols-1 sm:grid-cols-2 gap-2 ${collapsedOnMobile ? "" : "px-2.5 pb-2.5 md:px-0 md:pb-0"}`}>
-                {items.map((s) => {
-                  const sel = selected.includes(s.id);
-                  const isRec = recommended.has(s.id);
-                  const disabled = !sel && count >= RULES.sections.max;
-                  return (
-                    <button
-                      key={s.id}
-                      ref={(el) => { cardRefs.current[s.id] = el; }}
-                      onClick={() => toggle(s.id)}
-                      disabled={disabled}
-                      aria-pressed={sel}
-                      className={[
-                        // Same selected/hover language as OptionCard (production WRS): lime-tinted
-                        // fill + olive border + soft ring when picked. Kept as its own button
-                        // (not OptionCard) because the ghost-flight animation needs its ref.
-                        "group/sel text-left rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow,transform,scale] duration-fast active:scale-[0.98] select-none focus-ring",
-                        sel
-                          ? "border-ir-select bg-primary-50 shadow-selected"
-                          : disabled
-                            ? "border-ir-border bg-ir-card opacity-40 cursor-not-allowed"
-                            // AI-recommended cards use the same neutral border as any other
-                            // unselected card — the "AI แนะนำ" badge is the only signal that
-                            // it's recommended; a different border color read as an unexplained
-                            // state/interaction rather than a hint.
-                            : "border-ir-border bg-ir-card hover:border-ir-select-soft hover:bg-primary-50/60",
-                        selectPulseId === s.id ? "wrs-card-select-pulse" : "",
-                        cardLandedIds.has(s.id) ? "wrs-card-glow" : "",
-                      ].join(" ")}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className={`grid place-items-center w-10 h-10 shrink-0 rounded-full text-title transition-colors ${sel ? "bg-ir-accent-soft" : "bg-ir-muted"}`}>{s.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                            <span className="text-lead font-semibold text-ir-t1 leading-snug">{s.name}</span>
-                            {isRec && !sel && !disabled && (
-                              <span className="text-small font-semibold px-2 py-0.5 rounded-full bg-ir-accent-soft text-ir-accent-text">
-                                AI แนะนำ
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-body text-ir-t3 leading-snug line-clamp-2">{s.businessPurpose}</p>
-                          {isRec && !sel && !disabled && recReason[s.id] && (
-                            <p className="mt-1.5 text-small font-medium text-ir-accent-text leading-snug">แนะนำเพราะ{recReason[s.id]}</p>
-                          )}
-                        </div>
-                        <SelectDot on={sel} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <StepNav
-        onBack={() => go(3)}
-        next={
-          <NextButton onClick={() => go(5)} disabled={!canNext}>
-            {canNext ? "ถัดไป" : `เลือกอีก ${RULES.sections.min - count}`}
-          </NextButton>
-        }
-      />
     </>
   );
 }
@@ -2869,7 +2037,7 @@ function conceptData(draft: any) {
   const moods: string[] = dir?.mood ?? ["Professional & Clean"];
   const [mainMood, ...supportMoods] = moods;
 
-  // The exact structure picked in "วางโครงสร้าง" (Structure step), in the order the
+  // The exact structure picked in "จัดหน้าแรก" (Structure step), in the order the
   // client arranged it — this board should mirror that decision, not restate it.
   const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
     .filter((id) => !RETIRED_SECTION_IDS.includes(id))
