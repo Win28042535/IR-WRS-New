@@ -200,7 +200,7 @@ export default function Flow2() {
         {/* ── Left: scrollable questionnaire ── */}
         <div
           ref={leftPanelRef}
-          className="md:overflow-y-auto shrink-0 print:overflow-visible"
+          className="w-full min-w-0 md:overflow-y-auto print:overflow-visible"
         >
           <div className="px-5 lg:px-7 py-6 pb-20">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider

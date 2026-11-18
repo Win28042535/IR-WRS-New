@@ -291,7 +291,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
         </div>
 
         {/* outline */}
-        <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-24">
+        {/* lg+: pinned just under the top of the scrolling column, so it stays level with the
+            list on the left while only that list scrolls; scrolls inside itself if taller
+            than the screen (many sections) */}
+        <div className="rounded-2xl bg-ir-sunken p-2.5 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
           <div className="flex items-center justify-between px-1.5 pb-2.5 pt-1">
             {/* reads as one page top→bottom, so it isn't mistaken for the top menu (user test #1) */}
             <p className="text-body font-semibold text-ir-t1">หน้าแรก <span className="font-normal text-ir-t3">· เรียงจากบนลงล่าง</span></p>
