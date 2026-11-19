@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useStartFlow } from "@/lib/useStartFlow";
-import { useHomeMode } from "@/lib/useHomeMode";
+import { FULL_HOME_ENABLED, useHomeMode } from "@/lib/useHomeMode";
 
 // The homepage's three sections a visitor may want before starting. On other pages the
 // links lead back to the homepage at that section.
@@ -20,7 +20,10 @@ export function Header() {
   // Hero-only homepage: there are no sections to jump to, so the menu goes and only the
   // start button stays.
   const mode = useHomeMode();
-  const showNav = !(home && mode === "hero");
+  // The menu links point at homepage sections, which are off this phase (FULL_HOME_ENABLED):
+  // with nowhere to go, the menu (and the phone menu button) is hidden on every page.
+  // The code stays for when the full homepage comes back. 19 Nov 2026.
+  const showNav = FULL_HOME_ENABLED && !(home && mode === "hero");
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 

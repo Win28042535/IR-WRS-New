@@ -263,9 +263,23 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
           "เพิ่มส่วนอื่น" list beside / below it. */}
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-6">
         {/* ── result: the homepage outline ── */}
-        <section aria-label="หน้าแรกของคุณ" onScroll={onScrollShowBar} className="rounded-2xl bg-ir-dark p-3 text-white shadow-e3 sm:p-4 ir-scroll ir-scroll-dark lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
+        {/* Layered like the deliver page cover (19 Nov 2026: the flat black read as hard): a
+            diagonal from the dark to a blue-grey, a lime glow top right, and a faint grid
+            fading in from the right behind the header. */}
+        <section aria-label="หน้าแรกของคุณ" onScroll={onScrollShowBar}
+          style={{ background: "radial-gradient(70% 55% at 100% 0%, rgba(215,224,39,0.18), transparent 70%), linear-gradient(135deg, var(--color-ir-dark), color-mix(in srgb, var(--color-ir-dark) 78%, #5B6B9A))" }}
+          className="relative isolate rounded-2xl p-3 text-white shadow-e3 sm:p-4 ir-scroll ir-scroll-dark lg:sticky lg:top-4 lg:max-h-[calc(100dvh-11rem)] lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain">
+          <svg aria-hidden="true" className="pointer-events-none absolute right-0 top-0 -z-10 h-44 w-[62%]"
+            style={{ maskImage: "linear-gradient(to right, transparent, black 60%), linear-gradient(to bottom, black 40%, transparent)", maskComposite: "intersect", WebkitMaskImage: "linear-gradient(to right, transparent, black 60%)" }}>
+            <defs>
+              <pattern id="sb-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+                <path d="M28 0V28M0 28H28" fill="none" stroke="white" strokeOpacity="0.07" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#sb-grid)" />
+          </svg>
           <div className="flex items-start gap-3 px-1 pb-3 pt-1">
-            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent">✦</span>
+            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent shadow-[0_0_0_6px_rgba(215,224,39,0.14)]">✦</span>
             <div className="min-w-0 flex-1">
               <p className="text-lead font-semibold leading-snug">
                 {isRecommended ? "หน้าแรกที่ AI จัดให้คุณ" : optional.length === 0 ? "หน้าแรกของคุณ (ยังว่าง)" : "หน้าแรกของคุณ · ปรับจากที่ AI จัดให้"}
@@ -336,7 +350,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   }}
                   className={[
                     "relative flex min-h-[52px] select-none items-center gap-2 rounded-md bg-white py-1.5 pl-0.5 pr-1 text-ir-t1 outline-none focus-ring",
-                    dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-accent" : "cursor-grab",
+                    dragging ? "z-10 cursor-grabbing shadow-e4 ring-2 ring-ir-accent" : "cursor-grab shadow-[0_8px_18px_-10px_rgba(0,0,0,0.55)]",
                     drag && !dragging ? "transition-transform duration-fast ease-out" : "",
                     flash === id ? "rk-landed" : "",
                     delay !== undefined ? "sb-land" : "",
@@ -445,7 +459,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
 // System-made rows (menu + opening, footer) on the dark result card: present but muted.
 const FixedRow = ({ label, hint }: { label: string; hint?: string }) => (
-  <div className="flex min-h-10 items-center gap-2 rounded-md bg-white/[0.07] px-2 py-1.5 text-small font-medium text-white/65">
+  <div className="flex min-h-10 items-center gap-2 rounded-md bg-white/[0.08] px-2 py-1.5 text-small font-medium text-white/65 ring-1 ring-inset ring-white/10 backdrop-blur-sm">
     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-caption" aria-hidden="true">
       <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
     </span>
