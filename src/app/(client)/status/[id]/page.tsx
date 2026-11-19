@@ -10,6 +10,7 @@ import { LumaLoader, LumaChip } from "@/components/AIMascot";
 import { directionById, CONTACT_DAYS } from "@/lib/data";
 import { DesignDNACard } from "@/components/DesignDNA";
 import { BackToTop } from "@/components/BackToTop";
+import { SaveSheetButton } from "@/components/SaveSheetButton";
 
 // ── Requirement Submitted clean success/confirmation page only ──
 export default function SubmittedPage() {
@@ -50,7 +51,7 @@ export default function SubmittedPage() {
           {/* LUMA squircle success badge — scales down on narrow screens instead of
               staying a fixed 80px, which read as oversized relative to the card on mobile */}
           <div className="relative w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5">
-            <div className="absolute inset-0 rounded-md sm:rounded-xl bg-ir-accent/20 animate-ping" style={{ animationDuration: "2s" }} />
+            <div className="absolute inset-0 rounded-md sm:rounded-xl bg-ir-accent/20 motion-safe:animate-ping" style={{ animationDuration: "2s" }} />
             <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-md sm:rounded-xl bg-ir-accent flex items-center justify-center" style={{ boxShadow: "0 0 0 6px rgba(215,224,39,0.15)" }}>
               <IconCheck width={22} height={22} className="text-ir-on-accent sm:w-8 sm:h-8" />
             </div>
@@ -137,11 +138,11 @@ export default function SubmittedPage() {
         </div>
       </div>
 
-      {/* actions — keep a copy (browser print → PDF), or go home */}
+      {/* actions — keep a copy of the summary sheet (stamped with the reference number and
+          the download time), or go home */}
       <div className="no-print flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <button type="button" onClick={() => window.print()} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-dark px-8 text-lead font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] sm:w-auto">
-          บันทึกสรุปเป็น PDF
-        </button>
+        <SaveSheetButton source={req} kind="pdf" refNo={req.id} />
+        <SaveSheetButton source={req} kind="png" refNo={req.id} />
         <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-muted px-8 text-lead font-medium text-ir-t1 transition-colors hover:bg-ir-border sm:w-auto">
           กลับหน้าหลัก
         </Link>

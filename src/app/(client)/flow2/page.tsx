@@ -2,15 +2,16 @@
 
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, IR_AUDIENCES, VISUAL_STYLES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, flowStepOf, siteHostOf, keepsCi, unsplashUrl, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, IR_AUDIENCES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, flowStepOf, siteHostOf, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
 import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
-import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
+import { FONT_PAIRINGS, DEFAULT_PAIRING } from "@/lib/fonts";
 import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
@@ -18,7 +19,9 @@ import { FontPickerSheet, FontPreviewSheet } from "@/components/FontPicker";
 import { NoteField } from "@/components/NoteField";
 import { CoDeciders } from "@/components/CoDeciders";
 import type { DesignProfile, QuizOption } from "@/lib/types";
-import type { SheetData } from "@/lib/moodboardExport";
+import { isLightHex, sheetData } from "@/lib/sheetData";
+import { COVER_LINE } from "@/lib/moodboardExport";
+import { SaveSheetButton } from "@/components/SaveSheetButton";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
 import { useHesitation } from "@/hooks/useHesitation";
@@ -56,6 +59,10 @@ export default function Flow2() {
   const [quizDone, setQuizDone] = useState(false); // last answer given → show the result screen
   const [answers, setAnswers] = useState<{ axis: keyof DesignProfile; option: QuizOption }[]>([]);
   const [dir, setDir] = useState<"forward" | "backward">("forward");
+  // Inspiration → summary: a short "putting your answers together" screen, so the next page
+  // reads as the result rather than one more form (internal review 19 Nov 2026).
+  const [summarizing, setSummarizing] = useState(false);
+  const summaryTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const prevStep = useRef(1);
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const stepCardRef = useRef<HTMLDivElement>(null);
@@ -126,6 +133,24 @@ export default function Flow2() {
   }
 
   const go = (n: number) => {
+    if (n === 8 && prevStep.current === 7) {
+      if (summarizing) return;
+      setSummarizing(true);
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      summaryTimer.current = setTimeout(finishSummary, reduce ? 500 : 3000);
+      return;
+    }
+    goNow(n);
+  };
+
+  // the loader ends on its own after 3 s, or straight away on a tap (audit 19 Nov 2026)
+  const finishSummary = () => {
+    clearTimeout(summaryTimer.current);
+    setSummarizing(false);
+    goNow(8);
+  };
+
+  const goNow = (n: number) => {
     // Back moves a whole step: from a later step, Explore reopens at question 1 (not the
     // last question), with the earlier answers still picked.
     if (n === 5 && prevStep.current > 5 && !SHOW_QUIZ_RESULT) setQuizIdx(0);
@@ -193,6 +218,7 @@ export default function Flow2() {
     <div className="flex flex-col md:h-[calc(100dvh-56px)] print:h-auto">
       <GhostFlightLayer />
       <FloatingPreviewToast />
+      {summarizing && <SummaryLoader onSkip={finishSummary} />}
       <div className="no-print"><StepIndicator steps={STEPS} stepsEn={STEPS_EN} current={step} /></div>
 
       {/* ── Full-width split workspace ── */}
@@ -205,7 +231,9 @@ export default function Flow2() {
           onScroll={onScrollShowBar}
           className="ir-scroll w-full min-w-0 md:overflow-y-auto print:overflow-visible"
         >
-          <div className="px-5 lg:px-7 py-6 pb-20">
+          {/* overflow-x clip: the step card slides in 28px from the side, which briefly made the
+              page wider than a phone screen (audit 19 Nov 2026) */}
+          <div className="px-5 lg:px-7 py-6 pb-20 overflow-x-clip">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
                 two-column layout with its own surfaces — so it isn't a card-in-a-card. */}
             <div className={`mx-auto ${step === 8 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
@@ -502,13 +530,6 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 // the font browser stay in the code for a later phase.
 const SHOW_CI_FONT_CARD = false;
 
-/** "2 ลิงก์ · 1 ไฟล์" for a list of attached links/files ("" when none). */
-function refCounts(items?: { type: string }[]): string {
-  const list = items ?? [];
-  const links = list.filter((r) => r.type === "url").length;
-  const files = list.length - links;
-  return [links ? `${links} ลิงก์` : "", files ? `${files} ไฟล์` : ""].filter(Boolean).join(" · ");
-}
 
 function SBrand({ go, draft, updateDraft }: any) {
   // CI: keeping it means taking colours + font from the current website, so it needs the
@@ -644,7 +665,7 @@ function SBrand({ go, draft, updateDraft }: any) {
         )}
         {/* the note for the team comes last (user feedback) */}
         {!keepCi && (
-          <NoteField className="mt-2" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้"
+          <NoteField className="mt-2" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้ · วางลิงก์ Google Drive ไว้ในนี้ก็ได้"
             value={draft.ciNote ?? ""} onChange={(v) => updateDraft({ ciNote: v })}
             placeholder="เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม" />
         )}
@@ -1194,6 +1215,77 @@ function GhostFlightLayer() {
 // band for a message that is only on screen for ~2s. Vertical offset is handled by
 // `.wrs-floating-preview-pos` — high on mobile to clear the sticky action bar and the
 // collapsed workspace handle, tucked near the edge on desktop where neither exists.
+// Sheet for one added link/file: bottom sheet on phones, centred dialog from sm up.
+function ItemSheet({ title, preview, children, footer, onClose }: { title: string; preview: ReactNode; children: ReactNode; footer: ReactNode; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; });
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    const opener = document.activeElement as HTMLElement | null;
+    document.body.style.overflow = "hidden";
+    ref.current?.focus();
+    // Esc closes; Tab and Shift+Tab stay inside the sheet (audit 19 Nov 2026)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { closeRef.current(); return; }
+      if (e.key !== "Tab" || !ref.current) return;
+      const items = [...ref.current.querySelectorAll<HTMLElement>('button, a[href], input, textarea, select, [tabindex]:not([tabindex="-1"])')].filter((el) => !el.hasAttribute("disabled"));
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+      // back to the tile that opened it (when it's still on the page)
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6">
+      <button type="button" aria-label="ปิด" tabIndex={-1} onClick={onClose} className="sheet-backdrop absolute inset-0 bg-ir-dark/45 backdrop-blur-[2px]" />
+      <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}
+        className="sheet-in relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-ir-card shadow-e3 outline-none sm:max-w-[520px] sm:rounded-2xl">
+        <div className="flex items-center gap-2 border-b border-ir-border-soft py-2 pl-5 pr-2">
+          <p className="min-w-0 flex-1 truncate text-body font-semibold text-ir-t1">{title}</p>
+          <button type="button" onClick={onClose} aria-label="ปิด" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ir-t2 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">
+            <IconClose width={14} height={14} />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {preview}
+          <div className="mt-4">{children}</div>
+        </div>
+        <div className="flex items-center justify-between gap-3 border-t border-ir-border-soft px-4 pt-3" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
+          {footer}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// Full-screen pause between Inspiration and the summary: three ticks, then the summary.
+function SummaryLoader({ onSkip }: { onSkip: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+  return (
+    <div ref={ref} role="status" aria-live="polite" tabIndex={-1} onClick={onSkip}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " " || e.key === "Escape") { e.preventDefault(); onSkip(); } }}
+      className="sheet-backdrop fixed inset-0 z-[10003] grid cursor-pointer place-items-center bg-ir-bg/92 outline-none backdrop-blur-sm">
+      <div className="flex max-w-[320px] flex-col items-center gap-3 px-6 text-center">
+        <AIMascot mood="insight" size={44} />
+        <p className="mt-1 text-title font-semibold text-ir-t1">กำลังสรุปคำตอบของคุณ<span className="loading-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
+        <p className="text-body leading-relaxed text-ir-t2">รวบรวมคำตอบทั้งหมด เป็นสรุปแนวทางเว็บไซต์ในหน้าเดียว</p>
+        <span aria-hidden="true" className="loader-ring mt-2 h-7 w-7 rounded-full border-[3px] border-ir-accent-text/20 border-t-ir-accent-text" />
+        <p className="mt-3 text-caption text-ir-t3">แตะที่ใดก็ได้เพื่อข้าม</p>
+      </div>
+    </div>
+  );
+}
+
 function FloatingPreviewToast() {
   const preview = useFloatingPreview((s) => s.preview);
   if (!preview) return null;
@@ -1300,7 +1392,7 @@ function validateUrlInput(raw: string, existing: { value: string }[]): UrlValida
 }
 
 const URL_VALIDATION_COPY: Record<Exclude<UrlValidationState, "empty">, { label: string; textClass: string; dotClass: string }> = {
-  valid:       { label: "ลิงก์ใช้ได้",                              textClass: "text-ir-accent-text", dotClass: "bg-ir-accent" },
+  valid:       { label: "ลิงก์ใช้ได้ · กด “เพิ่มลิงก์” เพื่อใส่ในรายการ", textClass: "text-ir-accent-text", dotClass: "bg-ir-accent" },
   invalid:     { label: "รูปแบบลิงก์ไม่ถูกต้อง ตรวจสอบอีกครั้ง",       textClass: "text-ir-error",       dotClass: "bg-ir-error" },
   unsupported: { label: "ไม่รองรับลิงก์ประเภทนี้ ใช้ http:// หรือ https://", textClass: "text-ir-warn", dotClass: "bg-ir-warn" },
   existing:    { label: "มีลิงก์นี้อยู่ในรายการแล้ว",                   textClass: "text-ir-t2",          dotClass: "bg-ir-t2" },
@@ -1483,6 +1575,34 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   // The gallery counter pops on removal too, not just on add — one shared "count just
   // changed" tick, reusing `wrs-counter-pop` the same way the add path already does.
   const [removePulse, setRemovePulse] = useState(false);
+  // A removal can be undone for 5 s (a bar at the bottom) instead of asking first
+  type Removed =
+    | { kind: "url"; item: (typeof urls)[number]; index: number }
+    | { kind: "image"; item: (typeof images)[number]; index: number };
+  const [undo, setUndo] = useState<Removed | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(undoTimer.current), []);
+  const offerUndo = (removed: Removed) => {
+    clearTimeout(undoTimer.current);
+    setUndo(removed);
+    undoTimer.current = setTimeout(() => setUndo(null), 5000);
+  };
+  const undoRemove = () => {
+    if (!undo) return;
+    clearTimeout(undoTimer.current);
+    if (undo.kind === "url") {
+      const next = [...urls];
+      next.splice(Math.min(undo.index, next.length), 0, undo.item);
+      setUrls(next);
+      syncToDraft(next, images);
+    } else {
+      const next = [...images];
+      next.splice(Math.min(undo.index, next.length), 0, undo.item);
+      setImages(next);
+      syncToDraft(urls, next);
+    }
+    setUndo(null);
+  };
   const removePulseTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(removePulseTimer.current), []);
 
@@ -1548,9 +1668,34 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
     setImages(next);
     syncToDraft(urls, next);
   };
+  // "ล้าง" in the item sheet: the note and the picked likes go, the item stays
+  const clearItem = (id: string) => {
+    if (urls.some((u) => u.id === id)) {
+      const next = urls.map((u) => (u.id === id ? { ...u, note: "", likes: [] } : u));
+      setUrls(next);
+      syncToDraft(next, images);
+    } else {
+      const next = images.map((img) => (img.id === id ? { ...img, note: "", likes: [] } : img));
+      setImages(next);
+      syncToDraft(urls, next);
+    }
+  };
 
   // URL handlers — one input, commit on Enter/blur, appears straight in the board.
   // A short "loading" beat runs before the card actually lands (see isCommittingUrl above).
+  // A valid link still sitting in the box when the step is left (Next, Back, a step pill)
+  // is added rather than lost.
+  const pendingRef = useRef({ input: urlInput, urls, images });
+  useEffect(() => { pendingRef.current = { input: urlInput, urls, images }; });
+  useEffect(() => () => {
+    const { input, urls: u, images: im } = pendingRef.current;
+    const value = input.trim();
+    if (value && u.length < MAX_REFERENCE_URLS && validateUrlInput(value, u) === "valid") {
+      syncToDraft([...u, { id: Math.random().toString(36).slice(2), value }], im);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const commitUrl = () => {
     if (isCommittingUrl) return;
     const value = urlInput.trim();
@@ -1583,6 +1728,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const removeUrl = (id: string) => {
     if (removingIds.has(id)) return; // already fading out
     const removed = urls.find((u) => u.id === id);
+    const removedAt = urls.findIndex((u) => u.id === id);
     setRemovingIds((prev) => new Set(prev).add(id));
     clearTimeout(removingTimers.current[id]);
     removingTimers.current[id] = setTimeout(() => {
@@ -1599,15 +1745,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       setRemovePulse(true);
       clearTimeout(removePulseTimer.current);
       removePulseTimer.current = setTimeout(() => setRemovePulse(false), 260);
-      // Mobile floating preview — same dimmed-swatch treatment the Structure step uses to
-      // confirm a removal, so "removed" reads consistently across the whole flow.
-      useFloatingPreview.getState().show(
-        <span className="w-full h-full flex items-center justify-center opacity-60" style={{ background: URL_THUMB_THEMES[0] }}>
-          <IconGlobe width={11} height={11} className="text-white/80" />
-        </span>,
-        "ลบเว็บไซต์แล้ว",
-        removed ? linkLabel(removed.value) : undefined
-      );
+      if (removed) offerUndo({ kind: "url", item: removed, index: removedAt });
     }, 220);
   };
 
@@ -1655,6 +1793,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const removeImage = (id: string) => {
     if (removingIds.has(id)) return; // already fading out
     const removed = images.find((img) => img.id === id);
+    const removedAt = images.findIndex((img) => img.id === id);
     setRemovingIds((prev) => new Set(prev).add(id));
     clearTimeout(removingTimers.current[id]);
     removingTimers.current[id] = setTimeout(() => {
@@ -1669,16 +1808,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       setRemovePulse(true);
       clearTimeout(removePulseTimer.current);
       removePulseTimer.current = setTimeout(() => setRemovePulse(false), 260);
-      useFloatingPreview.getState().show(
-        removed ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={removed.src} alt="" className="w-full h-full object-cover block opacity-60" />
-        ) : (
-          <span className="text-body leading-none opacity-60">🖼️</span>
-        ),
-        "ลบรูปภาพแล้ว",
-        removed?.name
-      );
+      if (removed) offerUndo({ kind: "image", item: removed, index: removedAt });
     }, 220);
   };
 
@@ -1693,6 +1823,17 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   };
 
   const total = urls.length + images.length;
+  // examples box: a hand toggle wins (remembered per browser); otherwise open until something is added
+  const examplesId = useId();
+  const [examplesPref, setExamplesPref] = useState<boolean | null>(() => {
+    try { const v = localStorage.getItem("wrs-ref-examples"); return v === null ? null : v === "1"; } catch { return null; }
+  });
+  const examplesOpen = examplesPref ?? total === 0;
+  const toggleExamples = () => {
+    const next = !examplesOpen;
+    setExamplesPref(next);
+    try { localStorage.setItem("wrs-ref-examples", next ? "1" : "0"); } catch { /* private mode: this visit only */ }
+  };
   const urlCapReached = urls.length >= MAX_REFERENCE_URLS;
 
   return (
@@ -1700,13 +1841,21 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       {/* No intro sentence here: the step's own subtitle already says what to add (the
           two read as a repeat once the mode picker was gone). */}
       {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
-      {!ci && <div className="mb-5 rounded-xl bg-ir-sunken px-4 py-3">
-        <p className="text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</p>
-        <ul className="mt-1.5 grid gap-1 text-small text-ir-t2 sm:grid-cols-2">
+      {/* Collapsible (19 Nov 2026): open while nothing is added, folded once something is;
+          a toggle by hand is remembered in this browser. */}
+      {!ci && <div className="mb-5 rounded-xl bg-ir-sunken">
+        <button type="button" onClick={toggleExamples} aria-expanded={examplesOpen} aria-controls={examplesId}
+          className="flex min-h-11 w-full items-center gap-2 rounded-xl px-4 py-2.5 text-left focus-ring">
+          <span className="flex-1 text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</span>
+          <svg width={18} height={18} viewBox="0 0 12 12" fill="none" aria-hidden="true" className={`shrink-0 text-ir-t2 transition-transform duration-fast ${examplesOpen ? "rotate-180" : ""}`}>
+            <path d="M2.5 4.5 L6 8 L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {examplesOpen && <ul id={examplesId} className="-mt-1 grid gap-1 px-4 pb-3 text-small text-ir-t2 sm:grid-cols-2">
           {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบ (ลิงก์ YouTube หรือ Google Drive)", "ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (PDF)"].map((t) => (
             <li key={t} className="flex items-start gap-1.5"><span aria-hidden="true" className="text-ir-accent-text">•</span>{t}</li>
           ))}
-        </ul>
+        </ul>}
       </div>}
 
       {/* Mobile/tablet (<768px): Input → Gallery → Upload, so a newly added reference lands
@@ -1719,10 +1868,17 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
         <div className="order-1 mb-4">
           <div className="flex items-baseline gap-2">
             <SectionLabel>{ci ? "ลิงก์" : "เว็บไซต์หรือวิดีโอที่ชอบ"}</SectionLabel>
-            <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
+            <span className="whitespace-nowrap text-small text-ir-t3">(ไม่บังคับ)</span>
+            <span role="status" className={`ml-auto inline-flex h-6 shrink-0 self-baseline items-center rounded-full px-2 text-caption font-semibold leading-none tabular-nums ${urls.length ? "bg-ir-accent-soft text-ir-accent-text" : "bg-ir-muted text-ir-t2"}`}>
+              {urls.length}/{MAX_REFERENCE_URLS} ลิงก์
+            </span>
           </div>
           <div
-            className={`flex items-stretch rounded-lg border bg-ir-card overflow-hidden transition-colors ${
+            // 4px inset all round and radii that nest (12 outside, 8 on the button), so the
+            // button sits inside the field at every width instead of jammed into its corner
+            // (19 Nov 2026: on phones it touched the edge and looked cut off)
+            // the focus ring belongs to the whole field (the input's own ring drew a box inside it)
+            className={`flex items-center gap-1 rounded-xl border bg-ir-card p-1 transition-[border-color,box-shadow] focus-within:shadow-[0_0_0_3px_rgba(215,224,39,0.28)] ${
               {
                 empty: "border-ir-border focus-within:border-ir-accent/50",
                 valid: "border-ir-accent/50",
@@ -1732,22 +1888,27 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
               }[urlValidation]
             }`}
           >
-            <span className="shrink-0 flex items-center pl-4 pr-2 text-lead text-ir-t3">🌐</span>
+            <IconGlobe width={18} height={18} aria-hidden="true" className="ml-2.5 shrink-0 text-ir-t3" />
+            {/* short enough to show whole on a phone; what counts is in the examples box */}
             <input
               type="url"
-              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : ci ? "วางลิงก์ เช่น คู่มือ CI ใน Google Drive..." : "วางลิงก์เว็บไซต์ YouTube / Vimeo หรือ Google Drive..."}
+              aria-label={ci ? "ลิงก์ CI" : "ลิงก์เว็บไซต์หรือวิดีโอ"}
+              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์ที่นี่"}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") commitUrl(); }}
-              className="flex-1 min-w-0 bg-transparent text-body text-ir-t1 placeholder:text-ir-t3 outline-none py-3 disabled:cursor-not-allowed"
+              className="h-11 flex-1 min-w-0 bg-transparent px-1 text-body text-ir-t1 placeholder:text-ir-t3 outline-none !shadow-none disabled:cursor-not-allowed"
             />
+            {/* lime only once the pasted link is usable; before that a quiet outline, so an
+                empty field doesn't carry a heavy grey block */}
             <button
               onClick={commitUrl}
               disabled={urlValidation !== "valid" || urlCapReached}
+              data-pulse={urlValidation === "valid" || undefined}
               aria-busy={isCommittingUrl}
-              className="shrink-0 flex items-center gap-1.5 text-body font-semibold text-ir-on-accent bg-ir-accent px-4 my-1.5 mr-1.5 rounded-md hover:bg-ir-accent-hi active:scale-[0.97] transition-all disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="h-11 shrink-0 flex items-center gap-1.5 rounded-lg px-4 text-body font-semibold whitespace-nowrap text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi active:scale-[0.97] transition-[background-color,color,box-shadow,scale] disabled:bg-transparent disabled:text-ir-t3 disabled:shadow-[inset_0_0_0_1px_var(--color-ir-border)] disabled:cursor-not-allowed disabled:active:scale-100"
             >
               {/* Icon swaps between four states — idle (+) / loading (spinner) / completed
                   (check) — each mount plays a short, non-bouncy fade+scale so the swap reads
@@ -1771,7 +1932,12 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           {/* Progressive validation — recomputed on every keystroke, no submit required to
               find out the link won't work. Falls back to the generic hint when empty. */}
           {urlValidation === "empty" ? (
-            <p className="text-small text-ir-t3 mt-1.5">วางทีละลิงก์ แล้วกด "เพิ่มลิงก์" · {urls.length === 0 ? `ใส่ได้สูงสุด ${MAX_REFERENCE_URLS} ลิงก์` : urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : `เพิ่มแล้ว ${urls.length} ลิงก์ · ใส่ได้อีก ${MAX_REFERENCE_URLS - urls.length}`}</p>
+            // two numbered steps, darker than a hint (user tests: links were pasted and
+            // never added because the one grey line went unread)
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-small font-medium text-ir-t2">
+              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark text-caption font-bold text-white">1</span>วางลิงก์ทีละลิงก์</span>
+              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark text-caption font-bold text-white">2</span>กด “เพิ่มลิงก์”</span>
+            </p>
           ) : (
             <p role="status" className={`text-small mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
@@ -1818,14 +1984,15 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                         already added (that's what the "เพิ่มแล้ว N" header above it means),
                         so a checkmark repeated on each one added nothing a viewer didn't
                         already know from the section it's sitting in. */}
-                    {/* Always visible on mobile — a hover-only reveal (as on desktop) is
-                        never reachable on a touchscreen. Sized to the ~24px touch-target
-                        floor (was 16px) with an instant `active:` press, since `:hover`
-                        color changes never fire on tap. */}
+                    {/* Corner ✕: a hover shortcut for mouse screens only. On touch screens it was
+                        too small to hit and easy to tap by mistake, so deleting lives in the
+                        item sheet there (19 Nov 2026). */}
+                    {/* the whole tile opens the item sheet (likes, note, delete) */}
+                    <button type="button" onClick={() => setNoteEditing(u.id)} aria-label={`เปิด ${linkLabel(u.value)}`} className="absolute inset-0 focus-ring" />
                     <button
                       onClick={() => removeUrl(u.id)}
                       aria-label="ลบเว็บไซต์นี้"
-                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
+                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white hidden items-center justify-center [@media(hover:hover)]:flex opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
                       style={{ width: 24, height: 24 }}
                     >
                       <IconClose width={8} height={8} />
@@ -1869,10 +2036,11 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                       />
                     )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
+                    <button type="button" onClick={() => setNoteEditing(img.id)} aria-label={`เปิด ${img.name}`} className="absolute inset-0 focus-ring" />
                     <button
                       onClick={() => removeImage(img.id)}
                       aria-label="ลบรูปภาพนี้"
-                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
+                      className="absolute -top-0.5 -left-0.5 rounded-full bg-black/50 text-white hidden items-center justify-center [@media(hover:hover)]:flex opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-[opacity,transform] hover:bg-red-500 active:bg-red-500 active:scale-90"
                       style={{ width: 24, height: 24 }}
                     >
                       <IconClose width={8} height={8} />
@@ -1893,38 +2061,55 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 ))}
               </div>
 
-              {/* Inline note editor — appears right under the gallery for whichever tile's
-                  note button was just pressed. A slim panel rather than an in-tile popover:
-                  tiles are only 72px, far too small to host a text field, and a popover would
-                  overlap whatever sits next to it in this wrapping grid. */}
+              {/* Item sheet (19 Nov 2026): opens right after an add, or on a tile tap. Bottom
+                  sheet on phones, centred dialog from sm up: what was added, what they like in
+                  it, a note, clear, and delete (the only delete on touch screens). Everything
+                  saves as it's typed, so closing never loses anything. */}
               {(() => {
                 const editingUrl = urls.find((u) => u.id === noteEditing);
                 const editingImage = images.find((img) => img.id === noteEditing);
                 if (!editingUrl && !editingImage) return null;
+                const id = noteEditing!;
+                const hasNote = !!((editingUrl ? editingUrl.note : editingImage!.note) || (editingUrl ? editingUrl.likes : editingImage!.likes)?.length);
+                const remove = () => { setNoteEditing(null); if (editingUrl) removeUrl(id); else removeImage(id); };
                 return (
-                  <div className="mt-3 rounded-md border border-ir-accent/30 bg-ir-accent/[0.04] p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      {editingUrl ? (
-                        <span className="w-6 h-6 rounded-sm flex items-center justify-center shrink-0" style={{ background: URL_THUMB_THEMES[0] }}>
-                          <IconGlobe width={10} height={10} className="text-white/80" />
+                  <ItemSheet
+                    title={editingUrl ? linkLabel(editingUrl.value) : editingImage!.name}
+                    onClose={() => setNoteEditing(null)}
+                    preview={editingUrl ? (
+                      <div className="flex items-start gap-3 rounded-xl border border-ir-border-soft bg-ir-sunken p-3">
+                        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg" style={{ background: URL_THUMB_THEMES[Math.max(0, urls.indexOf(editingUrl)) % URL_THUMB_THEMES.length] }}>
+                          {isVideoUrl(editingUrl.value) ? <span className="text-small text-white">▶</span> : <IconGlobe width={20} height={20} className="text-white/85" />}
                         </span>
-                      ) : (
-                        editingImage!.kind === "pdf"
-                          ? <span className="w-6 h-6 rounded-sm grid place-items-center shrink-0 bg-red-600 text-[8px] font-bold text-white">PDF</span>
-                          // eslint-disable-next-line @next/next/no-img-element
-                          : <img src={editingImage!.src} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" />
-                      )}
-                      <span className="text-small font-medium text-ir-t2 truncate flex-1">
-                        {editingUrl ? linkLabel(editingUrl.value) : editingImage!.name}
-                      </span>
-                      <button
-                        onClick={() => setNoteEditing(null)}
-                        aria-label="ปิดการแก้ไขโน้ต"
-                        className="text-ir-t3 hover:text-ir-t1 active:text-ir-t1 shrink-0"
-                      >
-                        <IconClose width={9} height={9} />
+                        <span className="min-w-0 flex-1 self-center">
+                          <span className="block truncate text-body font-semibold text-ir-t1">{linkLabel(editingUrl.value)}</span>
+                          <span className="mt-0.5 block truncate text-small text-ir-t3">{editingUrl.value}</span>
+                        </span>
+                        <a href={editingUrl.value} target="_blank" rel="noopener noreferrer" aria-label="เปิดเว็บไซต์" title="เปิดเว็บไซต์"
+                          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-ir-border bg-white text-ir-t2 transition-colors hover:border-ir-border-hi hover:text-ir-t1 focus-ring">
+                          <IconExternalLink width={16} height={16} />
+                        </a>
+                      </div>
+                    ) : editingImage!.kind === "pdf" ? (
+                      <div className="flex items-center gap-3 rounded-xl border border-red-100 bg-red-50 p-3">
+                        <span className="rounded-sm bg-red-600 px-2 py-1 text-small font-bold text-white">PDF</span>
+                        <span className="min-w-0 flex-1 truncate text-body font-semibold text-red-900">{editingImage!.name}</span>
+                      </div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={editingImage!.src} alt={editingImage!.name} className="max-h-56 w-full rounded-xl bg-ir-sunken object-contain" />
+                    )}
+                    footer={<>
+                      <button type="button" onClick={remove}
+                        className="inline-flex h-11 items-center rounded-full px-3 text-body font-semibold text-ir-error transition-colors hover:bg-red-50 focus-ring">
+                        ลบรายการนี้
                       </button>
-                    </div>
+                      <button type="button" onClick={() => setNoteEditing(null)}
+                        className="inline-flex h-11 items-center rounded-full bg-ir-dark px-7 text-body font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] focus-ring">
+                        เสร็จ
+                      </button>
+                    </>}
+                  >
                     {!ci && <>
                     <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? (isDriveUrl(editingUrl.value) ? "ไฟล์นี้" : isVideoUrl(editingUrl.value) ? "วิดีโอนี้" : "เว็บนี้") : editingImage!.kind === "pdf" ? "เอกสารนี้" : "ภาพนี้"}?</p>
                     <div role="group" aria-label="สิ่งที่ชอบ" className="mb-2.5 flex flex-wrap gap-1.5">
@@ -1950,8 +2135,14 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                     <NoteField key={noteEditing ?? ""} className="mt-1" label="โน้ตสำหรับรายการนี้" rows={2}
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
                       onChange={(v) => (editingUrl ? updateUrlNote(editingUrl.id, v) : updateImageNote(editingImage!.id, v))}
-                      placeholder={ci ? "เช่น โลโก้เวอร์ชันล่าสุด หรือหน้าคู่มือที่ระบุรหัสสี" : "เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน หรือโทนสีของหน้านี้"} />
-                  </div>
+                      placeholder={ci ? "เช่น โลโก้เวอร์ชันล่าสุด หรือหน้าคู่มือที่ระบุรหัสสี · วางลิงก์ Google Drive ได้" : "เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน · วางลิงก์ Google Drive ได้"} />
+                    {hasNote && (
+                      <button type="button" onClick={() => clearItem(id)}
+                        className="mt-1 inline-flex h-9 items-center rounded-full px-2 text-small font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">
+                        ล้างโน้ตและสิ่งที่เลือก
+                      </button>
+                    )}
+                  </ItemSheet>
                 );
               })()}
             </div>
@@ -1982,6 +2173,18 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           {uploadError && <div className="-mt-4 mb-6"><FieldError>{uploadError}</FieldError></div>}
         </div>
       </div>
+      {undo && createPortal(
+        <div className="pointer-events-none fixed inset-x-0 z-[60] flex justify-center px-4" style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}>
+          <div role="status"
+            onMouseEnter={() => clearTimeout(undoTimer.current)} onMouseLeave={() => offerUndo(undo)}
+            onFocus={() => clearTimeout(undoTimer.current)} onBlur={() => offerUndo(undo)}
+            className="wrs-floating-preview-in pointer-events-auto flex items-center gap-3 rounded-full bg-ir-dark py-1.5 pl-4 pr-1.5 text-small font-medium text-white shadow-e3">
+            ลบ{undo.kind === "url" ? "ลิงก์" : undo.item.kind === "pdf" ? "เอกสาร" : "รูป"}แล้ว
+            <button type="button" onClick={undoRemove} className="h-9 rounded-full bg-white/15 px-3.5 font-semibold transition-colors hover:bg-white/25 focus-ring">เลิกทำ</button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -2080,147 +2283,38 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
           like without needing a link or picture. Available whichever way they chose above. */}
       <SectionDivider />
       <NoteField id="inspiration-note" className="mb-6" label="เล่าเป็นข้อความ"
-        hint="ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน"
+        hint="ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน · วางลิงก์ Google Drive ไว้ในนี้ก็ได้"
         value={draft.inspirationNote ?? ""} onChange={(v) => updateDraft({ inspirationNote: v })}
-        placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก และมีวิดีโอแนะนำองค์กร" />
+        placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก · วิดีโอองค์กร: drive.google.com/…" />
 
       <StepNav
         onBack={() => go(6)}
-        next={<NextButton onClick={() => go(8)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ถัดไป" : "ข้ามขั้นนี้"}</NextButton>}
+        next={<NextButton onClick={() => go(8)}>{hasCustom || hasCurated || draft.inspirationNote?.trim() ? "ดูสรุปของคุณ" : "ข้ามไปดูสรุป"}</NextButton>}
       />
     </div>
   );
 }
 
-// Perceptual lightness of a hex — decides readable ink on a swatch.
-function isLightHex(hex: string) {
-  const h = hex.replace("#", "");
-  if (h.length < 6) return true;
-  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-  return r * 0.299 + g * 0.587 + b * 0.114 > 150;
-}
-
-// Map the direction's palette into named swatches (name from the "X & Y" palette label).
-function namedPalette(dir: any): { hex: string; name: string; main: boolean }[] {
-  const colors: string[] = dir?.colors ?? ["#151823", "#BCC416", "#FFFFFF"];
-  const parts = String(dir?.palette ?? "").split(/\s*&\s*/);
-  const fallback = ["Primary", "Accent", "Surface"];
-  return colors.slice(0, 3).map((hex, i) => ({
-    hex: hex.toUpperCase(),
-    name: (parts[i] || fallback[i] || `Color ${i + 1}`).trim(),
-    main: i === 0,
-  }));
-}
-
-const NEUTRAL_RAMP = ["#F5F5F5", "#D9DBDE", "#B4B7BD", "#8A8F99", "#5A5F6B", "#33383F", "#151823"];
-
-
-// ── The design concept the client co-authored, worked out from their real choices
-// (Direction palette or their own brand colours, font, mood, homepage structure). Feeds
-// sheetData(), which both the on-screen overview and the PDF / PNG sheet draw from, so
-// the two never disagree. ──
-function conceptData(draft: any) {
-  const dir = directionById(draft.selectedDirection);
-  // the Thai face follows their step-5 choice when they picked one themselves
-  const basePairing = FONT_PAIRINGS[draft.selectedDirection] ?? DEFAULT_PAIRING;
-  const thaiPick = chosenThaiFont(draft);
-  const pairing = thaiPick.source === "selected"
-    ? { ...basePairing, thai: thaiPick.family, note: `ฟอนต์ภาษาไทยที่เลือกเอง คู่กับ ${basePairing.heading}` }
-    : basePairing;
-  // a picked catalog font (incl. an IR Plus face drawn by its preview) vs a pairing var font
-  const thaiStack = thaiPick.source === "selected" ? familyStack(pairing.thai) : fontStack(pairing.thai);
-  const mainFont = pairing.thai;
-  const mainFontNote = fontByFamily(mainFont)?.note ?? basePairing.note;
-
-  const p: DesignProfile | undefined = draft.designProfile;
-  const dataDriven = p?.densityData ?? 0;
-  // "ใช้ CI เดิม" = colours and font come from the current website, which this system doesn't
-  // read: the board says so instead of passing the Direction's palette off as theirs (user
-  // test #1: BTS is red, the board showed navy & gold). "ให้ทีมเสนอใหม่" shows the
-  // Direction's palette as the team's proposal. No typed colour codes any more.
-  const keepOwn = keepsCi(draft);
-  const siteUrl = siteHostOf(draft.website);
-  const own: string[] = [];
-  const ownPending = keepOwn;
-  const swatches = namedPalette(dir);
-  const primary = swatches[0]?.hex ?? "#151823";
-  const accent = own.length ? (own[1] ?? own[0]).toUpperCase() : swatches[1]?.hex ?? "#BCC416";
-  const surface = own.length ? (own[2] && isLightHex(own[2]) ? own[2].toUpperCase() : "#FFFFFF") : swatches[2]?.hex ?? "#FFFFFF";
-  const moodBg = own.length
-    ? `linear-gradient(135deg, ${primary}, color-mix(in srgb, ${primary} 70%, #000))`
-    : ownPending ? "linear-gradient(135deg,#151823,#33383F)" : dir?.bg ?? primary;
-  const moodInk = own.length && isLightHex(primary) ? "#151823" : "#fff";
-  const ink = NEUTRAL_RAMP[6];
-  const muted = NEUTRAL_RAMP[3];
-  // Five colours, each with the job it does on the site — so the palette reads as a plan
-  // for the page, not just a row of hex codes.
-  const paletteRoles = [
-    { hex: primary, role: "Primary", use: "หัวเว็บ ปุ่มหลัก หัวข้อสำคัญ" },
-    { hex: accent, role: "Accent", use: "ไฮไลต์ ตัวเลขเด่น เส้นกราฟ" },
-    { hex: surface, role: "Background", use: "พื้นหลังหน้าและการ์ด" },
-    { hex: ink, role: "Text", use: "ตัวหนังสือหลัก" },
-    { hex: muted, role: "Muted", use: "คำบรรยาย เส้นแบ่ง" },
-  ];
-  const onPrimary = isLightHex(primary) ? ink : "#FFFFFF";
-  const onAccent = isLightHex(accent) ? ink : "#FFFFFF";
-  // Mood: one main feeling, the second only supports it — two equal words left the client
-  // unsure which one the site is really about.
-  const moods: string[] = dir?.mood ?? ["Professional & Clean"];
-  const [mainMood, ...supportMoods] = moods;
-
-  // The exact structure picked in "จัดหน้าแรก" (Structure step), in the order the
-  // client arranged it — this board should mirror that decision, not restate it.
-  const homepageSections = ((draft.selectedSections as string[] | undefined) ?? [])
-    .filter((id) => !RETIRED_SECTION_IDS.includes(id))
-    .map((id) => ({ id, name: sectionById(id)?.name ?? id }));
-  return { dir, thaiPick, pairing, thaiStack, mainFont, mainFontNote, p, dataDriven, keepOwn, siteUrl, own, ownPending, swatches, primary, accent, surface, moodBg, moodInk, ink, muted, paletteRoles, onPrimary, onAccent, moods, mainMood, supportMoods, homepageSections };
-}
-
-// ── Save the summary as a one-page moodboard sheet (PDF or PNG) ──
-// Click → the file downloads, no print dialog. The button itself reports the result:
-// spinner + "กำลังบันทึก…", then a check + "บันทึกแล้ว" for a few seconds.
-const SHEET_ROLE_TH: Record<string, string> = { Primary: "สีหลัก", Accent: "สีเน้น", Background: "พื้นหลัง", Text: "ตัวอักษร", Muted: "สีรอง" };
-
-function sheetData(draft: any): SheetData {
-  const c = conceptData(draft);
-  const vs = VISUAL_STYLES[draft.selectedDirection];
-  const picks = (draft.quizPicks ?? []) as { questionId: string; letter: "A" | "B" }[];
-  return {
-    company: draft.company ?? "",
-    directionLabel: c.dir?.label ?? "Design Direction",
-    tagline: c.dir?.tagline,
-    mainMood: c.mainMood,
-    supportMoods: c.supportMoods,
-    answers: picks.flatMap((p) => {
-      const q = QUIZ.find((x) => x.id === p.questionId);
-      return q ? [{ topic: q.topic, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
-    }),
-    ownPending: c.ownPending,
-    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ทีมปรับ CI ให้ทันสมัยตามแนวทาง",
-    ciNote: (c.keepOwn ? draft.ciKeepNote : draft.ciNote)?.trim() || undefined,
-    // what CI they attached on "ปรับ CI ให้ทันสมัย"; whatever is missing, the team proposes
-    ciAssets: c.keepOwn ? "" : refCounts(draft.ciAssets),
-    ciSite: c.keepOwn ? c.siteUrl : undefined,
-    logo: c.keepOwn && draft.logo ? draft.logo : undefined,
-    fontInterest: !c.keepOwn && fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : undefined,
-    // three colours only — main, accent, background; text/muted greys add nothing here
-    swatches: c.paletteRoles.slice(0, 3).map((r) => ({ hex: r.hex, role: SHEET_ROLE_TH[r.role] ?? r.role, use: r.use })),
-    primary: c.primary,
-    moodInk: c.moodInk,
-    coverBg: c.moodBg,
-    inspiration: {
-      links: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type === "url").length,
-      files: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type !== "url").length,
-      note: draft.inspirationNote?.trim() || undefined,
-    },
-    fontName: c.mainFont,
-    fontStack: c.thaiStack,
-    fontNote: c.mainFontNote,
-    sections: c.homepageSections.map((s) => s.name),
-    note: draft.structureNote?.trim() || undefined,
-    visualMood: vs?.mood,
-    shots: (vs?.shots ?? []).map((s) => ({ url: unsplashUrl(s.id, 700), cap: s.cap })),
-  };
+// Faint grid + rising line on the right half of the cover (same shape as the PDF / PNG).
+function CoverWatermark({ accent }: { accent: string }) {
+  const pts = COVER_LINE.map(([x, y]) => `${x},${y}`).join(" ");
+  return (
+    <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-[58%]"
+      style={{ maskImage: "linear-gradient(to right, transparent, black 55%)", WebkitMaskImage: "linear-gradient(to right, transparent, black 55%)" }}>
+      <defs>
+        <pattern id="cover-grid" width="8" height="12" patternUnits="userSpaceOnUse">
+          <path d="M8 0V12M0 12H8" fill="none" stroke="currentColor" strokeOpacity="0.07" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        </pattern>
+        <linearGradient id="cover-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.2" stopColor={accent} stopOpacity="0.16" />
+          <stop offset="1" stopColor={accent} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width="100" height="100" fill="url(#cover-grid)" />
+      <polygon points={`${pts} 100,100 0,100`} fill="url(#cover-area)" />
+      <polyline points={pts} fill="none" stroke={accent} strokeOpacity="0.5" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
 }
 
 // One numbered chapter of the overview: label column, hairline above.
@@ -2250,6 +2344,9 @@ function ProjectOverview({ draft }: { draft: any }) {
   const d = sheetData(draft);
   const head = { fontFamily: d.fontStack } as CSSProperties;
   const moods = [d.mainMood, ...d.supportMoods].filter(Boolean);
+  // the glow and the watermark line: the direction's accent, or white when the colours
+  // come from their own website (not known here)
+  const coverGlow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
   const insp = [
     d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "",
     d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "",
@@ -2257,35 +2354,46 @@ function ProjectOverview({ draft }: { draft: any }) {
 
   return (
     <section aria-label="ภาพรวมผลลัพธ์" className="cursor-default overflow-clip rounded-sm bg-[#FBFAF6] text-[#2B2A26] ring-1 ring-black/[0.06]">
-      {/* cover */}
-      <div className="px-6 pb-9 pt-7 md:px-10 md:pb-12 md:pt-9" style={{ background: d.coverBg, color: d.moodInk }}>
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์นักลงทุนสัมพันธ์{d.company ? ` · ${d.company}` : ""}</p>
-          {/* their logo, on a white chip so a dark or transparent logo still shows */}
-          {d.logo && (
-            <span className="grid h-14 w-28 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
-            </span>
-          )}
-        </div>
-        <p className="mt-10 text-small font-medium opacity-75 md:mt-14">แนวทางที่ได้จากคำตอบของคุณ</p>
-        <h3 className="mt-1 font-bold leading-[1.05] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(40px, 9vw, 68px)", textWrap: "balance" } as CSSProperties}>{d.directionLabel}</h3>
-        {d.tagline && <p className="mt-3 max-w-[34rem] text-lead leading-relaxed opacity-90" style={head}>{d.tagline}</p>}
-        {moods.length > 0 && <p className="mt-6 text-small opacity-75">อารมณ์ของเว็บไซต์ · {moods.join(" · ")}</p>}
+      {/* cover — layered, not one flat block (19 Nov 2026): a diagonal from the main colour
+          to a lighter shade, a soft accent glow top right, and a faint grid with a rising
+          line on the right (investor data) under the type. The PDF / PNG draws the same. */}
+      <div className="relative isolate overflow-hidden px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-8"
+        style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${coverGlow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
+        <CoverWatermark accent={coverGlow} />
+        {/* their logo, on a white chip so a dark or transparent logo still shows */}
+        {d.logo && (
+          <span className="float-right ml-4 grid h-14 w-28 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
+          </span>
+        )}
+        {/* Mood leads, no style name (19 Nov 2026): a name like "Premium Corporate" read as
+            more specific and settled than the answers really are. */}
+        <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
+        <h3 className="mt-2 max-w-[36rem] font-bold leading-[1.15] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(34px, 7vw, 56px)", textWrap: "balance" } as CSSProperties}>{/* each space-separated phrase stays whole: Thai has no spaces inside words */}
+          {(d.tagline ?? moods.join(" · ")).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</h3>
+        {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
+            the supporting one smaller and softer. */}
+        {moods.length > 0 && (
+          <div className="mt-8 max-w-[36rem] border-t pt-5" style={{ borderColor: "currentColor", borderTopColor: "color-mix(in srgb, currentColor 22%, transparent)" }}>
+            <p className="text-caption font-medium uppercase tracking-[0.04em] opacity-65">อารมณ์ของเว็บไซต์</p>
+            {d.mainMood && <p className="mt-1.5 text-title font-semibold leading-snug">{d.mainMood}</p>}
+            {d.supportMoods.length > 0 && <p className="mt-1 text-body opacity-75">เสริมด้วย {d.supportMoods.join(" · ")}</p>}
+          </div>
+        )}
       </div>
 
       <div className="px-6 md:px-10">
         <Chapter n="01" title="คำตอบของคุณ">
           {d.answers.length ? (
-            <p className="text-lead leading-[1.9]">
-              {d.answers.map((a, i) => (
-                <Fragment key={a.topic}>
-                  {i > 0 && <span className="px-1 text-[#B5B0A3]"> · </span>}
-                  <span className="whitespace-nowrap"><span className="text-[#8A8578]">{a.topic}</span> <span className="font-semibold">{a.choice}</span></span>
-                </Fragment>
+            <dl className="divide-y divide-black/[0.07]">
+              {d.answers.map((a) => (
+                <div key={a.topic} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-4 py-2.5 first:pt-0 last:pb-0">
+                  <dt className="text-body text-[#8A8578]">{a.topic}</dt>
+                  <dd className="m-0 text-lead font-semibold">{a.choice}</dd>
+                </div>
               ))}
-            </p>
+            </dl>
           ) : <p className="text-body text-[#8A8578]">ยังไม่ได้ตอบคำถามสำรวจแนวทาง</p>}
         </Chapter>
 
@@ -2320,7 +2428,7 @@ function ProjectOverview({ draft }: { draft: any }) {
               <p className="mt-3"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างฟอนต์</span></p>
               <p className="mt-1.5 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
               {/* no font description: too specific for a summary (user test CBG) */}
-              <p className="mt-2 text-small text-[#8A8578]">ทีมเสนอตามแนวทาง</p>
+              <p className="mt-2 text-small text-[#8A8578]">ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</p>
               {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
             </>
           )}
@@ -2332,8 +2440,8 @@ function ProjectOverview({ draft }: { draft: any }) {
             {/* photos without captions: a caption per photo read as a promise of that exact shot (user test CBG) */}
             {/* labelled as samples so they don't read as something to click or pick (user test AOT) */}
             <p className="mb-2"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างโทนภาพ · ไม่ต้องเลือก</span></p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {d.shots.slice(0, 4).map((s) => (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              {d.shots.slice(0, 6).map((s) => (
                 <figure key={s.url} className="m-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none object-cover" style={{ aspectRatio: "4 / 3" }} />
@@ -2371,45 +2479,12 @@ function ProjectOverview({ draft }: { draft: any }) {
   );
 }
 
-function SaveSheetButton({ draft, kind }: { draft: any; kind: "pdf" | "png" }) {
-  const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  const name = kind === "pdf" ? "PDF" : "PNG";
-  const save = async () => {
-    if (state === "busy") return;
-    setState("busy");
-    try {
-      const { saveMoodboard } = await import("@/lib/moodboardExport");
-      await saveMoodboard(sheetData(draft), kind);
-      setState("done");
-    } catch {
-      setState("error");
-    }
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setState("idle"), 3000);
-  };
-  const label = state === "busy" ? "กำลังบันทึก…" : state === "done" ? "บันทึกแล้ว" : state === "error" ? "บันทึกไม่สำเร็จ ลองอีกครั้ง" : `บันทึก ${name}`;
-  return (
-    <button type="button" onClick={save} aria-busy={state === "busy"} aria-live="polite"
-      className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-body font-semibold transition-colors focus-ring ${
-        state === "done" ? "border-ir-select bg-primary-50 text-ir-t1"
-          : state === "error" ? "border-red-300 bg-red-50 text-red-700"
-          : "border-ir-border bg-white text-ir-t1 hover:border-ir-border-hi"
-      } ${state === "busy" ? "cursor-wait" : ""}`}>
-      {state === "busy" ? (
-        <span aria-hidden="true" className="h-[18px] w-[18px] rounded-full border-2 border-ir-t3/30 border-t-ir-t1 animate-spin" />
-      ) : state === "done" ? (
-        <IconCheck width={18} height={18} className="text-ir-accent-text" />
-      ) : (
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
-      )}
-      {label}
-    </button>
-  );
-}
 
 // ── S6 · Deliver references + finalize + submit ──
+// "ผู้ร่วมตัดสินใจ (ไม่บังคับ)" on the deliver step: off (19 Nov 2026), code kept. Names
+// already typed into an older draft still reach the team.
+const SHOW_CO_DECIDERS = false;
+
 function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebookEntry, router }: any) {
   const [submitting, setSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -2503,13 +2578,13 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
-            <p className="text-lead text-ir-t2 leading-relaxed mt-2">ตรวจภาพรวมที่สรุปจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus</p>
+            <p className="text-lead text-ir-t2 leading-relaxed mt-2">ขั้นสุดท้าย · ตรวจสรุปจากคำตอบของคุณ แล้วใส่ช่องทางติดต่อเพื่อส่งให้ทีม IR Plus</p>
           </div>
           {/* keep a copy before sending — a one-page moodboard sheet, downloaded straight
               away (no print dialog, nothing to set up) */}
           <div className="no-print flex shrink-0 items-center gap-2">
-            <SaveSheetButton draft={draft} kind="pdf" />
-            <SaveSheetButton draft={draft} kind="png" />
+            <SaveSheetButton source={draft} kind="pdf" />
+            <SaveSheetButton source={draft} kind="png" />
           </div>
         </div>
       </div>
@@ -2522,14 +2597,14 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             the paper. Print drops the backdrop. */}
         <div className="flex-1 min-w-0 w-full">
           <div className="rounded-2xl bg-ir-dark p-3 sm:p-5 md:p-7 print:bg-transparent print:p-0">
-            <div className="no-print mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 sm:mb-4">
-              <span className="inline-flex items-center gap-1.5 text-small font-semibold text-white">
-                <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-accent text-ir-on-accent">
-                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
-                </span>
-                สรุปผลจากคำตอบของคุณ
+            <div className="no-print mb-4 flex items-center gap-3 px-1 sm:mb-5">
+              <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-ir-on-accent">
+                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
               </span>
-              <span className="text-small text-white/60">ไม่ต้องกรอกอะไรเพิ่ม · บันทึกเป็น PDF / PNG ได้</span>
+              <div className="min-w-0">
+                <p className="text-title font-semibold leading-tight text-white">สรุปผลจากคำตอบของคุณ</p>
+                <p className="mt-0.5 text-small text-white/65">รวบรวมจากคำตอบทั้ง {FLOW_STEPS.length - 1} ขั้นก่อนหน้า</p>
+              </div>
             </div>
             {/* faint light outline so a dark cover colour still separates from the backdrop */}
             <div className="rounded-sm shadow-[0_24px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 print:shadow-none print:ring-0">
@@ -2543,7 +2618,6 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             {/* the only thing left to do on this step lives here */}
-            <p className="mb-2 text-caption font-semibold text-ir-accent-text">ขั้นสุดท้าย · ส่งให้ทีม</p>
             <p className="text-lead font-semibold text-ir-t1 mb-1">ข้อมูลติดต่อ</p>
             <p className="text-body text-ir-t3 mb-4">ทีม IR Plus จะติดต่อกลับภายใน {CONTACT_DAYS}</p>
             {/* space-y-4 (not -3) — these are three distinct fields, not tightly related
@@ -2552,36 +2626,26 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
               <F id="contact-name" required label="ชื่อ-นามสกุล" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุลผู้ประสานงาน" autoComplete="name" />
               <F id="contact-position" required label="ตำแหน่ง" value={draft.position ?? ""} onChange={(v) => updateDraft({ position: v })} onBlur={() => markTouched("position")} error={showError("position")} placeholder="เช่น ผู้จัดการฝ่ายนักลงทุนสัมพันธ์" autoComplete="organization-title" />
               <F id="contact-email" required label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.co.th" />
-              {/* Phone is no longer a bare field: ask first whether a call-back suits them
-                  (user test CPALL), then where — phone or LINE. */}
-              <div role="group" aria-labelledby="callback-q">
-                <p id="callback-q" className="text-body font-medium mb-1.5">สะดวกให้ทีมติดต่อกลับ เพื่อคุยรายละเอียดเพิ่มไหม</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {([[true, "สะดวก"], [false, "ทางอีเมลพอ"]] as const).map(([v, label]) => {
-                    const on = (draft.callbackOk ?? true) === v;
-                    return (
-                      <button key={label} type="button" aria-pressed={on} onClick={() => updateDraft({ callbackOk: v })}
-                        className={`min-h-11 rounded-md border px-3 text-body font-medium transition-colors focus-ring ${on ? "border-ir-select bg-primary-50 text-ir-t1" : "border-ir-border text-ir-t2 hover:border-ir-border-hi"}`}>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {(draft.callbackOk ?? true) && (
-                <>
-                  <F id="contact-phone" label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
-                  <F label="LINE ID (ไม่บังคับ)" value={draft.lineId ?? ""} onChange={(v) => updateDraft({ lineId: v.trim() })} placeholder="เช่น @irplus หรือ LINE ID ของคุณ" />
-                </>
-              )}
+              {/* Phone and LINE always shown, both optional; whether a call suits them is a tick
+                  at the foot of this card (19 Nov 2026, replacing the สะดวก / ทางอีเมลพอ pair). */}
+<F id="contact-phone" label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
+              <F label="LINE ID (ไม่บังคับ)" value={draft.lineId ?? ""} onChange={(v) => updateDraft({ lineId: v.trim() })} placeholder="เช่น @irplus หรือ LINE ID ของคุณ" />
             </div>
+            <label className="group mt-5 flex cursor-pointer items-start gap-3">
+              <input type="checkbox" checked={draft.callbackOk ?? true} onChange={(e) => updateDraft({ callbackOk: e.target.checked })} className="peer sr-only" />
+              {/* lime when ticked, like every other picked thing in the flow */}
+              <span aria-hidden="true" className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[5px] border-2 border-ir-border-hi bg-white text-transparent transition-colors group-hover:border-ir-select peer-checked:border-ir-accent peer-checked:bg-ir-accent peer-checked:text-ir-on-accent peer-focus-visible:ring-3 peer-focus-visible:ring-ir-ring/40">
+                <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+              </span>
+              <span className="text-body text-ir-t1">สะดวกให้ทีมติดต่อกลับ เพื่อคุย<span className="whitespace-nowrap">รายละเอียดเพิ่มเติม</span></span>
+            </label>
             <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />
           </div>
 
           {/* Others who help decide (user test CPALL: some roles can't decide alone). No shared
               editing here (answers live in this browser), so the team gets their names and
               contacts, and the PDF / PNG above can be passed to them first. */}
-          <CoDeciders draft={draft} updateDraft={updateDraft} />
+          {SHOW_CO_DECIDERS && <CoDeciders draft={draft} updateDraft={updateDraft} />}
 
           {/* Confirm + submit — one CTA, since "confirm" and "submit" were saying the
               same thing to the customer. The confirm copy now lives as a caption below
@@ -2605,17 +2669,18 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                 </span>
               </button>
             </div>
-            <p className="text-body text-ir-t3 text-center leading-relaxed mt-3">
-              ฉันตรวจสอบภาพรวมโปรเจกต์แล้ว และยืนยันส่งให้ทีม IR Plus
+            {/* one quiet line: what sending means and what happens next (19 Nov 2026: the
+                caption, a grey box and a back button inside the card all weighed the same) */}
+            <p className="mt-3 text-center text-small leading-relaxed text-ir-t3">
+              เมื่อกดส่ง ถือว่าคุณตรวจภาพรวมแล้ว · ทีมจะติดต่อกลับภายใน <span className="whitespace-nowrap">{CONTACT_DAYS}</span>
             </p>
-            {/* what happens next, with the team's timing */}
-            <p className="mt-3 rounded-lg bg-ir-sunken px-3.5 py-2.5 text-small leading-relaxed text-ir-t2">
-              หลังส่ง ทีมจะติดต่อกลับภายใน <span className="font-semibold text-ir-t1">{CONTACT_DAYS}</span>
-            </p>
-
-            <div className="flex justify-center mt-4">
-              <BackButton onClick={() => go(7)}>ย้อนกลับ</BackButton>
-            </div>
+          </div>
+          {/* back: outside the card, as a text link, so it never competes with sending */}
+          <div className="flex justify-center">
+            <button type="button" onClick={() => go(7)}
+              className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-body font-medium text-ir-t2 transition-colors hover:text-ir-t1 focus-ring">
+              <span aria-hidden="true">←</span> ย้อนกลับไปแก้ไข
+            </button>
           </div>
         </aside>
       </div>

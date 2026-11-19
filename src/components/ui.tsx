@@ -175,7 +175,7 @@ export function RuleBadge({ ruleKey, count }: { ruleKey: keyof typeof RULES; cou
 export function ProgressBar({ value }: { value: number }) {
   return (
     <div className="h-1 w-full bg-ir-border rounded-full overflow-hidden">
-      <div className="h-full bg-ir-accent transition-all duration-slow" style={{ width: `${Math.min(100, value)}%` }} />
+      <div className="h-full bg-ir-accent transition-[width] duration-slow" style={{ width: `${Math.min(100, value)}%` }} />
     </div>
   );
 }
@@ -416,7 +416,7 @@ export function WorkspaceDividerToggle({
           onMouseDown={(e) => e.stopPropagation()}
           onClick={toggleWsCollapsed}
           title="ซ่อน Living Workspace"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-e1 text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-ring transition-all duration-instant z-20"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full border border-ir-border bg-ir-card shadow-e1 text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent/5 active:text-ir-accent-text active:border-ir-accent/40 active:bg-ir-accent/5 active:scale-95 focus-ring transition-[background-color,border-color,color,scale] duration-instant z-20"
           style={{ width: 24, height: 36 }}
         >
           <WorkspaceDockIcon direction="close" />
@@ -432,7 +432,7 @@ export function WorkspaceDividerToggle({
           onClick={toggleWsCollapsed}
           title={empty ? "Living Workspace" : "เปิด Living Workspace"}
           aria-label={empty ? "Living Workspace (ยังไม่มีข้อมูล)" : "เปิด Living Workspace"}
-          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-md transition-all duration-slow active:duration-fast focus-ring z-30 animate-[wsdock-in_var(--motion-base)_var(--motion-ease-in-out)] ${
+          className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-l-md transition-[background-color,border-color,color,scale,box-shadow] duration-slow active:duration-fast focus-ring z-30 animate-[wsdock-in_var(--motion-base)_var(--motion-ease-in-out)] ${
             empty
               ? "bg-ir-card border border-r-0 border-ir-border text-ir-t3 hover:text-ir-t2 hover:border-ir-border-hi hover:scale-[1.06] active:scale-[0.98]"
               : "bg-ir-card border border-r-0 border-ir-border text-ir-t2 hover:text-ir-accent-text hover:border-ir-accent/40 hover:bg-ir-accent hover:!text-ir-on-accent hover:scale-[1.1] hover:shadow-glow active:scale-[0.98] active:shadow-none"

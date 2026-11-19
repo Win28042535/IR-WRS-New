@@ -146,9 +146,18 @@
 @keyframes fade-in { from { opacity: 0; } }
 /* Pick-count badge: the number pops each time the count changes (user tests: the old grey
    badge went unnoticed) */
+@keyframes loader-spin { to { rotate: 360deg; } }
+@keyframes loading-dot { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 @keyframes count-pop { 0% { scale: 1; } 40% { scale: 1.35; } 100% { scale: 1; } }
 @media (prefers-reduced-motion: no-preference) {
   .count-pop { display: inline-block; animation: count-pop var(--motion-base) var(--motion-ease-out); }
+  /* summary loader: the working row's ring spins, the title's dots pulse in turn */
+  .loader-ring { animation: loader-spin 0.8s linear infinite; }
+  .loading-dots span { animation: loading-dot 1.2s ease-in-out infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  /* "เพิ่มลิงก์" glows once when a pasted link becomes valid */
+  [data-pulse] { animation: save-pulse var(--motion-slow) var(--motion-ease-out); }
   .menu-in { animation: menu-in var(--motion-fast) var(--motion-ease-out) both; }
   .save-pulse { animation: save-pulse var(--motion-slow) var(--motion-ease-out); }
   .save-note, .field-error { animation: fade-in-down var(--motion-fast) var(--motion-ease-out) both; }
@@ -621,7 +630,10 @@ input:focus, textarea:focus, select:focus {
   .mascot-halo,
   .mascot-spark,
   .luma-dot,
-  .luma-loader-sq { animation: none; opacity: 0.7; }
+  .luma-loader-sq { animation: none; }
+  /* only the loader squares sit dimmed when still (was on every class above, which left
+     every step card at 70% for reduced-motion users — audit 19 Nov 2026) */
+  .luma-loader-sq { opacity: 0.7; }
   .luma-dot { animation: none; }
   .mascot-eye, .mascot-hl { transition: none; }
   .ai-hint-msg { transition: opacity var(--motion-instant) ease; }

@@ -189,7 +189,7 @@ export function IntelligenceDetail({ req }: { req: Requirement }) {
       <div>
         <div className="text-caption uppercase tracking-wide text-ir-t3 mb-2">AI Summary</div>
         <div className="space-y-1">
-          {summary.map((s) => <div key={s.label} className="flex items-baseline gap-2 text-small"><span className="text-ir-t3 w-32 shrink-0">{s.label}</span><span className="text-ir-t1 font-medium">{s.value}</span></div>)}
+          {summary.map((s) => <div key={s.label} className="flex items-baseline gap-2 text-small"><span className="text-ir-t3 w-32 shrink-0">{s.label}</span><span className="min-w-0 text-ir-t1 font-medium"><Linkify text={s.value} /></span></div>)}
         </div>
       </div>
       <div>
@@ -323,3 +323,20 @@ export function ActivityDetail({ req }: { req: Requirement }) {
 }
 
 export { approvalSummary };
+
+// Links typed into a client's notes (e.g. a Google Drive link in the inspiration note) open
+// from the team's view. Anything that starts with http(s):// or a bare drive.google.com/…
+const LINK_RE = /(https?:\/\/[^\s]+|(?:drive|docs)\.google\.com\/[^\s]+)/g;
+function Linkify({ text }: { text: string }) {
+  const parts = text.split(LINK_RE);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <a key={i} href={/^https?:/i.test(part) ? part : `https://${part}`} target="_blank" rel="noopener noreferrer"
+            className="break-all text-ir-accent-text underline underline-offset-2">{part}</a>
+        ) : part,
+      )}
+    </>
+  );
+}

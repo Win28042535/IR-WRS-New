@@ -664,7 +664,7 @@ function SectionWorkspace({ sections, theme }: { sections: string[]; theme: Pane
                   ref={(el) => { rowRefs.current[id] = el; }}
                   data-section-row={id}
                   style={!isDragging && shiftPx !== 0 ? { transform: `translateY(${shiftPx}px)` } : undefined}
-                  className={`relative rounded-sm border transition-all duration-instant ${theme.listItemBase} ${
+                  className={`relative rounded-sm border transition-[background-color,border-color,color,box-shadow] duration-instant ${theme.listItemBase} ${
                     isDragging ? theme.listItemDragging : ""
                   } ${isOver ? theme.listItemTarget : ""} ${
                     isLanded || reorderedId === id ? "wrs-row-landed" : ""

@@ -108,7 +108,7 @@ export function DevicePreview({
 
   const Frame = ({ sm }: { sm: boolean }) => (
     <div
-      className="mx-auto bg-white border border-ir-border rounded-md overflow-hidden shadow-e1 transition-all duration-base"
+      className="mx-auto bg-white border border-ir-border rounded-md overflow-hidden shadow-e1 transition-[max-width] duration-base"
       style={{ maxWidth: sm ? DEVICE_W.mobile : undefined, width: "100%" }}
     >
       {/* ── Utility top bar (SET-style) ── */}
@@ -249,7 +249,7 @@ export function DevicePreview({
 
   // framed preview + comment pins/overlay (reused inline + fullscreen)
   const stage = (maxW: number) => (
-    <div className="relative mx-auto transition-all duration-base" style={{ maxWidth: maxW, width: "100%" }}>
+    <div className="relative mx-auto transition-[max-width] duration-base" style={{ maxWidth: maxW, width: "100%" }}>
       <div className={commentMode ? "cursor-crosshair" : ""} onClick={onFrameClick}>
         <Frame sm={sm} />
       </div>

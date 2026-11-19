@@ -18,6 +18,8 @@ export type SheetData = {
   logo?: string;        // company logo (data URL), top-right of the cover
   fontInterest?: string; // a font the client liked; the team decides
   colorSource: string;
+  /** given only on the page after sending: stamped at the foot ("Ref. No. … · ดาวน์โหลดเมื่อ …") */
+  refNo?: string;
   /** step 2 note: what to change from the kept CI, or the tone in mind for the refresh */
   ciNote?: string;
   /** "2 ลิงก์ · 1 ไฟล์" of CI the client attached on the refresh option ("" = none) */
@@ -89,6 +91,43 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLine
   return lines;
 }
 
+/** a → b by t (0..1), both #RRGGBB */
+function mixHex(a: string, b: string, t: number) {
+  const p = (h: string) => [1, 3, 5].map((i) => parseInt(h.replace("#", "").padEnd(6, "0").slice(i - 1, i + 1), 16));
+  const [x, y] = [p(a), p(b)];
+  return `#${x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("")}`;
+}
+/** #RRGGBB at an alpha, as rgba() */
+function hexA(hex: string, a: number) {
+  const h = hex.replace("#", "").padEnd(6, "0");
+  return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${a})`;
+}
+/** Cover watermark: a faint grid and a rising line with a soft fill under it (the same
+ *  shape as CoverWatermark on screen: COVER_LINE, in 0..100 units of the box). */
+export const COVER_LINE: [number, number][] = [[0, 82], [12, 74], [24, 78], [38, 60], [52, 64], [66, 44], [80, 48], [100, 22]];
+function drawCoverWatermark(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, ink: string, accent: string) {
+  ctx.save();
+  ctx.strokeStyle = hexA(ink.length === 4 ? "#FFFFFF" : ink, 0.07);
+  ctx.lineWidth = 2;
+  for (let gx = x; gx <= x + w; gx += 72) { ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y + h); ctx.stroke(); }
+  for (let gy = y; gy <= y + h; gy += 72) { ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x + w, gy); ctx.stroke(); }
+  const pt = ([px, py]: [number, number]) => [x + (px / 100) * w, y + (py / 100) * h] as const;
+  const area = ctx.createLinearGradient(0, y + h * 0.2, 0, y + h);
+  area.addColorStop(0, hexA(accent, 0.16));
+  area.addColorStop(1, hexA(accent, 0));
+  ctx.beginPath();
+  COVER_LINE.forEach((p, i) => { const [px, py] = pt(p); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
+  ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath();
+  ctx.fillStyle = area; ctx.fill();
+  ctx.beginPath();
+  COVER_LINE.forEach((p, i) => { const [px, py] = pt(p); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
+  // fades in from the left so it never runs under the type
+  const fade = ctx.createLinearGradient(x, 0, x + w * 0.55, 0);
+  fade.addColorStop(0, hexA(accent, 0)); fade.addColorStop(1, hexA(accent, 0.5));
+  ctx.strokeStyle = fade; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.stroke();
+  ctx.restore();
+}
+
 const isLight = (hex: string) => {
   const h = hex.replace("#", "");
   const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
@@ -104,7 +143,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     document.fonts.load(`400 40px ${ui}`), document.fonts.load(`600 40px ${ui}`),
     document.fonts.load(`700 40px ${head}`), document.fonts.load(`400 40px ${head}`),
   ]).catch(() => undefined);
-  const imgs = await Promise.all(d.shots.slice(0, 4).map((s) => loadImage(s.url)));
+  const imgs = await Promise.all(d.shots.slice(0, 6).map((s) => loadImage(s.url)));
   const logoImg = d.logo ? await loadImage(d.logo) : null;
 
   // Draw on a tall scratch canvas, then crop to the content's real height.
@@ -122,19 +161,40 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
 
   // ── cover band in the client's colour (height follows its text)
   const on = d.moodInk;
-  font(700, 150, head);
-  const titleLines = wrap(ctx, d.directionLabel, CW, 3);
-  font(400, 48, head);
-  const tagLines = d.tagline ? wrap(ctx, d.tagline, CW, 3) : [];
+  // mood leads, no style name: the tagline is the headline, then main / supporting moods
   const moods = [d.mainMood, ...d.supportMoods].filter(Boolean) as string[];
-  font(500, 34);
-  const moodLines = moods.length ? wrap(ctx, `อารมณ์ของเว็บไซต์ · ${moods.join(" · ")}`, CW, 2) : [];
-  const coverH = 380 + titleLines.length * 160 + tagLines.length * 66 + (tagLines.length ? 30 : 0) + (moodLines.length ? 60 + moodLines.length * 48 : 0) + 110;
+  font(700, 112, head);
+  // break between the tagline's space-separated phrases when they fit, as on screen
+  const titleText = d.tagline ?? moods.join(" · ");
+  const phrases = titleText.split(" ");
+  const titleLines = phrases.every((w) => ctx.measureText(w).width <= CW)
+    ? phrases.reduce<string[]>((lines, w) => {
+        const last = lines[lines.length - 1];
+        if (last !== undefined && ctx.measureText(`${last} ${w}`).width <= CW) lines[lines.length - 1] = `${last} ${w}`;
+        else lines.push(w);
+        return lines;
+      }, []).slice(0, 3)
+    : wrap(ctx, titleText, CW, 3);
+  // moods as type: label, main mood big, "เสริมด้วย …" smaller and softer
+  const hasMoods = !!(d.mainMood || d.supportMoods.length);
+  const moodH = hasMoods ? 60 + 54 + (d.mainMood ? 74 : 0) + (d.supportMoods.length ? 58 : 0) : 0;
+  // the old company line above the kicker is gone, so the cover starts higher and is shorter
+  const coverH = 220 + titleLines.length * 128 + moodH + 100;
+  // Layered, not one flat block (19 Nov 2026): a diagonal from the main colour to a lighter
+  // shade, a soft glow of the accent top right, and a faint grid with a rising line on the
+  // right — investor data as a watermark, well under the type. Same as the screen.
   const g = ctx.createLinearGradient(0, 0, W, coverH);
   g.addColorStop(0, d.primary);
-  g.addColorStop(1, isLight(d.primary) ? "#D9D6CC" : "#0B0D12");
+  g.addColorStop(1, mixHex(d.primary, isLight(d.primary) ? "#000000" : "#FFFFFF", 0.22));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, coverH);
+  const glow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
+  const rg = ctx.createRadialGradient(W, 0, 0, W, 0, W * 0.75);
+  rg.addColorStop(0, hexA(glow, 0.3));
+  rg.addColorStop(1, hexA(glow, 0));
+  ctx.fillStyle = rg;
+  ctx.fillRect(0, 0, W, coverH);
+  drawCoverWatermark(ctx, W * 0.45, 0, W * 0.55, coverH, on, glow);
   // logo on a white chip, top right
   if (logoImg) {
     const bw = 300, bh = 150, bx = W - M - bw, by = 80, pad = 22;
@@ -146,14 +206,18 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   }
   ctx.globalAlpha = 0.78;
   font(500, 34);
-  wrap(ctx, `แนวทางเว็บไซต์นักลงทุนสัมพันธ์${d.company ? ` · ${d.company}` : ""}`, logoImg ? CW - 340 : CW, 2).forEach((ln, i) => text(ln, M, 140 + i * 46, on));
-  text("แนวทางที่ได้จากคำตอบของคุณ", M, 330, on);
+  text("แนวทางที่ได้จากคำตอบของคุณ", M, 170, on);
   ctx.globalAlpha = 1;
-  let y = 330 + 150;
-  font(700, 150, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += 160; });
-  y -= 160;
-  font(400, 48, head); tagLines.forEach((ln, i) => { y += i ? 66 : 96; text(ln, M, y, on); });
-  if (moodLines.length) { y += 60; ctx.globalAlpha = 0.78; font(500, 34); moodLines.forEach((ln) => { y += 48; text(ln, M, y, on); }); ctx.globalAlpha = 1; }
+  let y = 170 + 130;
+  font(700, 112, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += 128; });
+  y -= 128;
+  if (hasMoods) {
+    y += 60;
+    ctx.globalAlpha = 0.22; ctx.fillStyle = on; ctx.fillRect(M, y, Math.min(CW, 900), 2); ctx.globalAlpha = 1;
+    y += 54; ctx.globalAlpha = 0.65; font(500, 28); text("อารมณ์ของเว็บไซต์", M, y, on); ctx.globalAlpha = 1;
+    if (d.mainMood) { y += 74; font(600, 56); text(d.mainMood, M, y, on); }
+    if (d.supportMoods.length) { y += 58; ctx.globalAlpha = 0.75; font(400, 36); text(`เสริมด้วย ${d.supportMoods.join(" · ")}`, M, y, on); ctx.globalAlpha = 1; }
+  }
 
   // ── chapters: hairline, "01  title", then content full width (reads like the phone view)
   y = coverH + 20;
@@ -169,10 +233,11 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   // 01 answers — one row each: topic muted, choice strong
   chapter("01", "คำตอบของคุณ");
   if (d.answers.length) {
-    d.answers.forEach((a) => {
-      y += 70;
+    d.answers.forEach((a, i) => {
+      if (i) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(M, y + 26, CW, 2); }
+      y += 76;
       font(400, 36); text(a.topic, M, y, MUTED);
-      font(600, 42); ctx.textAlign = "right"; text(a.choice, W - M, y); ctx.textAlign = "left";
+      font(600, 42); text(a.choice, M + CW / 2, y);
     });
   } else { y += 70; font(400, 38); text("ยังไม่ได้ตอบคำถามสำรวจแนวทาง", M, y, MUTED); }
 
@@ -208,7 +273,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     y += 44; font(600, 26);
     { const tw = ctx.measureText("ตัวอย่างฟอนต์").width; ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.beginPath(); ctx.roundRect(M, y, tw + 36, 46, 23); ctx.fill(); text("ตัวอย่างฟอนต์", M + 18, y + 32, "#6F6A5E"); y += 46; }
     font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
-    const fnote = "ทีมเสนอตามแนวทาง"; // no font description (user test CBG)
+    const fnote = "ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด"; // no font description (user test CBG)
     font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });
     if (d.fontInterest) { y += 56; font(500, 34); text(`ลูกค้าสนใจ · ${d.fontInterest}`, M, y); }
   }
@@ -219,10 +284,10 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     chapter("04", "แนวภาพ");
     if (d.visualMood) { font(400, 38); wrap(ctx, d.visualMood, CW, 3).forEach((ln) => { y += 58; text(ln, M, y, "#4A473F"); }); }
     y += 40;
-    const gap = 24, pw = (CW - gap) / 2, ph = pw * 0.75;
+    const cols = 3, gap = 24, pw = (CW - gap * (cols - 1)) / cols, ph = pw * 0.75;
     imgs.forEach((img, i) => {
-      const px = M + (i % 2) * (pw + gap);
-      const py = y + Math.floor(i / 2) * (ph + 24); // no captions (user test CBG)
+      const px = M + (i % cols) * (pw + gap);
+      const py = y + Math.floor(i / cols) * (ph + 24); // no captions (user test CBG)
       ctx.fillStyle = "#ECE9E1"; ctx.fillRect(px, py, pw, ph);
       if (img) {
         ctx.save(); ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
@@ -231,7 +296,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
         ctx.restore();
       }
     });
-    y += Math.ceil(imgs.length / 2) * (ph + 24) - 24;
+    y += Math.ceil(imgs.length / cols) * (ph + 24) - 24;
     font(400, 32); wrap(ctx, "ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง", CW, 2).forEach((ln, i) => { y += i ? 46 : 80; text(ln, M, y, MUTED); });
   }
 
@@ -256,8 +321,11 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   ctx.fillStyle = LINE; ctx.fillRect(M, y, CW, 2);
   font(400, 30);
   wrap(ctx, "เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง", CW, 3).forEach((ln, i) => { y += i ? 44 : 70; text(ln, M, y, MUTED); });
-  const date = new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
-  y += 52; text(`สร้างเมื่อ ${date} · IR Plus by efin`, M, y, MUTED);
+  // the reference number (after sending) or "ฉบับร่าง", and when this copy was downloaded,
+  // so a saved file can be traced back later
+  const now = new Date();
+  const when = `${now.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })} ${now.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}`;
+  y += 52; text(`${d.refNo ? `Ref. No. ${d.refNo}` : "ฉบับร่าง (ยังไม่ได้ส่ง)"} · ดาวน์โหลดเมื่อ ${when} · IR Plus by efin`, M, y, MUTED);
   y += 110;
 
   // crop — never shorter than an A4 page so it still prints as one
