@@ -5,12 +5,13 @@
 // `refNo` is given only after sending, and is stamped at the foot of the file.
 import { useEffect, useRef, useState } from "react";
 import { IconCheck } from "@/components/icons";
+import { Spinner } from "@/components/Loader";
 import { sheetData } from "@/lib/sheetData";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function SaveSheetButton({ source, kind, refNo }: { source: any; kind: "pdf" | "png"; refNo?: string }) {
+export function SaveSheetButton({ source, kind, refNo, className = "" }: { source: any; kind: "pdf" | "png"; refNo?: string; className?: string }) {
   // a font picked from the catalog has to be loaded on this page too, or the sheet falls back
   const pick = chosenThaiFont(source);
   useGoogleFont(pick.source === "selected" ? previewFamily(pick.family) : undefined, [400, 500, 600, 700]);
@@ -34,13 +35,13 @@ export function SaveSheetButton({ source, kind, refNo }: { source: any; kind: "p
   const label = state === "busy" ? "กำลังบันทึก…" : state === "done" ? "บันทึกแล้ว" : state === "error" ? "บันทึกไม่สำเร็จ ลองอีกครั้ง" : `บันทึก ${name}`;
   return (
     <button type="button" onClick={save} aria-busy={state === "busy"} aria-live="polite"
-      className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-body font-semibold transition-colors focus-ring ${
+      className={`inline-flex h-11 items-center justify-center gap-2 rounded-full border px-4 ${className} text-body font-semibold transition-colors focus-ring ${
         state === "done" ? "border-ir-select bg-primary-50 text-ir-t1"
           : state === "error" ? "border-red-300 bg-red-50 text-red-700"
           : "border-ir-border bg-white text-ir-t1 hover:border-ir-border-hi"
       } ${state === "busy" ? "cursor-wait" : ""}`}>
       {state === "busy" ? (
-        <span aria-hidden="true" className="h-[18px] w-[18px] rounded-full border-2 border-ir-t3/30 border-t-ir-t1 animate-spin" />
+        <Spinner size={18} />
       ) : state === "done" ? (
         <IconCheck width={18} height={18} className="text-ir-accent-text" />
       ) : (

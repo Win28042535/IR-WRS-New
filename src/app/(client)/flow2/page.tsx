@@ -13,22 +13,21 @@ import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING } from "@/lib/fonts";
 import { BackToTop } from "@/components/BackToTop";
-import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
+import { familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import { FontPickerSheet, FontPreviewSheet } from "@/components/FontPicker";
 import { NoteField } from "@/components/NoteField";
 import { CoDeciders } from "@/components/CoDeciders";
 import type { DesignProfile, QuizOption } from "@/lib/types";
-import { isLightHex, sheetData } from "@/lib/sheetData";
-import { COVER_LINE } from "@/lib/moodboardExport";
 import { SaveSheetButton } from "@/components/SaveSheetButton";
+import { ProjectOverview } from "@/components/ProjectOverview";
+import { PageLoader, Spinner } from "@/components/Loader";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
 import { useGuide } from "@/hooks/useGuide";
 import { useHesitation } from "@/hooks/useHesitation";
 import { ProjectContextProvider } from "@/components/ProjectContextProvider";
 import { useProjectContext } from "@/hooks/useProjectContext";
 import { usePreviewPanel } from "@/components/PreviewPanel";
-import { AIMascot } from "@/components/AIMascot";
 import { useSectionFx } from "@/lib/sectionFx";
 import { useFloatingPreview } from "@/lib/floatingPreview";
 import { emailError, phoneError, sanitizeEmailInput, sanitizePhoneInput } from "@/lib/validation";
@@ -125,10 +124,7 @@ export default function Flow2() {
 
   if (!mounted || !draft) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <AIMascot mood="insight" size={44} />
-        <p className="text-body text-ir-t2 mt-1">กำลังเตรียมระบบ...</p>
-      </div>
+      <PageLoader title="กำลังเตรียมระบบ" />
     );
   }
 
@@ -1269,21 +1265,7 @@ function ItemSheet({ title, preview, children, footer, onClose }: { title: strin
 
 // Full-screen pause between Inspiration and the summary: three ticks, then the summary.
 function SummaryLoader({ onSkip }: { onSkip: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { ref.current?.focus(); }, []);
-  return (
-    <div ref={ref} role="status" aria-live="polite" tabIndex={-1} onClick={onSkip}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " " || e.key === "Escape") { e.preventDefault(); onSkip(); } }}
-      className="sheet-backdrop fixed inset-0 z-[10003] grid cursor-pointer place-items-center bg-ir-bg/92 outline-none backdrop-blur-sm">
-      <div className="flex max-w-[320px] flex-col items-center gap-3 px-6 text-center">
-        <AIMascot mood="insight" size={44} />
-        <p className="mt-1 text-title font-semibold text-ir-t1">กำลังสรุปคำตอบของคุณ<span className="loading-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></p>
-        <p className="text-body leading-relaxed text-ir-t2">รวบรวมคำตอบทั้งหมด เป็นสรุปแนวทางเว็บไซต์ในหน้าเดียว</p>
-        <span aria-hidden="true" className="loader-ring mt-2 h-7 w-7 rounded-full border-[3px] border-ir-accent-text/20 border-t-ir-accent-text" />
-        <p className="mt-3 text-caption text-ir-t3">แตะที่ใดก็ได้เพื่อข้าม</p>
-      </div>
-    </div>
-  );
+  return <PageLoader overlay onSkip={onSkip} title="กำลังสรุปคำตอบของคุณ" message="รวบรวมคำตอบทั้งหมด เป็นสรุปแนวทางเว็บไซต์ในหน้าเดียว" />;
 }
 
 function FloatingPreviewToast() {
@@ -1916,11 +1898,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                   disabled state (empty input / link cap) is unaffected — it's a separate,
                   persistent condition, not one of these three transient icon states. */}
               {isCommittingUrl ? (
-                <span
-                  key="loading"
-                  aria-hidden="true"
-                  className="w-6 h-6 rounded-full border-[1.5px] border-ir-on-accent/30 border-t-ir-on-accent animate-spin ref-btn-icon-in"
-                />
+                <Spinner key="loading" size={16} className="ref-btn-icon-in" />
               ) : urlJustCompleted ? (
                 <IconCheck key="completed" width={12} height={12} className="ref-btn-icon-in" />
               ) : (
@@ -2250,7 +2228,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="แนบเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ ถ้ามี · ไม่มีก็กดข้ามไปได้เลย"
+        sub="แนบเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ (ถ้ามี)"
         optional
       />
       {/* "Skippable" is said in plain text, not a badge: "(ไม่บังคับ)" on the title, the
@@ -2295,192 +2273,6 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
   );
 }
 
-// Faint grid + rising line on the right half of the cover (same shape as the PDF / PNG).
-function CoverWatermark({ accent }: { accent: string }) {
-  const pts = COVER_LINE.map(([x, y]) => `${x},${y}`).join(" ");
-  return (
-    <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-[58%]"
-      style={{ maskImage: "linear-gradient(to right, transparent, black 55%)", WebkitMaskImage: "linear-gradient(to right, transparent, black 55%)" }}>
-      <defs>
-        <pattern id="cover-grid" width="8" height="12" patternUnits="userSpaceOnUse">
-          <path d="M8 0V12M0 12H8" fill="none" stroke="currentColor" strokeOpacity="0.07" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-        </pattern>
-        <linearGradient id="cover-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0.2" stopColor={accent} stopOpacity="0.16" />
-          <stop offset="1" stopColor={accent} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <rect width="100" height="100" fill="url(#cover-grid)" />
-      <polygon points={`${pts} 100,100 0,100`} fill="url(#cover-area)" />
-      <polyline points={pts} fill="none" stroke={accent} strokeOpacity="0.5" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
-// One numbered chapter of the overview: label column, hairline above.
-function Chapter({ n, title, children }: { n: string; title: string; children: ReactNode }) {
-  return (
-    <div className="grid gap-3 border-t border-black/[0.08] py-6 md:grid-cols-[150px_minmax(0,1fr)] md:gap-8 md:py-8">
-      <p className="flex items-baseline gap-2.5 md:block">
-        <span className="font-mono text-small text-[#8A8578]">{n}</span>
-        <span className="text-body font-semibold text-[#2B2A26] md:mt-1 md:block">{title}</span>
-      </p>
-      <div className="min-w-0">{children}</div>
-    </div>
-  );
-}
-
-// ── Project overview — the result, not a form ──
-// One section replacing the old "สรุปแนวทางการออกแบบ" + "ภาพรวมโปรเจกต์" pair (they
-// repeated each other and both looked like the questionnaire: bordered rounded cards,
-// chips, sample buttons — testers wondered if they still had to fill something in).
-// It reads as a printed brand sheet instead: paper background, a cover band in the
-// client's own colour, the chosen heading font at display size, numbered chapters split
-// by hairlines, flat colour fields and captioned photos. Nothing here is a control, so
-// nothing looks like one. The PDF / PNG download draws the same content (sheetData).
-function ProjectOverview({ draft }: { draft: any }) {
-  const thaiPick = chosenThaiFont(draft);
-  useGoogleFont(thaiPick.source === "selected" ? previewFamily(thaiPick.family) : undefined, [400, 500, 600, 700]);
-  const d = sheetData(draft);
-  const head = { fontFamily: d.fontStack } as CSSProperties;
-  const moods = [d.mainMood, ...d.supportMoods].filter(Boolean);
-  // the glow and the watermark line: the direction's accent, or white when the colours
-  // come from their own website (not known here)
-  const coverGlow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
-  const insp = [
-    d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "",
-    d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "",
-  ].filter(Boolean).join(" · ");
-
-  return (
-    <section aria-label="ภาพรวมผลลัพธ์" className="cursor-default overflow-clip rounded-sm bg-[#FBFAF6] text-[#2B2A26] ring-1 ring-black/[0.06]">
-      {/* cover — layered, not one flat block (19 Nov 2026): a diagonal from the main colour
-          to a lighter shade, a soft accent glow top right, and a faint grid with a rising
-          line on the right (investor data) under the type. The PDF / PNG draws the same. */}
-      <div className="relative isolate overflow-hidden px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-8"
-        style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${coverGlow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
-        <CoverWatermark accent={coverGlow} />
-        {/* their logo, on a white chip so a dark or transparent logo still shows */}
-        {d.logo && (
-          <span className="float-right ml-4 grid h-14 w-28 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
-          </span>
-        )}
-        {/* Mood leads, no style name (19 Nov 2026): a name like "Premium Corporate" read as
-            more specific and settled than the answers really are. */}
-        <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
-        <h3 className="mt-2 max-w-[36rem] font-bold leading-[1.15] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(34px, 7vw, 56px)", textWrap: "balance" } as CSSProperties}>{/* each space-separated phrase stays whole: Thai has no spaces inside words */}
-          {(d.tagline ?? moods.join(" · ")).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</h3>
-        {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
-            the supporting one smaller and softer. */}
-        {moods.length > 0 && (
-          <div className="mt-8 max-w-[36rem] border-t pt-5" style={{ borderColor: "currentColor", borderTopColor: "color-mix(in srgb, currentColor 22%, transparent)" }}>
-            <p className="text-caption font-medium uppercase tracking-[0.04em] opacity-65">อารมณ์ของเว็บไซต์</p>
-            {d.mainMood && <p className="mt-1.5 text-title font-semibold leading-snug">{d.mainMood}</p>}
-            {d.supportMoods.length > 0 && <p className="mt-1 text-body opacity-75">เสริมด้วย {d.supportMoods.join(" · ")}</p>}
-          </div>
-        )}
-      </div>
-
-      <div className="px-6 md:px-10">
-        <Chapter n="01" title="คำตอบของคุณ">
-          {d.answers.length ? (
-            <dl className="divide-y divide-black/[0.07]">
-              {d.answers.map((a) => (
-                <div key={a.topic} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-4 py-2.5 first:pt-0 last:pb-0">
-                  <dt className="text-body text-[#8A8578]">{a.topic}</dt>
-                  <dd className="m-0 text-lead font-semibold">{a.choice}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : <p className="text-body text-[#8A8578]">ยังไม่ได้ตอบคำถามสำรวจแนวทาง</p>}
-        </Chapter>
-
-        <Chapter n="02" title="สี">
-          {d.ownPending ? (
-            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้สีจากเว็บไซต์เดิม</span> <span className="text-[#6F6A5E]">· ทีมจะใช้สีจาก {d.ciSite ?? "เว็บไซต์ปัจจุบันของคุณ"}</span></p>
-          ) : (
-            <>
-              <div className="grid grid-cols-3">
-                {d.swatches.map((s) => (
-                  <div key={s.role}>
-                    <div className="h-20 md:h-28" style={{ background: s.hex, boxShadow: isLightHex(s.hex) ? "inset 0 0 0 1px rgba(0,0,0,0.08)" : undefined }} />
-                    <p className="mt-2 text-small font-semibold">{s.role}</p>
-                    <p className="font-mono text-caption text-[#8A8578]">{s.hex.toUpperCase()}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-3 text-small text-[#8A8578]">{d.colorSource}</p>
-            </>
-          )}
-          {d.ciAssets && <p className="mt-2 text-small"><span className="text-[#8A8578]">CI ที่แนบ · </span>{d.ciAssets} <span className="text-[#8A8578]">· ส่วนที่ไม่ได้แนบ ทีมเสนอให้</span></p>}
-          {d.ciNote && <p className="mt-2 text-small"><span className="text-[#8A8578]">หมายเหตุ · </span>{d.ciNote}</p>}
-        </Chapter>
-
-        <Chapter n="03" title="ตัวอักษร">
-          {d.ciSite ? (
-            <p className="text-lead leading-relaxed"><span className="font-semibold">ใช้ฟอนต์จากเว็บไซต์เดิม</span> <span className="text-[#6F6A5E]">· ทีมจะใช้ฟอนต์จาก {d.ciSite}</span></p>
-          ) : (
-            <>
-              <p className="font-bold leading-tight" style={{ ...head, fontSize: "clamp(32px, 6vw, 48px)" }}>{d.fontName}</p>
-              {/* sample text, labelled so it isn't read as content (user test SCGP) */}
-              <p className="mt-3"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างฟอนต์</span></p>
-              <p className="mt-1.5 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
-              {/* no font description: too specific for a summary (user test CBG) */}
-              <p className="mt-2 text-small text-[#8A8578]">ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</p>
-              {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
-            </>
-          )}
-        </Chapter>
-
-        {d.shots.length > 0 && (
-          <Chapter n="04" title="แนวภาพ">
-            {d.visualMood && <p className="mb-4 text-body leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
-            {/* photos without captions: a caption per photo read as a promise of that exact shot (user test CBG) */}
-            {/* labelled as samples so they don't read as something to click or pick (user test AOT) */}
-            <p className="mb-2"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างโทนภาพ · ไม่ต้องเลือก</span></p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              {d.shots.slice(0, 6).map((s) => (
-                <figure key={s.url} className="m-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none object-cover" style={{ aspectRatio: "4 / 3" }} />
-                </figure>
-              ))}
-            </div>
-            <p className="mt-4 text-small text-[#8A8578]">ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง</p>
-          </Chapter>
-        )}
-
-        <Chapter n={d.shots.length ? "05" : "04"} title="หน้าแรก">
-          {d.sections.length ? (
-            <ol className="grid gap-x-8 sm:grid-cols-2">
-              {d.sections.map((name, i) => (
-                <li key={name} className="flex items-baseline gap-3 py-1.5 text-body">
-                  <span className="w-5 shrink-0 text-right font-mono text-small text-[#8A8578]">{i + 1}</span>
-                  <span>{name.split(" / ")[0]}</span>
-                </li>
-              ))}
-            </ol>
-          ) : <p className="text-body text-[#8A8578]">ยังไม่ได้จัดหน้าแรก</p>}
-          {d.note && <p className="mt-4 text-body leading-relaxed"><span className="text-[#8A8578]">หมายเหตุ · </span>{d.note}</p>}
-          {(insp || d.inspiration.note) && (
-            <p className="mt-3 text-body leading-relaxed">
-              <span className="text-[#8A8578]">แรงบันดาลใจที่แนบ · </span>{[insp, d.inspiration.note].filter(Boolean).join(" · ")}
-            </p>
-          )}
-        </Chapter>
-
-        <p className="border-t border-black/[0.08] py-5 text-small text-[#8A8578]">
-          เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง
-        </p>
-      </div>
-    </section>
-  );
-}
-
-
-// ── S6 · Deliver references + finalize + submit ──
 // "ผู้ร่วมตัดสินใจ (ไม่บังคับ)" on the deliver step: off (19 Nov 2026), code kept. Names
 // already typed into an older draft still reach the team.
 const SHOW_CO_DECIDERS = false;
@@ -2663,7 +2455,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
                     : "bg-ir-dark/80 text-white cursor-wait"
                 }`}
               >
-                {submitting ? "กำลังส่ง..." : "ยืนยันและส่งให้ทีม IR Plus"}
+                {submitting ? <span className="inline-flex items-center gap-2"><Spinner size={18} />กำลังส่ง…</span> : "ยืนยันและส่งให้ทีม IR Plus"}
                 <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-fast ${!submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-accent/70 text-ir-on-accent"}`}>
                   <IconArrowRight width={24} height={24} />
                 </span>

@@ -36,7 +36,7 @@ export function PickCount({ count, max, unit }: { count: number; max?: number; u
   const tone = count === 0
     ? "bg-ir-muted text-ir-t2"
     : full ? "bg-ir-dark text-white" : "bg-ir-accent-soft text-ir-accent-text ring-1 ring-ir-select/40";
-  const num = <span key={count} className="count-pop text-body font-bold leading-none">{count}</span>;
+  const num = <span className="text-body font-bold leading-none">{count}</span>;
   return (
     <span role="status" aria-live="polite"
       className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-small font-semibold tabular-nums transition-colors ${tone}`}>

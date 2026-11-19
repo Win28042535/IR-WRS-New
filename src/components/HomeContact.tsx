@@ -3,6 +3,7 @@
 // The form inside the "ยังมีคำถาม?" section (title + subtitle live on the page, same DNA as
 // the FAQ). A tinted panel, a secondary (outline) button, so it never competes with the main
 // CTAs. Saved via lib/contact.ts.
+import { Spinner } from "@/components/Loader";
 import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { IconCheck } from "@/components/icons";
 import { saveContactMessage } from "@/lib/contact";
@@ -101,7 +102,7 @@ export function HomeContact() {
           disabled={sending}
           className="inline-flex min-h-11 items-center rounded-full border border-ir-border-hi bg-white px-5 text-small font-semibold text-ir-t1 transition-[border-color,background-color,scale] duration-fast hover:border-ir-t1 active:scale-[0.97] focus-ring disabled:cursor-wait disabled:opacity-70"
         >
-          {sending ? "กำลังส่ง..." : "ฝากเรื่อง"}
+          {sending ? <span className="inline-flex items-center gap-2"><Spinner size={16} />กำลังส่ง…</span> : "ฝากเรื่อง"}
         </button>
       </div>
     </form>

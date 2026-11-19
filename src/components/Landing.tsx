@@ -119,6 +119,8 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
 
       </section>
 
+      {/* back-to-top on every page (19 Nov 2026), whichever homepage mode */}
+      <BackToTop />
       {heroOnly ? (
         FULL_HOME_ENABLED && <ModeSwitch mode="hero" />
       ) : (<>
@@ -243,7 +245,6 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
 
       {FULL_HOME_ENABLED && <ModeSwitch mode="full" />}
       <MobileStickyCta flow={flow} company={company} />
-      <BackToTop />
       </>)}
     </div>
   );

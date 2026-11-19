@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useStore } from "@/lib/store";
 import { nextStepText, fmtDate } from "@/components/requirement";
-import { IconCheck, IconPalette } from "@/components/icons";
-import { LumaLoader, LumaChip } from "@/components/AIMascot";
-import { directionById, CONTACT_DAYS } from "@/lib/data";
-import { DesignDNACard } from "@/components/DesignDNA";
+import { IconCheck } from "@/components/icons";
+import { LumaChip } from "@/components/AIMascot";
+import { PageLoader } from "@/components/Loader";
+import { CONTACT_DAYS } from "@/lib/data";
 import { BackToTop } from "@/components/BackToTop";
 import { SaveSheetButton } from "@/components/SaveSheetButton";
 
@@ -19,7 +19,7 @@ export default function SubmittedPage() {
   const requirements = useStore((s) => s.requirements);
 
   useEffect(() => setMounted(true), []);
-  if (!mounted) return <LumaLoader />;
+  if (!mounted) return <PageLoader title="กำลังเตรียมข้อมูล" />;
 
   const req = requirements.find((r) => r.id === params.id);
   if (!req) {
@@ -59,16 +59,10 @@ export default function SubmittedPage() {
           <h1 className="text-white text-heading font-semibold mb-2">
             {frozen ? "โครงการพร้อมเริ่มต้นแล้ว 🚀" : "ส่งข้อมูลสำเร็จแล้ว!"}
           </h1>
-          <p className="text-white/80 text-lead max-w-sm mx-auto mb-1 leading-relaxed">
-            IR Plus ได้รับข้อมูลของคุณเรียบร้อยแล้ว
+          <p className="text-white/80 text-lead max-w-sm mx-auto mb-6 leading-relaxed">
+            ทีมจะติดต่อกลับภายใน {CONTACT_DAYS}
           </p>
-          <p className="text-white/70 text-body max-w-xs mx-auto mb-6">
-            ทีมงานจะติดต่อกลับภายใน {CONTACT_DAYS}
-          </p>
-          <div className="inline-flex items-center gap-2 bg-white/[0.08] border border-white/15 rounded-full pl-3.5 pr-4 py-1.5">
-            <span className="text-small text-white/70">หมายเลขอ้างอิง</span>
-            <span className="font-mono text-white font-medium tracking-wider text-body">{req.id}</span>
-          </div>
+          <CopyRef id={req.id} />
         </div>
 
         {/* info */}
@@ -86,7 +80,7 @@ export default function SubmittedPage() {
               <LumaChip type="celebrate" size={16} />
               <h2 className="text-lead font-semibold text-ir-t1">สิ่งที่จะเกิดขึ้นต่อจากนี้</h2>
             </div>
-            <p className="mt-1 text-body text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>
+            {req.status !== "submitted" && <p className="mt-1 text-body text-ir-t2 leading-relaxed">{nextStepText(req.status)}</p>}
             <dl className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
                 ["ใครจะติดต่อ", "ผู้ดูแลโครงการจากทีม IR Plus"],
@@ -101,48 +95,17 @@ export default function SubmittedPage() {
             </dl>
           </div>
 
-          {/* The client's Design DNA, the same card they reviewed before sending */}
-          <DesignDNACard req={req} className="sc-reveal mb-6" />
-
-          {/* Moodboard notification based on real direction data from quiz */}
-          {(() => {
-            const dir = directionById(req.selectedDirection);
-            const colors = dir?.colors ?? [];
-            return (
-              <div className="sc-reveal rounded-xl border border-ir-border bg-ir-bg overflow-hidden">
-                {/* Color palette strip actual colors from quiz-derived direction */}
-                {colors.length > 0 && (
-                  <div className="flex h-2">
-                    {colors.map((c, i) => (
-                      <div key={i} className="flex-1" style={{ background: c }} />
-                    ))}
-                  </div>
-                )}
-                <div className="px-4 py-4 flex items-start gap-3">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-ir-muted text-ir-t2 grid place-items-center"><IconPalette width={24} height={24} /></div>
-                  <div className="flex-1">
-                    <div className="text-body font-semibold text-ir-t1 mb-1">
-                      Moodboard จะถูกจัดทำและส่งให้ทางอีเมล
-                    </div>
-                    <p className="text-body text-ir-t2 leading-relaxed">
-                      ทีม IR Plus จะนำ Direction{dir ? ` "${dir.label}"` : ""} · Palette
-                      {colors.length > 0 && ` (${dir?.palette ?? ""})`} · และ Sections ที่คุณเลือก
-                      มาจัดทำ Moodboard พร้อมส่งไปที่{" "}
-                      <span className="text-ir-accent-text font-medium">{req.email || "อีเมลของคุณ"}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       </div>
 
       {/* actions — keep a copy of the summary sheet (stamped with the reference number and
           the download time), or go home */}
+      {/* phones: the two save buttons side by side, home below; from sm up all in one row */}
       <div className="no-print flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <SaveSheetButton source={req} kind="pdf" refNo={req.id} />
-        <SaveSheetButton source={req} kind="png" refNo={req.id} />
+        <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
+          <SaveSheetButton source={req} kind="pdf" refNo={req.id} className="w-full sm:w-auto" />
+          <SaveSheetButton source={req} kind="png" refNo={req.id} className="w-full sm:w-auto" />
+        </div>
         <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-ir-muted px-8 text-lead font-medium text-ir-t1 transition-colors hover:bg-ir-border sm:w-auto">
           กลับหน้าหลัก
         </Link>
@@ -151,6 +114,37 @@ export default function SubmittedPage() {
         <p className="text-ir-t3 text-body">มีคำถาม? ติดต่อทีม IR Plus ได้ที่ <span className="text-ir-accent-text">hello@irplus.co.th</span></p>
       </div>
     </div>
+  );
+}
+
+// The reference number as a button: a tap copies it (a check + "คัดลอกแล้ว" for 2 s).
+// Where the clipboard is blocked, the number is selected so it can be copied by hand.
+function CopyRef({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  const numRef = useRef<HTMLSpanElement>(null);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = numRef.current;
+      if (el) { const range = document.createRange(); range.selectNodeContents(el); const sel = window.getSelection(); sel?.removeAllRanges(); sel?.addRange(range); }
+    }
+  };
+  return (
+    <button type="button" onClick={copy} aria-label={`คัดลอกหมายเลขอ้างอิง ${id}`}
+      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] py-1.5 pl-3.5 pr-3 transition-colors hover:bg-white/[0.14] focus-ring">
+      <span className="text-small text-white/70">หมายเลขอ้างอิง</span>
+      <span ref={numRef} className="font-mono text-body font-medium tracking-wider text-white">{id}</span>
+      <span aria-live="polite" className={`inline-flex items-center gap-1 text-small font-medium ${copied ? "text-ir-accent" : "text-white/70"}`}>
+        {copied ? (
+          <><IconCheck width={16} height={16} />คัดลอกแล้ว</>
+        ) : (
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+        )}
+      </span>
+    </button>
   );
 }
 
