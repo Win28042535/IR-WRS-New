@@ -226,6 +226,11 @@ export interface Requirement {
   hasCorporateIdentity?: "yes" | "no" | ""; // "" = not yet answered (new drafts start at "yes")
   /** "no" (team proposes new colours): what tone they have in mind, free text. */
   ciNote?: string;
+  /** "no": what the client already has of their CI (logo, CI guide, colours, font) as links,
+   *  images or PDFs, same shape as references. Anything missing, the team proposes. */
+  ciAssets?: ReferenceItem[];
+  /** "yes" (keep the CI from the website): anything to change from it, free text. */
+  ciKeepNote?: string;
   logo?: string;          // company logo as a data URL (step 1, optional), shown on the Deliver sheet
   logoName?: string;
   ciPicked?: boolean;

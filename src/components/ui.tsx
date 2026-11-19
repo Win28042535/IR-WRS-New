@@ -88,6 +88,7 @@ export function OptionCard({
   tag,
   aside,
   disabled = false,
+  alignTop = false,
   className = "",
 }: {
   icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element;
@@ -100,11 +101,15 @@ export function OptionCard({
   aside?: ReactNode;
   /** Max reached and this one isn't picked: dims and stops taking taps. */
   disabled?: boolean;
+  /** Side-by-side cards whose descriptions wrap to different lengths: pin icon, title and
+   *  dot to the top so the titles line up across the row (instead of centring each). */
+  alignTop?: boolean;
   className?: string;
 }) {
+  const align = alignTop ? "items-start" : "items-center";
   return (
     <div
-      className={`group/sel relative flex items-center gap-3 rounded-xl border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-fast has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
+      className={`group/sel relative flex ${align} gap-3 rounded-xl border px-4 py-3.5 min-h-[84px] transition-[background-color,border-color,box-shadow,opacity,scale] duration-fast has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ir-ring/40 ${
         selected
           ? "border-ir-select bg-primary-50 shadow-selected active:scale-[0.98]"
           : disabled
@@ -117,7 +122,7 @@ export function OptionCard({
         onClick={onSelect}
         aria-pressed={selected}
         disabled={disabled}
-        className="flex flex-1 min-w-0 items-center gap-3 text-left focus-ring disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']"
+        className={`flex flex-1 min-w-0 ${align} gap-3 text-left focus-ring disabled:cursor-not-allowed after:absolute after:inset-0 after:rounded-xl after:content-['']`}
       >
         {rank ? (
           <span className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-ir-accent text-ir-on-accent font-mono text-body font-bold">

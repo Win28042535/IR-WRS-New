@@ -15,7 +15,6 @@ import { BackToTop } from "@/components/BackToTop";
 import { chosenThaiFont, familyStack, fontByFamily, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import { FontPickerSheet, FontPreviewSheet } from "@/components/FontPicker";
-import { LogoInput } from "@/components/LogoInput";
 import { NoteField } from "@/components/NoteField";
 import { CoDeciders } from "@/components/CoDeciders";
 import type { DesignProfile, QuizOption } from "@/lib/types";
@@ -498,6 +497,19 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 // ── S2 · Brand (CI): colours and font. Its own step since the internal review of
 // 18 Nov 2026 (it used to sit under the company questions in step 1). Right after step 1,
 // so the company, its website and its brand are answered together. ──
+// The team's font as a specimen card on "ปรับ CI ให้ทันสมัย". Off this phase (19 Nov 2026:
+// the client attaches what CI they already have instead); the card, its full preview and
+// the font browser stay in the code for a later phase.
+const SHOW_CI_FONT_CARD = false;
+
+/** "2 ลิงก์ · 1 ไฟล์" for a list of attached links/files ("" when none). */
+function refCounts(items?: { type: string }[]): string {
+  const list = items ?? [];
+  const links = list.filter((r) => r.type === "url").length;
+  const files = list.length - links;
+  return [links ? `${links} ลิงก์` : "", files ? `${files} ไฟล์` : ""].filter(Boolean).join(" · ");
+}
+
 function SBrand({ go, draft, updateDraft }: any) {
   // CI: keeping it means taking colours + font from the current website, so it needs the
   // link. Until the client picks, the default follows the link (link → keep, none → team
@@ -511,8 +523,8 @@ function SBrand({ go, draft, updateDraft }: any) {
   const [fontPreview, setFontPreview] = useState(false);
   const [fontBrowse, setFontBrowse] = useState(false);
   const interestFont: string = fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : "";
-  useGoogleFont(!keepCi && interestFont ? previewFamily(interestFont) : undefined, [400, 600]);
-  useGoogleFont(keepCi ? undefined : proposedFont, [400, 600]);
+  useGoogleFont(SHOW_CI_FONT_CARD && !keepCi && interestFont ? previewFamily(interestFont) : undefined, [400, 600]);
+  useGoogleFont(SHOW_CI_FONT_CARD && !keepCi ? proposedFont : undefined, [400, 600]);
   useEffect(() => {
     // a picked answer is kept as is (everything downstream also checks the link)
     if (draft.ciPicked) return;
@@ -524,7 +536,7 @@ function SBrand({ go, draft, updateDraft }: any) {
 
   return (
     <>
-      <Head n={2} title="สีและฟอนต์ของแบรนด์ (CI)" sub="ใช้สีและฟอนต์เดิมจากเว็บไซต์ปัจจุบัน หรือให้ทีมออกแบบเสนอใหม่" />
+      <Head n={2} title="สีและฟอนต์ของแบรนด์ (CI)" sub="ใช้สีและฟอนต์เดิมจากเว็บไซต์ปัจจุบัน หรือปรับให้ทันสมัยขึ้น" />
       {/* Corporate identity: colours AND font, one decision, and "keep" only means "take them
           from the current website" (no hex codes, no font picking: IR teams don't pick fonts,
           they follow their site — user tests BTS / AOT / CPALL). Two equal cards; keeping the
@@ -550,29 +562,44 @@ function SBrand({ go, draft, updateDraft }: any) {
         <SectionLabel>ต้องการใช้สีและฟอนต์แบบไหน</SectionLabel>
         <div className="mt-3 grid gap-2.5 md:grid-cols-2">
           <OptionCard
+            alignTop
             icon={IconPalette}
             title="ใช้ CI เดิม"
-            desc={siteHost ? `ทีมจะใช้สีและฟอนต์จาก ${siteHost}` : "ใส่ลิงก์เว็บไซต์ปัจจุบันด้านบนก่อน จึงเลือกข้อนี้ได้"}
+            desc={siteHost ? `ใช้สี ฟอนต์ และโลโก้แบบเดิมจากเว็บไซต์ปัจจุบัน · ${siteHost}` : "ใส่ลิงก์เว็บไซต์ปัจจุบันด้านบนก่อน จึงเลือกข้อนี้ได้"}
             selected={keepCi}
             disabled={!siteHost}
             onSelect={() => updateDraft({ hasCorporateIdentity: "yes", ciPicked: true })}
           />
           <OptionCard
+            alignTop
             icon={IconSparkle}
-            title="ให้ทีมออกแบบเสนอใหม่"
-            desc={dirn ? `ทีมเสนอสีและฟอนต์ตามแนวทาง ${dirn.label}` : "ทีมเสนอสีและฟอนต์ที่เข้ากับแนวทางและกลุ่มผู้อ่าน"}
+            title="ปรับ CI ให้ทันสมัย"
+            desc="อยากให้เว็บต่างจาก CI เดิม จะปรับบางส่วนหรือทั้งหมดก็ได้"
             selected={!keepCi}
             onSelect={() => updateDraft({ hasCorporateIdentity: "no", ciPicked: true })}
           />
         </div>
-        {/* keep the CI: their logo (optional) sits where the starting font sits for the other card */}
-        {keepCi && <LogoInput draft={draft} updateDraft={updateDraft} />}
+        {/* keep the CI: logo, colours and font all come from the linked website, so only a
+            note (19 Nov 2026: the logo upload went — the team takes it from the site) */}
+        {keepCi && (
+          <NoteField className="mt-4" label="หมายเหตุถึงทีม" hint="มีส่วนไหนอยากปรับจากเดิม บอกไว้ได้"
+            value={draft.ciKeepNote ?? ""} onChange={(v) => updateDraft({ ciKeepNote: v })}
+            placeholder="เช่น ใช้สีเดิม แต่อยากได้ฟอนต์ที่อ่านง่ายขึ้น" />
+        )}
+        {/* refresh the CI: attach what they already have; whatever is missing, the team proposes */}
+        {!keepCi && (
+          <div className="mt-5">
+            <SectionLabel>แนบสิ่งที่มีอยู่แล้ว</SectionLabel>
+            <p className="mt-1 mb-3 text-small text-ir-t3">เช่น โลโก้ คู่มือ CI ชุดสี หรือฟอนต์ ส่วนไหนไม่มี ทีมเสนอให้</p>
+            <ReferenceEditor variant="ci" draft={draft} updateDraft={updateDraft} />
+          </div>
+        )}
         {/* The team's font as a specimen card (internal review 18 Nov 2026: the old one-row
             layout with a button and an underlined link read as odd). Specimen on top in the
             font itself, then a footer: what it is on the left, two equal pill buttons on the
             right in the order they're used (look at it, then browse others). Before Explore
             it's the starting pairing; after Explore, the matched Direction's font and colours. */}
-        {!keepCi && (
+        {SHOW_CI_FONT_CARD && !keepCi && (
           <div className="mt-3 overflow-hidden rounded-xl border border-ir-border bg-ir-card">
             <div className="border-b border-ir-border-soft bg-white px-5 py-5 sm:px-6" style={{ fontFamily: familyStack(proposedFont) }}>
               <p className="truncate text-heading font-semibold leading-snug text-ir-t1 sm:text-display-sm">{draft.company?.trim() || "บริษัท ตัวอย่าง จำกัด (มหาชน)"}</p>
@@ -617,7 +644,7 @@ function SBrand({ go, draft, updateDraft }: any) {
         )}
         {/* the note for the team comes last (user feedback) */}
         {!keepCi && (
-          <NoteField className="mt-4" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้"
+          <NoteField className="mt-2" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้"
             value={draft.ciNote ?? ""} onChange={(v) => updateDraft({ ciNote: v })}
             placeholder="เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม" />
         )}
@@ -669,6 +696,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
           items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
           selected={selectedAudiences}
           onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
+          unit="กลุ่ม"
         />
       </div>
 
@@ -744,6 +772,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
           selected={draft.businessGoals}
           max={RULES.goals.max}
           topLabel="เป้าหมายหลัก"
+          unit="ข้อ"
           cols="md:grid-cols-2"
           onChange={(next) => updateDraft({ businessGoals: next })}
           itemClassName={(_id, i) => (i >= GOALS_COLLAPSE_AT && !goalsExpanded ? "max-md:hidden" : "")}
@@ -795,6 +824,10 @@ const LetterBadge = ({ letter }: { letter: string }) => (
   <span className="grid place-items-center w-6 h-6 rounded-full bg-ir-dark text-white text-small font-bold shrink-0" aria-hidden="true">{letter}</span>
 );
 
+// The phone-only "ดูภาพใหญ่" button under the A/B cards. Off (19 Nov 2026): the cards are
+// picked as they are; the big view stays in the code in case it's wanted back.
+const SHOW_QUIZ_BIG_VIEW = false;
+
 // ── S2 Smart Discovery Quiz (A/B) ──
 function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebookEntry, quizIdx, answered }: any) {
   const opts: [QuizOption, string][] = [[q.optionA, "A"], [q.optionB, "B"]];
@@ -807,7 +840,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
   const quizNudge = useNudge();
   const prevLetter = answered ? (answered === q.optionA ? "A" : answered === q.optionB ? "B" : null) : null;
   const pending = chosen && chosen.q === q.id ? chosen.letter : prevLetter;
-  // Phones only: the two-up mocks are ~150px wide each, too small to read the details that
+  // Phones only (off since 19 Nov 2026, see SHOW_QUIZ_BIG_VIEW): the two-up mocks are ~150px wide each, too small to read the details that
   // tell A from B. "ดูภาพใหญ่" shows both full width, stacked, right under the cards —
   // inline, no modal, and it stays open across questions once opened.
   const [bigView, setBigView] = useState(false);
@@ -909,7 +942,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
           </button>
         ))}
       </div>
-      <div className="sm:hidden mt-3">
+      {SHOW_QUIZ_BIG_VIEW && <div className="sm:hidden mt-3">
         <button type="button" onClick={() => setBigView((v) => !v)} aria-expanded={bigView}
           className="w-full min-h-11 rounded-full border border-ir-border text-body font-semibold text-ir-t1 bg-ir-card">
           {bigView ? "ย่อภาพ" : "ดูภาพใหญ่"}
@@ -936,7 +969,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
             ))}
           </div>
         )}
-      </div>
+      </div>}
       <p className="mt-4 text-center text-small text-ir-t3" aria-live="polite">
         {pending ? `เลือก ${pending} แล้ว · กด${isLast ? "ดูผลลัพธ์" : "ข้อถัดไป"}เพื่อไปต่อ หรือกดอีกแบบเพื่อเปลี่ยน` : "เลือกแบบที่ใกล้กับเว็บไซต์ที่อยากได้มากกว่า"}
       </p>
@@ -1190,7 +1223,7 @@ function S4Structure({ go, draft, updateDraft }: any) {
   const nudge = useNudge();
   return (
     <>
-      <Head n={5} title="จัดหน้าแรกของเว็บไซต์" sub="ส่วนต่าง ๆ บนหน้าแรก เรียงจากบนลงล่าง · AI จัดไว้ให้แล้ว ปรับได้" />
+      <Head n={5} title="จัดหน้าแรกของเว็บไซต์" sub="ส่วนต่างๆ บนหน้าแรก AI จัดไว้ให้แล้ว สามารถปรับได้" />
       <div id="structure-field" className="scroll-mt-28">
         {nudge.field === "structure-field" && short > 0 && <FieldError>เลือกเนื้อหาเพิ่มอีก {short} เรื่อง</FieldError>}
         <StructureBuilder draft={draft} updateDraft={updateDraft} />
@@ -1394,10 +1427,15 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
   );
 }
 
-function ReferenceEditor({ draft, updateDraft }: any) {
+// variant "ci" is the same editor reused in step 2 for what the client already has of their
+// CI (logo, CI guide, colours, font): stored on draft.ciAssets instead of draft.references,
+// no "what do you like" chips and no examples box.
+function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
+  const ci = variant === "ci";
+  const field: "references" | "ciAssets" = ci ? "ciAssets" : "references";
   // ── URL list state ── committed immediately on Enter/blur, no separate save step
   const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[] }[]>(() =>
-    (draft.references ?? [])
+    (draft[field] ?? [])
       .filter((r: any) => r.type === "url")
       .map((r: any) => ({ id: r.id, value: r.value, note: r.note, likes: r.likes }))
   );
@@ -1408,7 +1446,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
   // ── Image + document list state (base64 data-uri) ── PDFs ride in the same gallery
   // (user test BTS: "แนบได้ทั้งเอกสาร รูป และลิงก์"), stored as type "file".
   const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; kind?: "pdf" }[]>(() =>
-    (draft.references ?? [])
+    (draft[field] ?? [])
       .filter((r: any) => r.type === "image" || r.type === "file")
       .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, kind: r.type === "file" ? "pdf" as const : undefined }))
   );
@@ -1478,8 +1516,8 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined }));
     const imgItems = nextImages
       .map((img) => ({ id: img.id, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined }));
-    updateDraft({ references: [...urlItems, ...imgItems] });
-  }, [updateDraft]);
+    updateDraft({ [field]: [...urlItems, ...imgItems] });
+  }, [updateDraft, field]);
 
   // Note handlers — typing updates the item's note immediately (no separate save step).
   // Unlike remove (above), these fire straight from a textarea `onChange` inside a React
@@ -1662,14 +1700,14 @@ function ReferenceEditor({ draft, updateDraft }: any) {
       {/* No intro sentence here: the step's own subtitle already says what to add (the
           two read as a repeat once the mode picker was gone). */}
       {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
-      <div className="mb-5 rounded-xl bg-ir-sunken px-4 py-3">
+      {!ci && <div className="mb-5 rounded-xl bg-ir-sunken px-4 py-3">
         <p className="text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</p>
         <ul className="mt-1.5 grid gap-1 text-small text-ir-t2 sm:grid-cols-2">
           {["เว็บ IR ของบริษัทที่ชอบ ทั้งในและต่างประเทศ", "เว็บของบริษัทในเครือหรือแบรนด์หลักของคุณ", "วิดีโอแนะนำองค์กร หรือคลิปที่ชอบ (ลิงก์ YouTube หรือ Google Drive)", "ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (PDF)"].map((t) => (
             <li key={t} className="flex items-start gap-1.5"><span aria-hidden="true" className="text-ir-accent-text">•</span>{t}</li>
           ))}
         </ul>
-      </div>
+      </div>}
 
       {/* Mobile/tablet (<768px): Input → Gallery → Upload, so a newly added reference lands
           right under the input with no scrolling — the floating preview + counter confirm
@@ -1680,7 +1718,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         {/* ── Website links — unified input+button as one control, no visual seam ── */}
         <div className="order-1 mb-4">
           <div className="flex items-baseline gap-2">
-            <SectionLabel>เว็บไซต์หรือวิดีโอที่ชอบ</SectionLabel>
+            <SectionLabel>{ci ? "ลิงก์" : "เว็บไซต์หรือวิดีโอที่ชอบ"}</SectionLabel>
             <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
           </div>
           <div
@@ -1697,7 +1735,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
             <span className="shrink-0 flex items-center pl-4 pr-2 text-lead text-ir-t3">🌐</span>
             <input
               type="url"
-              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์เว็บไซต์ YouTube / Vimeo หรือ Google Drive..."}
+              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : ci ? "วางลิงก์ เช่น คู่มือ CI ใน Google Drive..." : "วางลิงก์เว็บไซต์ YouTube / Vimeo หรือ Google Drive..."}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
@@ -1887,6 +1925,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         <IconClose width={9} height={9} />
                       </button>
                     </div>
+                    {!ci && <>
                     <p className="mb-1.5 text-small font-semibold text-ir-t1">ชอบอะไรใน{editingUrl ? (isDriveUrl(editingUrl.value) ? "ไฟล์นี้" : isVideoUrl(editingUrl.value) ? "วิดีโอนี้" : "เว็บนี้") : editingImage!.kind === "pdf" ? "เอกสารนี้" : "ภาพนี้"}?</p>
                     <div role="group" aria-label="สิ่งที่ชอบ" className="mb-2.5 flex flex-wrap gap-1.5">
                       {REFERENCE_LIKES.map((like) => {
@@ -1907,10 +1946,11 @@ function ReferenceEditor({ draft, updateDraft }: any) {
                         );
                       })}
                     </div>
+                    </>}
                     <NoteField key={noteEditing ?? ""} className="mt-1" label="โน้ตสำหรับรายการนี้" rows={2}
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
                       onChange={(v) => (editingUrl ? updateUrlNote(editingUrl.id, v) : updateImageNote(editingImage!.id, v))}
-                      placeholder="เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน หรือโทนสีของหน้านี้" />
+                      placeholder={ci ? "เช่น โลโก้เวอร์ชันล่าสุด หรือหน้าคู่มือที่ระบุรหัสสี" : "เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน หรือโทนสีของหน้านี้"} />
                   </div>
                 );
               })()}
@@ -1921,7 +1961,7 @@ function ReferenceEditor({ draft, updateDraft }: any) {
         {/* ── Image upload — centered dropzone, standard upload-card pattern ── */}
         <div className="order-3 md:order-2">
           <div className="flex items-baseline gap-2">
-            <SectionLabel>รูปภาพหรือเอกสารที่ชอบ</SectionLabel>
+            <SectionLabel>{ci ? "รูปหรือไฟล์" : "รูปภาพหรือเอกสารที่ชอบ"}</SectionLabel>
             <span className="text-small text-ir-t3">(ไม่บังคับ)</span>
           </div>
           <div
@@ -2156,7 +2196,10 @@ function sheetData(draft: any): SheetData {
       return q ? [{ topic: q.topic, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
     }),
     ownPending: c.ownPending,
-    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : `ทีมเสนอชุดสีตามแนวทาง${draft.ciNote?.trim() ? ` · ${draft.ciNote.trim()}` : ""}`,
+    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ทีมปรับ CI ให้ทันสมัยตามแนวทาง",
+    ciNote: (c.keepOwn ? draft.ciKeepNote : draft.ciNote)?.trim() || undefined,
+    // what CI they attached on "ปรับ CI ให้ทันสมัย"; whatever is missing, the team proposes
+    ciAssets: c.keepOwn ? "" : refCounts(draft.ciAssets),
     ciSite: c.keepOwn ? c.siteUrl : undefined,
     logo: c.keepOwn && draft.logo ? draft.logo : undefined,
     fontInterest: !c.keepOwn && fontByFamily(draft.fontInterest ?? "") ? draft.fontInterest : undefined,
@@ -2263,6 +2306,8 @@ function ProjectOverview({ draft }: { draft: any }) {
               <p className="mt-3 text-small text-[#8A8578]">{d.colorSource}</p>
             </>
           )}
+          {d.ciAssets && <p className="mt-2 text-small"><span className="text-[#8A8578]">CI ที่แนบ · </span>{d.ciAssets} <span className="text-[#8A8578]">· ส่วนที่ไม่ได้แนบ ทีมเสนอให้</span></p>}
+          {d.ciNote && <p className="mt-2 text-small"><span className="text-[#8A8578]">หมายเหตุ · </span>{d.ciNote}</p>}
         </Chapter>
 
         <Chapter n="03" title="ตัวอักษร">

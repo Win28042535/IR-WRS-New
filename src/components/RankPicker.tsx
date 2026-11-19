@@ -27,9 +27,36 @@ export const buzz = (ms: number) => {
   try { if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(ms); } catch { /* not supported */ }
 };
 
+/** How many are picked, said so it's seen (user tests: the small grey "เลือกแล้ว 2/6" went
+ *  unnoticed). Three states: none (grey, says how many you may pick), some (lime, bold
+ *  number), full (dark, check). `max` only when the list has a real cap: without one
+ *  there's no "จาก N", so it doesn't read as "pick them all". */
+export function PickCount({ count, max, unit }: { count: number; max?: number; unit: string }) {
+  const full = max != null && count >= max;
+  const tone = count === 0
+    ? "bg-ir-muted text-ir-t2"
+    : full ? "bg-ir-dark text-white" : "bg-ir-accent-soft text-ir-accent-text ring-1 ring-ir-select/40";
+  const num = <span key={count} className="count-pop text-body font-bold leading-none">{count}</span>;
+  return (
+    <span role="status" aria-live="polite"
+      className={`inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-small font-semibold tabular-nums transition-colors ${tone}`}>
+      {count === 0 ? (
+        <span className="font-medium">{`ยังไม่ได้เลือก${max != null ? ` · เลือกได้ ${max} ${unit}` : ""}`}</span>
+      ) : full ? (
+        <>
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
+          <span>ครบ {num} {unit}แล้ว</span>
+        </>
+      ) : (
+        <><span>เลือกแล้ว</span>{num}<span>{max != null ? `จาก ${max}` : unit}</span></>
+      )}
+    </span>
+  );
+}
+
 export function RankPicker({
   items, selected: rawSelected, onChange, max, title, hint,
-  cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด",
+  cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด", unit = "รายการ",
 }: {
   items: RankItem[];
   selected: string[];
@@ -41,6 +68,8 @@ export function RankPicker({
   itemClassName?: (id: string, i: number) => string;
   /** Badge on the #1 card, e.g. "เป้าหมายหลัก". */
   topLabel?: string;
+  /** what one pick is called in the count, e.g. "กลุ่ม", "ข้อ" */
+  unit?: string;
 }) {
   // Only ids that are on the list count (a stale id in an old draft is ignored).
   const selected = rawSelected.filter((id) => items.some((it) => it.id === id));
@@ -164,9 +193,7 @@ export function RankPicker({
             {hint && <p className="mt-0.5 text-caption text-ir-t3">{hint}</p>}
           </div>
         )}
-        <span className="ml-auto shrink-0 rounded-full bg-ir-muted px-2.5 py-1 text-caption font-medium text-ir-t2 tabular-nums" role="status">
-          เลือกแล้ว {selected.length}/{limit}
-        </span>
+        <span className="ml-auto"><PickCount count={selected.length} max={max} unit={unit} /></span>
       </div>
 
       <div className={`mt-3 grid gap-2.5 ${cols}`}>

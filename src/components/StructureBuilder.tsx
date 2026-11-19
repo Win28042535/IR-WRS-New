@@ -28,6 +28,16 @@ import { NoteField } from "@/components/NoteField";
 // footer not counted). A cap again, but a roomy one, shown as "n / 8".
 const MAX_OPT = 8;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
+// "เพิ่มส่วนอื่น" groups, in this order (19 Nov 2026): investor info first, then the core
+// structure, then any other category after them (unknown ones land at the end too).
+const ADD_GROUPS: { category: string; label: string }[] = [
+  { category: "Investor", label: "ข้อมูลนักลงทุน" },
+  { category: "Core", label: "โครงสร้างหลัก" },
+  { category: "People", label: "ผู้บริหาร" },
+  { category: "Sustainability", label: "ความยั่งยืนและธรรมาภิบาล" },
+];
+const OTHER_GROUP = "อื่นๆ";
+
 const shortName = (id: string) => (sectionById(id)?.name ?? id).split(" / ")[0];
 const FLIGHT_MS = 560;
 // how many sections the AI proposes
@@ -104,6 +114,17 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !optional.includes(id))
     // "มักอยู่หน้าอื่น" ones at the end of the list
     .sort((a, b) => Number(OTHER_PAGE_SECTION_IDS.includes(a)) - Number(OTHER_PAGE_SECTION_IDS.includes(b)));
+  // the same list, cut into the ADD_GROUPS (order inside each group kept: AI picks first,
+  // "มักอยู่หน้าอื่น" last); empty groups are left out
+  const addGroups = (() => {
+    const out: { label: string; ids: string[] }[] = ADD_GROUPS.map((g) => ({ label: g.label, ids: [] }));
+    const other: string[] = [];
+    for (const id of addable) {
+      const gi = ADD_GROUPS.findIndex((g) => g.category === sectionById(id)?.category);
+      if (gi >= 0) out[gi].ids.push(id); else other.push(id);
+    }
+    return [...out, { label: OTHER_GROUP, ids: other }].filter((g) => g.ids.length);
+  })();
   const isRecommended = isRecommendedHomepage(draft);
 
   // First visit: start from the recommended homepage instead of an empty outline, so the
@@ -235,13 +256,6 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); remove(id); }
   };
 
-  // Why these: the reader + top goal the proposal is built on, said once in the result card
-  // (instead of a reason under every row).
-  const basis = [
-    audienceById(draft.primaryAudience ?? "")?.label && `ผู้อ่านหลัก: ${audienceById(draft.primaryAudience ?? "")?.label}`,
-    draft.businessGoals?.[0] && `เป้าหมายแรก: ${BUSINESS_GOALS.find((b) => b.id === draft.businessGoals?.[0])?.label ?? ""}`,
-  ].filter(Boolean).join(" · ");
-
   return (
     <div>
       {/* Result first, customising second (user feedback): the AI's homepage is a dark card
@@ -258,7 +272,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               </p>
               <p className="mt-0.5 text-small leading-snug text-white/70">
                 {isRecommended
-                  ? <>เรียงตามลำดับที่เว็บ IR ส่วนใหญ่ใช้{basis ? ` · ${basis}` : ""} · เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย</>
+                  ? "เรียงตามลำดับที่เว็บ IR ส่วนใหญ่ใช้ เห็นด้วยกด “ใช้หน้าแรกนี้” ได้เลย"
                   : optional.length === 0
                     ? `เลือกจากรายการ “เพิ่มส่วนอื่น” อย่างน้อย ${MIN_OPT} ส่วน`
                     : "เรียงจากบนลงล่าง · ลากที่ ⋮⋮ เพื่อสลับลำดับ"}
@@ -380,7 +394,13 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             </p>
           </div>
           {addable.length === 0 && <p className="px-1 text-small text-ir-t3">ใส่ครบทุกส่วนแล้ว</p>}
-          {addable.map((id) => (
+          {addGroups.map((g, gi) => (
+            <div key={g.label} role="group" aria-label={g.label} className="grid grid-cols-[minmax(0,1fr)] gap-2">
+              <p className={`flex items-center gap-2 px-1 text-caption font-semibold text-ir-t3 ${gi ? "mt-3" : "mt-1"}`}>
+                {g.label}
+                <span aria-hidden="true" className="h-px flex-1 bg-ir-border-soft" />
+              </p>
+          {g.ids.map((id) => (
             <button
               key={id}
               type="button"
@@ -405,6 +425,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                 เพิ่ม
               </span>
             </button>
+          ))}
+            </div>
           ))}
         </div>
       </div>

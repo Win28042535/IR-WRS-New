@@ -7,7 +7,7 @@ import { IconCheck, IconArrowRight } from "@/components/icons";
 import { BriefFlow, DemoPanel, HeroFragments, Moodboard, StepGallery } from "@/components/HomeShowcase";
 import { useStartFlow } from "@/lib/useStartFlow";
 import { HomeContact } from "@/components/HomeContact";
-import { setHomeMode, useHomeMode, type HomeMode } from "@/lib/useHomeMode";
+import { FULL_HOME_ENABLED, setHomeMode, useHomeMode, type HomeMode } from "@/lib/useHomeMode";
 
 const balance = { textWrap: "balance" } as CSSProperties;
 
@@ -61,7 +61,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
   // A link with ?mode=… also remembers that mode for the next visit.
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("mode");
-    if (q === "hero" || q === "full") setHomeMode(q);
+    if (FULL_HOME_ENABLED && (q === "hero" || q === "full")) setHomeMode(q);
   }, []);
 
   return (
@@ -120,7 +120,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
       </section>
 
       {heroOnly ? (
-        <ModeSwitch mode="hero" />
+        FULL_HOME_ENABLED && <ModeSwitch mode="hero" />
       ) : (<>
       {/* ── The deliverable, revealed on scroll: centred and large, away from the CTA ── */}
       <section id="example" className="relative mx-auto max-w-[1320px] scroll-mt-20 px-5 sm:px-8 pt-16 sm:pt-20">
@@ -241,7 +241,7 @@ export function Landing({ variant = "classic" }: { variant?: "classic" | "demo" 
         <p className="mt-10 text-center text-small text-ir-t3">IR Plus by efin · Website Requirement System</p>
       </section>
 
-      <ModeSwitch mode="full" />
+      {FULL_HOME_ENABLED && <ModeSwitch mode="full" />}
       <MobileStickyCta flow={flow} company={company} />
       <BackToTop />
       </>)}

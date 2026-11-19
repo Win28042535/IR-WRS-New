@@ -496,7 +496,14 @@ export const STEP_SCHEME = 3;
 export const CONTACT_DAYS = "3 วันทำการ";
 
 // "efinancethai.com" from whatever was typed in the website field ("" when empty).
-export const siteHostOf = (url?: string) => (url ?? "").trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");
+// The website link without scheme / www / trailing slash, or "" when it isn't a usable
+// link: the host needs a dot and no spaces (19 Nov 2026: "เเ" read as a site, so the CI card
+// said "ทีมใช้สี ฟอนต์ และโลโก้จาก แ"). Keeping the CI depends on this, everywhere.
+export const siteHostOf = (url?: string) => {
+  const s = (url ?? "").trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");
+  const host = s.split(/[/?#]/)[0];
+  return /^[^\s.]+(\.[^\s.]+)+$/.test(host) ? s : "";
+};
 // Keeping the CI = colours and font from the current website, so it needs the link.
 export const keepsCi = (r: { hasCorporateIdentity?: string; website?: string }) => r.hasCorporateIdentity === "yes" && !!siteHostOf(r.website);
 export function flowStepOf(draft: { flowStep?: number; stepScheme?: number } | null | undefined): number {

@@ -18,6 +18,10 @@ export type SheetData = {
   logo?: string;        // company logo (data URL), top-right of the cover
   fontInterest?: string; // a font the client liked; the team decides
   colorSource: string;
+  /** step 2 note: what to change from the kept CI, or the tone in mind for the refresh */
+  ciNote?: string;
+  /** "2 ลิงก์ · 1 ไฟล์" of CI the client attached on the refresh option ("" = none) */
+  ciAssets?: string;
   swatches: { hex: string; role: string; use: string }[];
   primary: string;
   moodInk: string;
@@ -190,6 +194,8 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     y += fh + 104;
     y += 64; font(400, 32); text(d.colorSource, M, y, MUTED);
   }
+  if (d.ciAssets) { y += 56; font(400, 32); text(`CI ที่แนบ · ${d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้`, M, y, MUTED); }
+  if (d.ciNote) { font(400, 32); wrap(ctx, `หมายเหตุ · ${d.ciNote}`, CW, 3).forEach((ln) => { y += 52; text(ln, M, y, MUTED); }); }
 
   // 03 font
   chapter("03", "ตัวอักษร");
