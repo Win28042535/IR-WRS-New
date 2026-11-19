@@ -779,12 +779,13 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
 // Website mock at the top of each quiz card — a flat illustration (ExploreMock) of the
 // choice, so the pair can be told apart at a glance.
-function QuizVisual({ mock }: { mock: string }) {
+// `live` plays the mock's motion (globals.css .em-*): while hovered with a mouse or picked.
+function QuizVisual({ mock, live = false }: { mock: string; live?: boolean }) {
   return (
     // 16:9 inset frame. Height comes from the padding-box ratio (56.42% = 677/1200) rather
     // than `aspect-ratio`, which some mobile WebViews don't lock in. Nothing sits on top of
     // the mock — on a phone it's only ~150px wide and every pixel of it is the comparison.
-    <div className="relative overflow-hidden rounded-sm sm:rounded-md border border-ir-border select-none" style={{ paddingTop: "56.42%" }}>
+    <div className={`relative overflow-hidden rounded-sm sm:rounded-md border border-ir-border select-none ${live ? "em-live" : ""}`} style={{ paddingTop: "56.42%" }}>
       <div className="absolute inset-0"><ExploreMock id={mock} /></div>
     </div>
   );
@@ -810,6 +811,9 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
   // tell A from B. "ดูภาพใหญ่" shows both full width, stacked, right under the cards —
   // inline, no modal, and it stays open across questions once opened.
   const [bigView, setBigView] = useState(false);
+  // Mouse hover plays a card's picture too; touch never sets this (pointerType check), so
+  // on phones and tablets only the picked card moves.
+  const [hovered, setHovered] = useState<string | null>(null);
   const isLast = idx === total - 1;
 
   const selectOption = (_o: QuizOption, letter: string) => setChosen({ q: q.id, letter });
@@ -875,6 +879,8 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
       <div id="quiz-options" className="grid scroll-mt-28 grid-cols-2 gap-2 sm:gap-4">
         {opts.map(([o, letter]) => (
           <button key={letter} type="button" onClick={() => selectOption(o, letter)}
+            onPointerEnter={(e) => { if (e.pointerType === "mouse") setHovered(letter); }}
+            onPointerLeave={() => setHovered(null)}
             aria-pressed={pending === letter}
             aria-label={`ตัวเลือก ${letter}: ${o.label}`}
             className={[
@@ -899,7 +905,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <SelectDot on={pending === letter} className="ml-auto sm:ml-0" />
               </div>
             </div>
-            <div className="mt-auto"><QuizVisual mock={o.mock} /></div>
+            <div className="mt-auto"><QuizVisual mock={o.mock} live={pending === letter || hovered === letter} /></div>
           </button>
         ))}
       </div>
@@ -916,7 +922,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                 <figcaption className="mb-2">
                   <span className="flex items-center gap-2 text-lead font-bold text-ir-t1"><LetterBadge letter={letter} />{o.label}</span>
                 </figcaption>
-                <QuizVisual mock={o.mock} />
+                <QuizVisual mock={o.mock} live={pending === letter} />
                 {/* choose straight from the big view — no scrolling back up to the small cards */}
                 <button
                   type="button"

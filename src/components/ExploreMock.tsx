@@ -16,7 +16,7 @@
 // Shared construction: 1200×677 canvas (16:9), 72px margins, 12 columns of 66px with 24px
 // gutters (column i starts at x = 72 + 90·i, an n-column span is 90·n − 24 wide).
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { SAMPLE_FIN } from "@/lib/data";
 
 const W = 1200;
@@ -87,12 +87,18 @@ const IR = {
   ratios: [["อัตรากำไรสุทธิ", S.netMargin], ["ROE", S.roe], ["D/E (เท่า)", S.de], ["P/E (เท่า)", S.pe]],
 };
 
+// ── motion ───────────────────────────────────────────────────────────────────
+// Class names only; the motion itself is in globals.css (.em-*) and plays while an
+// ancestor has .em-live (the quiz card being hovered with a mouse, or picked). Without it,
+// and under reduced motion, every mock is the still picture. --i staggers the entrances.
+const at = (i: number) => ({ "--i": i }) as CSSProperties;
+
 // ── primitives ─────────────────────────────────────────────────────────────
-const Txt = ({ x, y, size, weight = 400, fill, children, anchor, ls, opacity }: {
+const Txt = ({ x, y, size, weight = 400, fill, children, anchor, ls, opacity, className }: {
   x: number; y: number; size: number; weight?: number; fill: string; children: ReactNode;
-  anchor?: "start" | "middle" | "end"; ls?: number; opacity?: number;
+  anchor?: "start" | "middle" | "end"; ls?: number; opacity?: number; className?: string;
 }) => (
-  <text x={x} y={y} fontSize={size} fontWeight={weight} fill={fill} textAnchor={anchor} letterSpacing={ls} opacity={opacity}>
+  <text x={x} y={y} fontSize={size} fontWeight={weight} fill={fill} textAnchor={anchor} letterSpacing={ls} opacity={opacity} className={className}>
     {children}
   </text>
 );
@@ -110,12 +116,12 @@ const Lines = ({ x, y, w, n, t, gap = 16, h = 8 }: { x: number; y: number; w: nu
 const Pic = ({ x, y, w, h, t, r = t.r, id }: { x: number; y: number; w: number; h: number; t: Theme; r?: number; id: string }) => (
   <g>
     <clipPath id={id}><rect x={x} y={y} width={w} height={h} rx={r} /></clipPath>
-    <g clipPath={`url(#${id})`}>
+    <g clipPath={`url(#${id})`}><g className="em-zoom">
       <rect x={x} y={y} width={w} height={h} fill={t.soft} />
       <circle cx={x + w * 0.74} cy={y + h * 0.3} r={Math.min(w, h) * 0.11} fill={t.bg} opacity={0.75} />
       <path d={`M${x} ${y + h * 0.78} L${x + w * 0.3} ${y + h * 0.48} L${x + w * 0.52} ${y + h * 0.68} L${x + w * 0.72} ${y + h * 0.5} L${x + w} ${y + h * 0.74} V${y + h} H${x} Z`} fill={t.accent} opacity={0.35} />
       <path d={`M${x} ${y + h * 0.9} L${x + w * 0.4} ${y + h * 0.66} L${x + w} ${y + h * 0.92} V${y + h} H${x} Z`} fill={t.accent} opacity={0.55} />
-    </g>
+    </g></g>
   </g>
 );
 
@@ -146,7 +152,7 @@ const Bars = ({ x, y, w, h, t, labels = true, gap = 0.45 }: { x: number; y: numb
     <>
       {S.revenueTrend.map((b, i) => (
         <g key={i}>
-          <rect x={x + i * slot + (slot - bw) / 2} y={y + h * (1 - b)} width={bw} height={h * b} rx={Math.min(t.r, 6)} fill={i === S.revenueTrend.length - 1 ? t.accent : t.soft} />
+          <rect x={x + i * slot + (slot - bw) / 2} y={y + h * (1 - b)} width={bw} height={h * b} rx={Math.min(t.r, 6)} fill={i === S.revenueTrend.length - 1 ? t.accent : t.soft} className="em-bar" style={at(i)} />
           {labels && <Txt x={x + i * slot + slot / 2} y={y + h + 20} size={12} fill={t.muted} anchor="middle">{S.trendYears[i]}</Txt>}
         </g>
       ))}
@@ -160,8 +166,8 @@ const Spark = ({ x, y, w, h, t }: { x: number; y: number; w: number; h: number; 
   const pts = SPARK.map((v, i) => `${x + (w * i) / (SPARK.length - 1)},${y + h * (1 - v)}`).join(" ");
   return (
     <>
-      <polyline points={`${x},${y + h} ${pts} ${x + w},${y + h}`} fill={t.up} opacity={0.1} stroke="none" />
-      <polyline points={pts} fill="none" stroke={t.up} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+      <polyline points={`${x},${y + h} ${pts} ${x + w},${y + h}`} fill={t.up} opacity={0.1} stroke="none" className="em-fade" />
+      <polyline points={pts} pathLength={1} className="em-draw" fill="none" stroke={t.up} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
     </>
   );
 };
@@ -207,61 +213,63 @@ const Frame = ({ t, children, label }: { t: Theme; children: ReactNode; label: s
 
 // ── shared widgets ─────────────────────────────────────────────────────────
 /** Share-price widget, 280px tall. */
-const StockCard = ({ x, y, w, t }: { x: number; y: number; w: number; t: Theme }) => (
-  <>
+const StockCard = ({ x, y, w, t, i = 0 }: { x: number; y: number; w: number; t: Theme; i?: number }) => (
+  <g className="em-rise" style={at(i)}>
     <Card x={x} y={y} w={w} h={280} t={t} />
     <Txt x={x + 24} y={y + 38} size={18} weight={600} fill={t.ink}>ราคาหลักทรัพย์</Txt>
     <Txt x={x + w - 24} y={y + 38} size={13} weight={600} fill={t.muted} anchor="end">{IR.ticker}</Txt>
-    <Txt x={x + 24} y={y + 110} size={52} weight={700} fill={t.ink}>{IR.price} <tspan fontSize={18} fontWeight={500} fill={t.muted}>บาท</tspan></Txt>
+    <Txt x={x + 24} y={y + 110} size={52} weight={700} fill={t.ink} className="em-pulse">{IR.price} <tspan fontSize={18} fontWeight={500} fill={t.muted}>บาท</tspan></Txt>
     <Txt x={x + 24} y={y + 144} size={17} weight={600} fill={t.up}>▲ {IR.change}</Txt>
     <line x1={x + 24} y1={y + 170} x2={x + w - 24} y2={y + 170} stroke={t.line} />
     <Txt x={x + 24} y={y + 200} size={14} fill={t.muted}>{IR.vol}</Txt>
     <Txt x={x + 24} y={y + 226} size={14} fill={t.muted}>{IR.val}</Txt>
     <Txt x={x + 24} y={y + 258} size={12} fill={t.muted} opacity={0.8}>{IR.asOf}</Txt>
-  </>
+  </g>
 );
 
-const NewsCard = ({ x, y, w, t, n = 3 }: { x: number; y: number; w: number; t: Theme; n?: number }) => (
-  <>
+const NewsCard = ({ x, y, w, t, n = 3, i: k = 0 }: { x: number; y: number; w: number; t: Theme; n?: number; i?: number }) => (
+  <g className="em-rise" style={at(k)}>
     <Card x={x} y={y} w={w} h={280} t={t} />
     <WTitle x={x + 24} y={y + 38} w={w - 48} label="ข่าวสารล่าสุด" t={t} />
     {IR.news.slice(0, n).map(([d, title], i) => (
-      <g key={title}>
+      <g key={title} className="em-row" style={at(k + i + 1)}>
         <Txt x={x + 24} y={y + 82 + i * 66} size={13} fill={t.muted}>{d}</Txt>
         <Txt x={x + 24} y={y + 106 + i * 66} size={15} weight={500} fill={t.ink}>{title}</Txt>
         {i < n - 1 && <line x1={x + 24} y1={y + 124 + i * 66} x2={x + w - 24} y2={y + 124 + i * 66} stroke={t.line} />}
       </g>
     ))}
-  </>
+  </g>
 );
 
-const DocsCard = ({ x, y, w, t, n = 3 }: { x: number; y: number; w: number; t: Theme; n?: number }) => (
-  <>
+const DocsCard = ({ x, y, w, t, n = 3, i: k = 0 }: { x: number; y: number; w: number; t: Theme; n?: number; i?: number }) => (
+  <g className="em-rise" style={at(k)}>
     <Card x={x} y={y} w={w} h={280} t={t} />
     <WTitle x={x + 24} y={y + 38} w={w - 48} label="เอกสารเผยแพร่" t={t} />
     {IR.docs.slice(0, n).map((d, i) => (
-      <g key={d}>
+      <g key={d} className="em-row" style={at(k + i + 1)}>
         <DocIcon x={x + 24} y={y + 66 + i * 66} t={t} />
         <Txt x={x + 64} y={y + 82 + i * 66} size={15} weight={500} fill={t.ink}>{d}</Txt>
         <Txt x={x + 64} y={y + 102 + i * 66} size={12} fill={t.muted}>ดาวน์โหลด PDF</Txt>
       </g>
     ))}
-  </>
+  </g>
 );
 
 // ── q2 · light vs dark — the same homepage in both palettes ─────────────────
 const StandardHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
-    <Txt x={col(0)} y={140} size={14} weight={600} fill={t.accent} ls={0.5}>{IR.company}</Txt>
-    <Txt x={col(0)} y={198} size={46} weight={700} fill={t.ink}>นักลงทุนสัมพันธ์</Txt>
-    <Lines x={col(0)} y={226} w={span(5) - 30} n={2} t={t} />
-    <Btn x={col(0)} y={272} w={180} label="ข้อมูลทางการเงิน" t={t} />
-    <Btn x={col(0) + 196} y={272} w={150} label="ติดต่อ IR" t={t} ghost />
+    <g className="em-rise" style={at(0)}>
+      <Txt x={col(0)} y={140} size={14} weight={600} fill={t.accent} ls={0.5}>{IR.company}</Txt>
+      <Txt x={col(0)} y={198} size={46} weight={700} fill={t.ink}>นักลงทุนสัมพันธ์</Txt>
+      <Lines x={col(0)} y={226} w={span(5) - 30} n={2} t={t} />
+      <Btn x={col(0)} y={272} w={180} label="ข้อมูลทางการเงิน" t={t} />
+      <Btn x={col(0) + 196} y={272} w={150} label="ติดต่อ IR" t={t} ghost />
+    </g>
     <Pic x={col(6)} y={104} w={span(6)} h={224} t={t} id={`${id}-p`} />
-    <StockCard x={col(0)} y={352} w={span(4)} t={t} />
-    <NewsCard x={col(4)} y={352} w={span(4)} t={t} />
-    <DocsCard x={col(8)} y={352} w={span(4)} t={t} />
+    <StockCard x={col(0)} y={352} w={span(4)} t={t} i={1} />
+    <NewsCard x={col(4)} y={352} w={span(4)} t={t} i={2} />
+    <DocsCard x={col(8)} y={352} w={span(4)} t={t} i={3} />
   </>
 );
 
@@ -271,6 +279,7 @@ const StandardHome = ({ t, id }: { t: Theme; id: string }) => (
 const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
+    <g className="em-rise" style={at(0)}>
     <rect x={col(0)} y={112} width={172} height={34} rx={17} fill={t.surface} />
     <Txt x={col(0) + 86} y={135} size={15} weight={600} fill={t.accent} anchor="middle">นักลงทุนสัมพันธ์</Txt>
     <Txt x={col(0)} y={206} size={42} weight={700} fill={t.ink}>ข้อมูลสำหรับผู้ถือหุ้น</Txt>
@@ -278,20 +287,21 @@ const ApproachableHome = ({ t, id }: { t: Theme; id: string }) => (
     <Lines x={col(0)} y={290} w={span(5) - 40} n={2} t={t} />
     <Btn x={col(0)} y={344} w={200} label="ดูผลประกอบการ" t={t} />
     <Btn x={col(0) + 216} y={344} w={150} label="ถามทีม IR" t={t} ghost />
+    </g>
     <Pic x={col(7)} y={104} w={span(5)} h={300} t={t} r={28} id={`${id}-p`} />
     {[
       ["ราคาหุ้นวันนี้", IR.price, "บาท", "สูงขึ้น 0.25 บาทจากเมื่อวาน", true],
       [`กำไรปี ${S.year}`, S.netProfit, "ล้านบาท", `เพิ่มขึ้น ${S.profitGrowth.slice(1)} จากปีก่อน`, true],
       ["เงินปันผล", S.dividend, "บาท/หุ้น", `จ่ายวันที่ 5 ธ.ค. ${S.year}`, false],
     ].map(([k, v, u, say, up], i) => (
-      <g key={k as string}>
+      <g key={k as string} className="em-rise" style={at(i + 1)}>
         <rect x={col(i * 4)} y={444} width={span(4)} height={184} rx={t.r} fill={t.surface} />
         <circle cx={col(i * 4) + 46} cy={490} r={20} fill="none" stroke={t.accent} strokeWidth={2.5} />
         {up
           ? <path d={`M${col(i * 4) + 38} 496 l8 -10 l8 10`} fill="none" stroke={t.accent} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
           : <rect x={col(i * 4) + 37} y={482} width={18} height={16} rx={3} fill="none" stroke={t.accent} strokeWidth={2.5} />}
         <Txt x={col(i * 4) + 80} y={496} size={17} weight={600} fill={t.muted}>{k}</Txt>
-        <Txt x={col(i * 4) + 26} y={562} size={36} weight={700} fill={t.ink}>{v} <tspan fontSize={18} fontWeight={500} fill={t.muted}>{u}</tspan></Txt>
+        <Txt x={col(i * 4) + 26} y={562} size={36} weight={700} fill={t.ink} className={i === 0 ? "em-pulse" : undefined}>{v} <tspan fontSize={18} fontWeight={500} fill={t.muted}>{u}</tspan></Txt>
         <Txt x={col(i * 4) + 26} y={598} size={17} fill={t.accent}>{say}</Txt>
       </g>
     ))}
@@ -310,15 +320,17 @@ const FormalHome = ({ t }: { t: Theme; id: string }) => {
     <>
       <Header t={t} />
       <rect x={0} y={81} width={W} height={283} fill={t.ink} />
+      <g className="em-rise" style={at(0)}>
       <Txt x={col(0)} y={140} size={14} weight={600} fill={GOLD} ls={4}>INVESTOR RELATIONS</Txt>
       <rect x={col(0)} y={156} width={80} height={3} fill={GOLD} />
       <Txt x={col(0)} y={224} size={46} weight={700} fill="#FFFFFF">นักลงทุนสัมพันธ์</Txt>
       <Txt x={col(0)} y={264} size={20} fill="#FFFFFF" opacity={0.8}>{IR.company}</Txt>
+      </g>
       {/* share price as a table, inside the band */}
       <rect x={col(7)} y={116} width={span(5)} height={216} fill="none" stroke="#FFFFFF" strokeOpacity={0.3} />
       <Txt x={col(7) + 24} y={148} size={14} weight={600} fill={GOLD} ls={0.5}>{`ราคาหลักทรัพย์  ${IR.ticker}`}</Txt>
       {[["ราคาล่าสุด (บาท)", IR.price], ["เปลี่ยนแปลง", IR.change], ["ปริมาณ (หุ้น)", "1,248,500"], ["มูลค่า (บาท)", "34,620,875"]].map(([k, v], i) => (
-        <g key={k}>
+        <g key={k} className="em-row" style={at(i + 1)}>
           <line x1={col(7) + 24} y1={164 + i * 40} x2={RIGHT - 24} y2={164 + i * 40} stroke="#FFFFFF" strokeOpacity={0.18} />
           <Txt x={col(7) + 24} y={190 + i * 40} size={15} fill="#FFFFFF" opacity={0.75}>{k}</Txt>
           <Txt x={RIGHT - 24} y={190 + i * 40} size={15} weight={600} fill="#FFFFFF" anchor="end">{v}</Txt>
@@ -330,7 +342,7 @@ const FormalHome = ({ t }: { t: Theme; id: string }) => {
       <Txt x={col(0)} y={458} size={13} fill={t.muted}>(หน่วย: ล้านบาท)</Txt>
       {["2566", "2567", S.year].map((y, i) => <Txt key={y} x={valX[i]} y={458} size={13} weight={600} fill={t.muted} anchor="end">{y}</Txt>)}
       {rows.map(([k, ...vals], r) => (
-        <g key={k}>
+        <g key={k} className="em-row" style={at(r + 3)}>
           <line x1={col(0)} y1={470 + r * 40} x2={col(6) + span(1)} y2={470 + r * 40} stroke={t.line} />
           <Txt x={col(0)} y={496 + r * 40} size={15} fill={t.ink}>{k}</Txt>
           {vals.map((v, i) => <Txt key={i} x={valX[i]} y={496 + r * 40} size={15} weight={i === 2 ? 700 : 400} fill={t.ink} anchor="end">{v}</Txt>)}
@@ -340,7 +352,7 @@ const FormalHome = ({ t }: { t: Theme; id: string }) => {
       <Txt x={col(8)} y={414} size={20} weight={700} fill={t.ink}>เอกสารเผยแพร่</Txt>
       <line x1={col(8)} y1={430} x2={RIGHT} y2={430} stroke={t.ink} strokeWidth={3} />
       {IR.docs.map((d, i) => (
-        <g key={d}>
+        <g key={d} className="em-row" style={at(i + 3)}>
           <Txt x={col(8)} y={470 + i * 44} size={15} fill={t.ink}>{d}</Txt>
           <Txt x={RIGHT} y={470 + i * 44} size={13} weight={600} fill={t.muted} anchor="end">PDF</Txt>
           <line x1={col(8)} y1={486 + i * 44} x2={RIGHT} y2={486 + i * 44} stroke={t.line} />
@@ -355,16 +367,19 @@ const StoryHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
     <Pic x={col(0)} y={104} w={span(6)} h={340} t={t} id={`${id}-p`} />
+    <g className="em-rise" style={at(1)}>
     <Txt x={col(6) + 24} y={142} size={14} weight={600} fill={t.accent} ls={0.5}>สารจากประธานกรรมการ</Txt>
     <Txt x={col(6) + 24} y={196} size={36} weight={700} fill={t.ink}>30 ปีแห่งการเติบโต</Txt>
     <Txt x={col(6) + 24} y={242} size={36} weight={700} fill={t.ink}>ไปพร้อมกับผู้ถือหุ้น</Txt>
     <Lines x={col(6) + 24} y={276} w={span(6) - 24} n={4} t={t} gap={18} />
     <Txt x={col(6) + 24} y={378} size={15} fill={t.muted}>ประธานกรรมการบริษัท</Txt>
     <Txt x={col(6) + 24} y={424} size={16} weight={600} fill={t.accent}>อ่านสารฉบับเต็ม  →</Txt>
+    </g>
     <Txt x={col(0)} y={490} size={14} weight={600} fill={t.accent} ls={0.5}>ประวัติบริษัท</Txt>
     <line x1={col(0)} y1={520} x2={RIGHT} y2={520} stroke={t.line} strokeWidth={2} />
+    <line x1={col(0)} y1={520} x2={RIGHT} y2={520} stroke={t.accent} strokeWidth={2} pathLength={1} className="em-draw em-only" />
     {[["2538", "ก่อตั้งบริษัท"], ["2547", "เข้าจดทะเบียนใน SET"], ["2560", "ขยายธุรกิจสู่ภูมิภาค"], [S.year, `รายได้ ${S.revenue} ล้านบาท`]].map(([y, s], i) => (
-      <g key={y}>
+      <g key={y} className="em-row" style={at(i * 3 + 2)}>
         <circle cx={col(i * 3) + 8} cy={520} r={8} fill={i === 3 ? t.accent : t.bg} stroke={t.accent} strokeWidth={3} />
         <Txt x={col(i * 3)} y={566} size={22} weight={700} fill={t.ink}>{y}</Txt>
         <Txt x={col(i * 3)} y={596} size={16} fill={t.muted}>{s}</Txt>
@@ -377,12 +392,15 @@ const DataHome = ({ t }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
     {/* share price with today's line */}
+    <g className="em-rise" style={at(0)}>
     <Card x={col(0)} y={100} w={span(5)} h={204} t={t} />
     <Txt x={col(0) + 24} y={134} size={14} weight={600} fill={t.muted}>{IR.ticker}</Txt>
-    <Txt x={col(0) + 24} y={190} size={46} weight={700} fill={t.ink}>{IR.price}</Txt>
+    <Txt x={col(0) + 24} y={190} size={46} weight={700} fill={t.ink} className="em-pulse">{IR.price}</Txt>
     <Txt x={col(0) + 24} y={224} size={16} weight={600} fill={t.up}>▲ {IR.change}</Txt>
     <Txt x={col(0) + 24} y={282} size={12} fill={t.muted}>{IR.asOf}</Txt>
     <Spark x={col(0) + 210} y={128} w={span(5) - 234} h={112} t={t} />
+    </g>
+    <g className="em-rise" style={at(1)}>
     {/* highlights */}
     <Card x={col(5)} y={100} w={span(7)} h={204} t={t} />
     <WTitle x={col(5) + 24} y={134} w={span(7) - 48} label={`ข้อมูลสำคัญทางการเงิน ปี ${S.year}`} t={t} size={16} />
@@ -399,10 +417,14 @@ const DataHome = ({ t }: { t: Theme; id: string }) => (
         </g>
       );
     })}
+    </g>
     {/* revenue chart + ratios */}
+    <g className="em-rise" style={at(2)}>
     <Card x={col(0)} y={328} w={span(7)} h={304} t={t} />
     <Txt x={col(0) + 24} y={364} size={16} weight={600} fill={t.ink}>รายได้รวม 5 ปีย้อนหลัง (ล้านบาท)</Txt>
     <Bars x={col(0) + 32} y={388} w={span(7) - 64} h={190} t={t} />
+    </g>
+    <g className="em-rise" style={at(3)}>
     <Card x={col(7)} y={328} w={span(5)} h={304} t={t} />
     <Txt x={col(7) + 24} y={364} size={16} weight={600} fill={t.ink}>อัตราส่วนทางการเงิน</Txt>
     {IR.ratios.map(([k, v], i) => (
@@ -412,6 +434,7 @@ const DataHome = ({ t }: { t: Theme; id: string }) => (
         <Txt x={RIGHT - 24} y={422 + i * 56} size={16} weight={600} fill={t.ink} anchor="end">{v}</Txt>
       </g>
     ))}
+    </g>
   </>
 );
 
@@ -419,9 +442,12 @@ const DataHome = ({ t }: { t: Theme; id: string }) => (
 const SpaciousHome = ({ t }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
+    <g className="em-rise" style={at(0)}>
     <Txt x={W / 2} y={184} size={15} weight={600} fill={t.accent} anchor="middle" ls={0.5}>{IR.company}</Txt>
     <Txt x={W / 2} y={254} size={54} weight={700} fill={t.ink} anchor="middle">นักลงทุนสัมพันธ์</Txt>
     <rect x={W / 2 - 220} y={284} width={440} height={8} rx={4} fill={t.line} />
+    </g>
+    <g className="em-rise" style={at(2)}>
     {[0, 4, 8].map((c) => <line key={c} x1={col(c)} y1={392} x2={col(c) + span(3)} y2={392} stroke={t.ink} strokeOpacity={0.8} strokeWidth={2} />)}
     <Txt x={col(0)} y={428} size={14} fill={t.muted}>{`ราคาหุ้น  ${IR.ticker}`}</Txt>
     <Txt x={col(0)} y={484} size={40} weight={700} fill={t.ink}>{IR.price} <tspan fontSize={16} fontWeight={500} fill={t.muted}>บาท</tspan></Txt>
@@ -435,6 +461,7 @@ const SpaciousHome = ({ t }: { t: Theme; id: string }) => (
     <Txt x={col(8)} y={500} size={20} weight={600} fill={t.ink}>ปี 2567</Txt>
     <Txt x={col(8)} y={530} size={14} fill={t.muted}>PDF · 12.4 MB</Txt>
     {[0, 4, 8].map((c) => <Txt key={c} x={col(c)} y={590} size={15} weight={600} fill={t.accent}>ดูทั้งหมด  →</Txt>)}
+    </g>
   </>
 );
 
@@ -445,6 +472,7 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
     <>
       <Header t={t} />
       {/* share price strip */}
+      <g className="em-rise" style={at(0)}>
       {tile(col(0), 96, span(12), 56)}
       <Txt x={col(0) + 18} y={130} size={14} weight={700} fill={t.ink}>{IR.ticker}</Txt>
       <Txt x={col(0) + 112} y={132} size={24} weight={700} fill={t.ink}>{IR.price}</Txt>
@@ -452,7 +480,9 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
       {["เปิด 27.50", "สูงสุด 27.90", "ต่ำสุด 27.25", IR.vol, IR.val].map((s, i) => (
         <Txt key={s} x={[440, 540, 652, 762, 930][i]} y={130} size={13} fill={t.muted}>{s}</Txt>
       ))}
+      </g>
       {/* row 2: news · revenue · calendar */}
+      <g className="em-rise" style={at(1)}>
       {tile(col(0), 168, w4, 216)}
       <WTitle x={col(0) + 18} y={196} w={w4 - 36} label="ข่าวสารล่าสุด" t={t} size={15} />
       {IR.news.map(([d, title], i) => (
@@ -474,7 +504,9 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
           <Txt x={col(8) + 74} y={241 + i * 54} size={13} fill={t.ink}>{s}</Txt>
         </g>
       ))}
+      </g>
       {/* row 3: highlights · shareholders · documents */}
+      <g className="em-rise" style={at(3)}>
       {tile(col(0), 400, w4, 232)}
       <Txt x={col(0) + 18} y={428} size={15} weight={600} fill={t.ink}>{`ข้อมูลสำคัญทางการเงิน ${S.year}`}</Txt>
       {IR.highlights.map((m, i) => {
@@ -495,7 +527,7 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
           <Txt x={col(4) + 18} y={466 + i * 42} size={13} fill={t.ink}>{n}</Txt>
           <Txt x={col(4) + w4 - 18} y={466 + i * 42} size={13} weight={600} fill={t.ink} anchor="end">{p}</Txt>
           <rect x={col(4) + 18} y={474 + i * 42} width={w4 - 36} height={4} rx={2} fill={t.line} />
-          <rect x={col(4) + 18} y={474 + i * 42} width={(w4 - 36) * parseFloat(p) / 40} height={4} rx={2} fill={t.accent} />
+          <rect x={col(4) + 18} y={474 + i * 42} width={(w4 - 36) * parseFloat(p) / 40} height={4} rx={2} fill={t.accent} className="em-grow" style={at(i + 4)} />
         </g>
       ))}
       {tile(col(8), 400, w4, 232)}
@@ -506,6 +538,7 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
           <Txt x={col(8) + 48} y={468 + i * 44} size={13} fill={t.ink}>{d}</Txt>
         </g>
       ))}
+      </g>
     </>
   );
 };
@@ -514,6 +547,7 @@ const DenseHome = ({ t }: { t: Theme; id: string }) => {
 const SubtleHome = ({ t, id }: { t: Theme; id: string }) => (
   <>
     <Header t={t} />
+    <g className="em-fade">
     <Txt x={col(0)} y={176} size={15} fill={t.muted}>{IR.company}</Txt>
     <Txt x={col(0)} y={228} size={38} weight={600} fill={t.ink}>นักลงทุนสัมพันธ์</Txt>
     <Lines x={col(0)} y={260} w={span(6)} n={2} t={t} gap={18} />
@@ -533,6 +567,7 @@ const SubtleHome = ({ t, id }: { t: Theme; id: string }) => (
     <Txt x={col(9)} y={492} size={15} fill={t.ink}>แบบ 56-1 One Report 2567</Txt>
     <Txt x={col(9)} y={520} size={14} fill={t.muted}>PDF · 12.4 MB</Txt>
     {[3, 6, 9].map((c) => <line key={c} x1={col(c) - 12} y1={440} x2={col(c) - 12} y2={530} stroke={t.line} />)}
+    </g>
   </>
 );
 
@@ -554,20 +589,26 @@ const ExpressiveHome = ({ t, id }: { t: Theme; id: string }) => (
     <rect x={0} y={0} width={W} height={606} fill={`url(#${id}-g)`} />
     <rect x={0} y={0} width={W} height={81} fill={t.bg} opacity={0.9} />
     <Header t={t} />
-    <Txt x={col(0) - 4} y={248} size={104} weight={800} fill={t.ink} ls={-2}>เติบโต</Txt>
-    <Txt x={col(0) - 4} y={366} size={104} weight={800} fill={t.accent} ls={-2}>อย่างมั่นคง</Txt>
+    <g className="em-rise em-big" style={at(0)}><Txt x={col(0) - 4} y={248} size={104} weight={800} fill={t.ink} ls={-2}>เติบโต</Txt></g>
+    <g className="em-rise em-big" style={at(2)}><Txt x={col(0) - 4} y={366} size={104} weight={800} fill={t.accent} ls={-2}>อย่างมั่นคง</Txt></g>
+    <g className="em-rise" style={at(4)}>
     <Txt x={col(0)} y={424} size={20} fill={t.muted}>{`รายได้ปี ${S.year} ${S.revenue} ล้านบาท เพิ่มขึ้น ${S.revenueGrowth.slice(1)}`}</Txt>
     <Btn x={col(0)} y={456} w={200} h={48} label="ดูผลประกอบการ" t={{ ...t, btnR: 24 }} />
+    </g>
     {[[0, 64], [84, 24], [116, 24]].map(([dx, w], i) => (
       <rect key={dx} x={col(0) + dx} y={548} width={w} height={6} rx={3} fill={i === 0 ? t.ink : t.line} />
     ))}
+    {/* slide timer: fills the current dot while the mock plays */}
+    <rect x={col(0)} y={548} width={64} height={6} rx={3} fill={t.accent} className="em-timer em-only" />
     <rect x={0} y={606} width={W} height={71} fill={t.accent} />
-    {[...TICKER, TICKER[0]].map((s, i) => (
+    <g className="em-tick">
+    {[...TICKER, ...TICKER].map((s, i) => (
       <g key={i}>
         <circle cx={i * 330 - 150} cy={643} r={4} fill="#FFFFFF" opacity={0.6} />
         <Txt x={i * 330 - 132} y={650} size={20} weight={700} fill="#FFFFFF" opacity={i % 2 ? 0.75 : 1}>{s}</Txt>
       </g>
     ))}
+    </g>
   </>
 );
 

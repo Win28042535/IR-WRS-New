@@ -1059,3 +1059,34 @@ input:focus, textarea:focus, select:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Explore quiz mocks (ExploreMock.tsx) ─────────────────────────────────────
+   Each mock is a still picture until its card is "live": hovered with a mouse, or picked
+   (QuizVisual adds .em-live). Touch devices only ever get the picked state. The motion
+   reads as the page loading: blocks rise in, rows slide in, bars grow, lines draw, the
+   price flashes once, the photo drifts and (5A) the ticker runs. Reduced motion: still. */
+.em-only { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .em-live .em-rise { animation: em-rise 560ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+  .em-live .em-big { animation-duration: 760ms; }
+  .em-live .em-row { animation: em-row 440ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+  .em-live .em-bar { transform-box: fill-box; transform-origin: 50% 100%; animation: em-bar 680ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 80ms + 240ms); }
+  .em-live .em-grow { transform-box: fill-box; transform-origin: 0 50%; animation: em-grow 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 200ms); }
+  .em-live .em-draw { stroke-dasharray: 1; animation: em-draw 1200ms cubic-bezier(0.3, 0.6, 0.2, 1) 280ms both; }
+  .em-live .em-only { opacity: 1; }
+  .em-live .em-fade { animation: em-fade 800ms ease-out both; }
+  .em-live .em-zoom { transform-box: fill-box; transform-origin: 50% 50%; animation: em-zoom 9s ease-in-out infinite alternate; }
+  .em-live .em-pulse { animation: em-pulse 1.4s ease-out 700ms 2; }
+  .em-live .em-tick { animation: em-tick 16s linear infinite; }
+  .em-live .em-timer { transform-box: fill-box; transform-origin: 0 50%; animation: em-timer 3.2s linear infinite; }
+}
+@keyframes em-rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes em-row { from { opacity: 0; transform: translateX(-12px); } }
+@keyframes em-bar { from { transform: scaleY(0); } }
+@keyframes em-grow { from { transform: scaleX(0); } }
+@keyframes em-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes em-fade { from { opacity: 0; } }
+@keyframes em-zoom { to { transform: scale(1.08); } }
+@keyframes em-pulse { 0%, 30% { fill: #1e9e5a; } }
+@keyframes em-tick { to { transform: translateX(-1320px); } }
+@keyframes em-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
