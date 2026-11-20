@@ -2,6 +2,7 @@
 // Builds the one-page summary sheet (SheetData) from a draft or a submitted requirement.
 // Shared by the deliver step's overview, its PDF / PNG download, and the download on the
 // page shown after sending (which stamps the reference number).
+import { noteWithLinkNames } from "@/lib/noteLinks";
 import { QUIZ, RETIRED_SECTION_IDS, VISUAL_STYLES, directionById, keepsCi, sectionById, siteHostOf, unsplashUrl } from "@/lib/data";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { chosenThaiFont, familyStack, fontByFamily } from "@/lib/fontCatalog";
@@ -121,7 +122,7 @@ export function sheetData(draft: any): SheetData {
     }),
     ownPending: c.ownPending,
     colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ชุดสีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด",
-    ciNote: (c.keepOwn ? draft.ciKeepNote : draft.ciNote)?.trim() || undefined,
+    ciNote: c.keepOwn ? noteWithLinkNames(draft.ciKeepNote, draft.noteLinks?.ciKeep) : noteWithLinkNames(draft.ciNote, draft.noteLinks?.ci),
     // what CI they attached on "ปรับ CI ให้ทันสมัย"; whatever is missing, the team proposes
     ciAssets: c.keepOwn ? "" : refCounts(draft.ciAssets),
     ciSite: c.keepOwn ? c.siteUrl : undefined,
@@ -135,13 +136,13 @@ export function sheetData(draft: any): SheetData {
     inspiration: {
       links: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type === "url").length,
       files: ((draft.references ?? []) as { type: string }[]).filter((r) => r.type !== "url").length,
-      note: draft.inspirationNote?.trim() || undefined,
+      note: noteWithLinkNames(draft.inspirationNote, draft.noteLinks?.inspiration),
     },
     fontName: c.mainFont,
     fontStack: c.thaiStack,
     fontNote: c.mainFontNote,
     sections: c.homepageSections.map((s) => s.name),
-    note: draft.structureNote?.trim() || undefined,
+    note: noteWithLinkNames(draft.structureNote, draft.noteLinks?.structure),
     visualMood: vs?.mood,
     shots: (vs?.shots ?? []).map((s) => ({ url: unsplashUrl(s.id, 700), cap: s.cap })),
   };

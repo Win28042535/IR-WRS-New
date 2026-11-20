@@ -450,6 +450,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
       <NoteField id="structure-note" className="mt-6" label="หมายเหตุเพิ่มเติม"
         hint="หากมีสิ่งที่อยากเพิ่มในเว็บไซต์ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
         value={draft.structureNote ?? ""} onChange={(v) => updateDraft({ structureNote: v })}
+        links={draft.noteLinks?.structure} onLinksChange={(l) => updateDraft({ noteLinks: { ...draft.noteLinks, structure: l } })}
         placeholder="ระบุสิ่งที่อยากเพิ่มเติม…" />
 
       <FlightLayer flights={flights} onDone={(key) => setFlights((f) => f.filter((x) => x.key !== key))} />

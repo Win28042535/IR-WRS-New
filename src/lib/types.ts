@@ -39,6 +39,7 @@ export interface ReferenceItem {
   label?: string;
   note?: string;         // customer's own comment on why they picked this one
   likes?: string[];      // what they like about it (REFERENCE_LIKES)
+  noteLinks?: string[];  // links pasted into its note, kept apart from the text
 }
 
 export interface SelectionRule {
@@ -231,6 +232,9 @@ export interface Requirement {
   ciAssets?: ReferenceItem[];
   /** "yes" (keep the CI from the website): anything to change from it, free text. */
   ciKeepNote?: string;
+  /** Links pasted into a note box, kept apart from its text, by box:
+   *  ciKeep · ci (step 2) · structure (step 6) · inspiration (step 7). */
+  noteLinks?: Partial<Record<"ciKeep" | "ci" | "structure" | "inspiration", string[]>>;
   logo?: string;          // company logo as a data URL (step 1, optional), shown on the Deliver sheet
   logoName?: string;
   ciPicked?: boolean;

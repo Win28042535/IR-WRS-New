@@ -1,6 +1,7 @@
 // Requirement Intelligence auto-summarise what the client selected so sales / design /
 // PM understand intent at a glance without re-reading the whole questionnaire.
 
+import { noteWithLinks } from "@/lib/noteLinks";
 import { SOURCE_LABEL, chosenThaiFont } from "./fontCatalog";
 import type { Requirement, RequirementStatus } from "./types";
 import { directionById, keepsCi, siteHostOf } from "./data";
@@ -34,13 +35,13 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
     ...((r.coDeciders ?? []).length ? [{ label: "Co-deciders", value: (r.coDeciders ?? []).map((p) => [p.name, p.position].filter(Boolean).join(" · ")).join(" / ") }] : []),
-    { label: "Colours", value: !keepsCi(r) ? `ปรับ CI ให้ทันสมัย${r.ciNote?.trim() ? ` · ${r.ciNote.trim()}` : ""}` : `ชุดสีเดิม · จาก ${siteHostOf(r.website)}${r.ciKeepNote?.trim() ? ` · ${r.ciKeepNote.trim()}` : ""}` },
+    { label: "Colours", value: !keepsCi(r) ? ["ปรับ CI ให้ทันสมัย", noteWithLinks(r.ciNote, r.noteLinks?.ci)].filter(Boolean).join(" · ") : [`ชุดสีเดิม · จาก ${siteHostOf(r.website)}`, noteWithLinks(r.ciKeepNote, r.noteLinks?.ciKeep)].filter(Boolean).join(" · ") },
     ...(!keepsCi(r) && (r.ciAssets ?? []).length ? [{ label: "CI Attachments", value: `${(r.ciAssets ?? []).length} รายการ · ส่วนที่ไม่ได้แนบ ทีมเสนอให้` }] : []),
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})${r.fontInterest ? ` · ลูกค้าสนใจ ${r.fontInterest}` : ""}`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },
-    ...(r.structureNote?.trim() ? [{ label: "Homepage Note", value: r.structureNote.trim() }] : []),
-    ...(r.inspirationNote?.trim() ? [{ label: "Inspiration Note", value: r.inspirationNote.trim() }] : []),
+    ...(noteWithLinks(r.structureNote, r.noteLinks?.structure) ? [{ label: "Homepage Note", value: noteWithLinks(r.structureNote, r.noteLinks?.structure) }] : []),
+    ...(noteWithLinks(r.inspirationNote, r.noteLinks?.inspiration) ? [{ label: "Inspiration Note", value: noteWithLinks(r.inspirationNote, r.noteLinks?.inspiration) }] : []),
     { label: "Approval Status", value: approvalSummary(r) },
   ];
 }

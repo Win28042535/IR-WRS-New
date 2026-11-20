@@ -601,6 +601,7 @@ function SBrand({ go, draft, updateDraft }: any) {
         {keepCi && (
           <NoteField className="mt-4" label="หมายเหตุเพิ่มเติม" hint="หากมีส่วนที่อยากปรับจาก CI เดิม หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
             value={draft.ciKeepNote ?? ""} onChange={(v) => updateDraft({ ciKeepNote: v })}
+            links={draft.noteLinks?.ciKeep} onLinksChange={(l) => updateDraft({ noteLinks: { ...draft.noteLinks, ciKeep: l } })}
             placeholder="ระบุสิ่งที่อยากปรับ…" />
         )}
         {/* refresh the CI: attach what they already have; whatever is missing, the team proposes */}
@@ -661,6 +662,7 @@ function SBrand({ go, draft, updateDraft }: any) {
         {!keepCi && (
           <NoteField className="mt-2" label="หมายเหตุเพิ่มเติม" hint="หากมีโทนสีหรือฟอนต์ในใจ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
             value={draft.ciNote ?? ""} onChange={(v) => updateDraft({ ciNote: v })}
+            links={draft.noteLinks?.ci} onLinksChange={(l) => updateDraft({ noteLinks: { ...draft.noteLinks, ci: l } })}
             placeholder="ระบุโทนสีหรือฟอนต์ที่อยากได้…" />
         )}
         {fontPreview && <FontPreviewSheet family={proposedFont} company={draft.company} onClose={() => setFontPreview(false)} />}
@@ -1510,21 +1512,24 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const ci = variant === "ci";
   const field: "references" | "ciAssets" = ci ? "ciAssets" : "references";
   // ── URL list state ── committed immediately on Enter/blur, no separate save step
-  const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[] }[]>(() =>
+  const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[]; noteLinks?: string[] }[]>(() =>
     (draft[field] ?? [])
       .filter((r: any) => r.type === "url")
-      .map((r: any) => ({ id: r.id, value: r.value, note: r.note, likes: r.likes }))
+      .map((r: any) => ({ id: r.id, value: r.value, note: r.note, likes: r.likes, noteLinks: r.noteLinks }))
   );
   const [urlInput, setUrlInput] = useState("");
   // Recomputed every keystroke — pure parsing against the current list, no debounce needed.
   const urlValidation = useMemo(() => validateUrlInput(urlInput, urls), [urlInput, urls]);
+  // Inspiration only: a Google Drive link belongs in the note below (20 Nov 2026), so this
+  // field won't take one. The CI field (step 2) still does.
+  const driveHere = !ci && urlValidation === "valid" && isDriveUrl(urlInput.trim());
 
   // ── Image + document list state (base64 data-uri) ── PDFs ride in the same gallery
   // (user test BTS: "แนบได้ทั้งเอกสาร รูป และลิงก์"), stored as type "file".
-  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; kind?: "pdf" }[]>(() =>
+  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; noteLinks?: string[]; kind?: "pdf" }[]>(() =>
     (draft[field] ?? [])
       .filter((r: any) => r.type === "image" || r.type === "file")
-      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, kind: r.type === "file" ? "pdf" as const : undefined }))
+      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, noteLinks: r.noteLinks, kind: r.type === "file" ? "pdf" as const : undefined }))
   );
   const [uploadError, setUploadError] = useState("");
 
@@ -1617,9 +1622,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const syncToDraft = useCallback((nextUrls: typeof urls, nextImages: typeof images) => {
     const urlItems = nextUrls
       .filter((u) => u.value.trim())
-      .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined }));
+      .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined, noteLinks: u.noteLinks?.length ? u.noteLinks : undefined }));
     const imgItems = nextImages
-      .map((img) => ({ id: img.id, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined }));
+      .map((img) => ({ id: img.id, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined, noteLinks: img.noteLinks?.length ? img.noteLinks : undefined }));
     updateDraft({ [field]: [...urlItems, ...imgItems] });
   }, [updateDraft, field]);
 
@@ -1642,24 +1647,32 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       syncToDraft(urls, next);
     }
   };
-  const updateUrlNote = (id: string, note: string) => {
-    const next = urls.map((u) => (u.id === id ? { ...u, note } : u));
-    setUrls(next);
-    syncToDraft(next, images);
-  };
-  const updateImageNote = (id: string, note: string) => {
-    const next = images.map((img) => (img.id === id ? { ...img, note } : img));
-    setImages(next);
-    syncToDraft(urls, next);
+  // An item's note text and its link tags can change in the same event (a paste with a
+  // link in it): both go through this live copy so neither overwrites the other.
+  const live = useRef({ urls, images });
+  useEffect(() => { live.current = { urls, images }; });
+  const patchItem = (id: string, patch: { note?: string; noteLinks?: string[] }) => {
+    const cur = live.current;
+    if (cur.urls.some((u) => u.id === id)) {
+      const next = cur.urls.map((u) => (u.id === id ? { ...u, ...patch } : u));
+      live.current = { ...cur, urls: next };
+      setUrls(next);
+      syncToDraft(next, cur.images);
+    } else {
+      const next = cur.images.map((img) => (img.id === id ? { ...img, ...patch } : img));
+      live.current = { ...cur, images: next };
+      setImages(next);
+      syncToDraft(cur.urls, next);
+    }
   };
   // "ล้าง" in the item sheet: the note and the picked likes go, the item stays
   const clearItem = (id: string) => {
     if (urls.some((u) => u.id === id)) {
-      const next = urls.map((u) => (u.id === id ? { ...u, note: "", likes: [] } : u));
+      const next = urls.map((u) => (u.id === id ? { ...u, note: "", likes: [], noteLinks: [] } : u));
       setUrls(next);
       syncToDraft(next, images);
     } else {
-      const next = images.map((img) => (img.id === id ? { ...img, note: "", likes: [] } : img));
+      const next = images.map((img) => (img.id === id ? { ...img, note: "", likes: [], noteLinks: [] } : img));
       setImages(next);
       syncToDraft(urls, next);
     }
@@ -1674,7 +1687,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   useEffect(() => () => {
     const { input, urls: u, images: im } = pendingRef.current;
     const value = input.trim();
-    if (value && u.length < MAX_REFERENCE_URLS && validateUrlInput(value, u) === "valid") {
+    if (value && u.length < MAX_REFERENCE_URLS && validateUrlInput(value, u) === "valid" && (ci || !isDriveUrl(value))) {
       syncToDraft([...u, { id: Math.random().toString(36).slice(2), value }], im);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1683,7 +1696,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const commitUrl = () => {
     if (isCommittingUrl) return;
     const value = urlInput.trim();
-    if (!value || urlValidation !== "valid") return;
+    if (!value || urlValidation !== "valid" || driveHere) return;
     setIsCommittingUrl(true);
     clearTimeout(commitUrlTimer.current);
     commitUrlTimer.current = setTimeout(() => {
@@ -1869,7 +1882,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 existing: "border-ir-t2/40",
                 unsupported: "border-ir-warn/50",
                 invalid: "border-ir-error/50",
-              }[urlValidation]
+              }[driveHere ? "unsupported" : urlValidation]
             }`}
           >
             <IconGlobe width={18} height={18} aria-hidden="true" className="ml-2.5 shrink-0 text-ir-t3" />
@@ -1889,8 +1902,8 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 empty field doesn't carry a heavy grey block */}
             <button
               onClick={commitUrl}
-              disabled={urlValidation !== "valid" || urlCapReached}
-              data-pulse={urlValidation === "valid" || undefined}
+              disabled={urlValidation !== "valid" || urlCapReached || driveHere}
+              data-pulse={(urlValidation === "valid" && !driveHere) || undefined}
               aria-busy={isCommittingUrl}
               className="h-11 shrink-0 flex items-center gap-1.5 rounded-lg px-4 text-body font-semibold whitespace-nowrap text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi active:scale-[0.97] transition-[background-color,color,box-shadow,scale] disabled:bg-transparent disabled:text-ir-t3 disabled:shadow-[inset_0_0_0_1px_var(--color-ir-border)] disabled:cursor-not-allowed disabled:active:scale-100"
             >
@@ -1913,17 +1926,22 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
               find out the link won't work. Falls back to the generic hint when empty. */}
           {/* nothing under an empty field (20 Nov 2026: the ①② steps went); a usable link
               turns the button lime and says to press it */}
-          {urlValidation === "empty" ? null : (
+          {urlValidation === "empty" ? null : driveHere ? (
+            <p role="status" className="mt-1.5 flex items-center gap-1.5 text-small text-ir-warn">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ir-warn" />
+              ลิงก์ Google Drive ใส่ในช่องหมายเหตุเพิ่มเติมด้านล่าง
+            </p>
+          ) : (
             <p role="status" className={`text-small mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
               {URL_VALIDATION_COPY[urlValidation].label}
             </p>
           )}
-          {urlValidation === "valid" && linkKindHint(urlInput) && (
+          {urlValidation === "valid" && !driveHere && linkKindHint(urlInput) && (
             <p className="mt-1 flex items-start gap-1.5 text-small text-ir-t2"><span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ir-warn" />{linkKindHint(urlInput)}</p>
           )}
           {/* A Drive file the team can't open is useless — remind them to share it. */}
-          {urlValidation === "valid" && isDriveUrl(urlInput) && (
+          {urlValidation === "valid" && ci && isDriveUrl(urlInput) && (
             <p className="mt-1 text-small text-ir-t2">ตั้งค่าการแชร์ไฟล์ใน Google Drive เป็น “ทุกคนที่มีลิงก์” ก่อน เพื่อให้ทีมเปิดดูได้</p>
           )}
         </div>
@@ -2045,7 +2063,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 const editingImage = images.find((img) => img.id === noteEditing);
                 if (!editingUrl && !editingImage) return null;
                 const id = noteEditing!;
-                const hasNote = !!((editingUrl ? editingUrl.note : editingImage!.note) || (editingUrl ? editingUrl.likes : editingImage!.likes)?.length);
+                const hasNote = !!((editingUrl ? editingUrl.note : editingImage!.note) || (editingUrl ? editingUrl.likes : editingImage!.likes)?.length || (editingUrl ? editingUrl.noteLinks : editingImage!.noteLinks)?.length);
                 const remove = () => { setNoteEditing(null); if (editingUrl) removeUrl(id); else removeImage(id); };
                 return (
                   <ItemSheet
@@ -2096,7 +2114,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                             type="button"
                             aria-pressed={on}
                             onClick={() => toggleLike(noteEditing!, like)}
-                            className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 text-small font-medium transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
+                            className={`inline-flex min-h-11 min-w-11 justify-center items-center gap-1 rounded-full border px-3 text-small sm:min-h-9 sm:min-w-0 font-medium transition-[background-color,border-color,color,scale] duration-fast active:scale-[0.95] focus-ring ${
                               on ? "border-ir-select bg-ir-accent-soft text-ir-t1" : "border-ir-border bg-white text-ir-t2 hover:border-ir-select-soft"
                             }`}
                           >
@@ -2110,7 +2128,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                     <NoteField key={noteEditing ?? ""} className="mt-1" label="หมายเหตุเพิ่มเติม" rows={2}
                       hint="หากมีสิ่งที่ชอบในรายการนี้ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
-                      onChange={(v) => (editingUrl ? updateUrlNote(editingUrl.id, v) : updateImageNote(editingImage!.id, v))}
+                      onChange={(v) => patchItem(id, { note: v })}
+                      links={editingUrl ? editingUrl.noteLinks : editingImage!.noteLinks}
+                      onLinksChange={(l) => patchItem(id, { noteLinks: l })}
                       placeholder="ระบุรายละเอียดของรายการนี้…" />
                     {hasNote && (
                       <button type="button" onClick={() => clearItem(id)}
@@ -2226,7 +2246,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="แนบเว็บ IR ที่ชอบ เว็บในเครือ ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (ถ้ามี)"
+        sub="แนบเว็บ IR ที่ชอบ เว็บในเครือ ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI"
         optional
       />
       {/* "Skippable" is said in plain text, not a badge: "(ไม่บังคับ)" on the title, the
@@ -2259,8 +2279,9 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
           like without needing a link or picture. Available whichever way they chose above. */}
       <SectionDivider />
       <NoteField id="inspiration-note" className="mb-6" label="หมายเหตุเพิ่มเติม"
-        hint="หากมีสไตล์ที่ชอบ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
+        hint="หากมีสไตล์ที่ชอบ ลิงก์ Google Drive หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
         value={draft.inspirationNote ?? ""} onChange={(v) => updateDraft({ inspirationNote: v })}
+        links={draft.noteLinks?.inspiration} onLinksChange={(l) => updateDraft({ noteLinks: { ...draft.noteLinks, inspiration: l } })}
         placeholder="ระบุสิ่งที่ชอบ…" />
 
       <StepNav

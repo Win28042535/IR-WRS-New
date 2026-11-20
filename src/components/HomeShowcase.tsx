@@ -819,11 +819,11 @@ export function DemoPanel() {
       </div>
 
       {/* step chips */}
-      <div className="mt-3 flex gap-1 px-1.5" role="tablist" aria-label="ขั้นตอนในตัวอย่าง">
+      <div className="mt-1 flex px-1" role="tablist" aria-label="ขั้นตอนในตัวอย่าง">
         {slides.map((sl, k) => (
           <button key={sl.name} type="button" role="tab" aria-selected={k === i} aria-label={k === slides.length - 1 ? sl.name : `ขั้นที่ ${k + 1} ${sl.name}`}
             onClick={() => setI(k)}
-            className="group flex h-6 flex-1 items-center focus-ring rounded-full">
+            className="group flex h-11 flex-1 items-center px-0.5 focus-ring rounded-full">
             <span className={`h-1.5 w-full rounded-full transition-colors duration-base ${k < i ? "ir-grad-fill" : k === i ? "bg-ir-dark" : "bg-ir-border group-hover:bg-ir-border-hi"}`} />
           </button>
         ))}
