@@ -83,7 +83,7 @@ export function ProjectInfo({ req }: { req: Requirement }) {
       <Info k="ชื่อผู้ติดต่อ" v={req.position ? `${req.name} · ${req.position}` : req.name} />
       <Info k="บริษัท" v={req.company} />
       <Info k="Email" v={req.email} />
-      <Info k="โทรศัพท์ · LINE" v={req.callbackOk === false ? "ขอให้ติดต่อทางอีเมล" : [req.phone, req.lineId && `LINE ${req.lineId}`].filter(Boolean).join(" · ") || "-"} />
+      <Info k="โทรศัพท์ · LINE" v={[req.callbackOk === true ? "" : "ไม่ได้เลือกให้โทรกลับ · ติดต่อทางอีเมล", req.phone, req.lineId && `LINE ${req.lineId}`].filter(Boolean).join(" · ") || "-"} />
       <Info k="Industry" v={req.industry} />
       <Info k="Company Type" v={req.companyType} />
       {req.projectType && <Info k="Website Type" v={req.projectType} />}

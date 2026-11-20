@@ -599,15 +599,13 @@ function SBrand({ go, draft, updateDraft }: any) {
         {/* keep the CI: logo, colours and font all come from the linked website, so only a
             note (19 Nov 2026: the logo upload went — the team takes it from the site) */}
         {keepCi && (
-          <NoteField className="mt-4" label="หมายเหตุถึงทีม" hint="มีส่วนไหนอยากปรับจากเดิม บอกไว้ได้"
+          <NoteField className="mt-4" label="หมายเหตุเพิ่มเติม" hint="หากมีส่วนที่อยากปรับจาก CI เดิม หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
             value={draft.ciKeepNote ?? ""} onChange={(v) => updateDraft({ ciKeepNote: v })}
-            placeholder="เช่น ใช้สีเดิม แต่อยากได้ฟอนต์ที่อ่านง่ายขึ้น" />
+            placeholder="ระบุสิ่งที่อยากปรับ…" />
         )}
         {/* refresh the CI: attach what they already have; whatever is missing, the team proposes */}
         {!keepCi && (
           <div className="mt-5">
-            <SectionLabel>แนบสิ่งที่มีอยู่แล้ว</SectionLabel>
-            <p className="mt-1 mb-3 text-small text-ir-t3">เช่น โลโก้ คู่มือ CI ชุดสี หรือฟอนต์ ส่วนไหนไม่มี ทีมเสนอให้</p>
             <ReferenceEditor variant="ci" draft={draft} updateDraft={updateDraft} />
           </div>
         )}
@@ -661,9 +659,9 @@ function SBrand({ go, draft, updateDraft }: any) {
         )}
         {/* the note for the team comes last (user feedback) */}
         {!keepCi && (
-          <NoteField className="mt-2" label="หมายเหตุถึงทีม" hint="มีโทนสีหรือฟอนต์ในใจ บอกไว้ได้ · วางลิงก์ Google Drive ไว้ในนี้ก็ได้"
+          <NoteField className="mt-2" label="หมายเหตุเพิ่มเติม" hint="หากมีโทนสีหรือฟอนต์ในใจ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
             value={draft.ciNote ?? ""} onChange={(v) => updateDraft({ ciNote: v })}
-            placeholder="เช่น ยังคงสีน้ำเงินไว้แต่ให้ทันสมัยกว่าเดิม" />
+            placeholder="ระบุโทนสีหรือฟอนต์ที่อยากได้…" />
         )}
         {fontPreview && <FontPreviewSheet family={proposedFont} company={draft.company} onClose={() => setFontPreview(false)} />}
         {fontBrowse && (
@@ -1501,6 +1499,10 @@ function CuratedReferenceBoard({ dir, draft, updateDraft }: { dir: any; draft: a
   );
 }
 
+// The "ตัวอย่างสิ่งที่ใส่ได้" box above the inspiration links. Off (20 Nov 2026): the step's
+// subtitle now lists the same examples in one sentence. Code kept.
+const SHOW_REF_EXAMPLES = false;
+
 // variant "ci" is the same editor reused in step 2 for what the client already has of their
 // CI (logo, CI guide, colours, font): stored on draft.ciAssets instead of draft.references,
 // no "what do you like" chips and no examples box.
@@ -1825,7 +1827,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       {/* What to put here — user tests: people tried hard but weren't sure what counts. */}
       {/* Collapsible (19 Nov 2026): open while nothing is added, folded once something is;
           a toggle by hand is remembered in this browser. */}
-      {!ci && <div className="mb-5 rounded-xl bg-ir-sunken">
+      {SHOW_REF_EXAMPLES && !ci && <div className="mb-5 rounded-xl bg-ir-sunken">
         <button type="button" onClick={toggleExamples} aria-expanded={examplesOpen} aria-controls={examplesId}
           className="flex min-h-11 w-full items-center gap-2 rounded-xl px-4 py-2.5 text-left focus-ring">
           <span className="flex-1 text-small font-semibold text-ir-t1">ตัวอย่างสิ่งที่ใส่ได้</span>
@@ -1849,7 +1851,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
         {/* ── Website links — unified input+button as one control, no visual seam ── */}
         <div className="order-1 mb-4">
           <div className="flex items-baseline gap-2">
-            <SectionLabel>{ci ? "ลิงก์" : "เว็บไซต์หรือวิดีโอที่ชอบ"}</SectionLabel>
+            <SectionLabel>{ci ? "แนบลิงก์" : "เว็บไซต์หรือวิดีโอที่ชอบ"}</SectionLabel>
             <span className="whitespace-nowrap text-small text-ir-t3">(ไม่บังคับ)</span>
             <span role="status" className={`ml-auto inline-flex h-6 shrink-0 self-baseline items-center rounded-full px-2 text-caption font-semibold leading-none tabular-nums ${urls.length ? "bg-ir-accent-soft text-ir-accent-text" : "bg-ir-muted text-ir-t2"}`}>
               {urls.length}/{MAX_REFERENCE_URLS} ลิงก์
@@ -1875,7 +1877,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
             <input
               type="url"
               aria-label={ci ? "ลิงก์ CI" : "ลิงก์เว็บไซต์หรือวิดีโอ"}
-              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : "วางลิงก์ที่นี่"}
+              placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : ci ? "วางลิงก์ เช่น โลโก้ คู่มือ หรือ Google Drive" : "วางลิงก์ที่นี่"}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
@@ -1909,14 +1911,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           </div>
           {/* Progressive validation — recomputed on every keystroke, no submit required to
               find out the link won't work. Falls back to the generic hint when empty. */}
-          {urlValidation === "empty" ? (
-            // two numbered steps, darker than a hint (user tests: links were pasted and
-            // never added because the one grey line went unread)
-            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-small font-medium text-ir-t2">
-              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark text-caption font-bold text-white">1</span>วางลิงก์ทีละลิงก์</span>
-              <span className="inline-flex items-center gap-1.5"><span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full bg-ir-dark text-caption font-bold text-white">2</span>กด “เพิ่มลิงก์”</span>
-            </p>
-          ) : (
+          {/* nothing under an empty field (20 Nov 2026: the ①② steps went); a usable link
+              turns the button lime and says to press it */}
+          {urlValidation === "empty" ? null : (
             <p role="status" className={`text-small mt-1.5 flex items-center gap-1.5 ${URL_VALIDATION_COPY[urlValidation].textClass}`}>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${URL_VALIDATION_COPY[urlValidation].dotClass}`} />
               {URL_VALIDATION_COPY[urlValidation].label}
@@ -2110,10 +2107,11 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                       })}
                     </div>
                     </>}
-                    <NoteField key={noteEditing ?? ""} className="mt-1" label="โน้ตสำหรับรายการนี้" rows={2}
+                    <NoteField key={noteEditing ?? ""} className="mt-1" label="หมายเหตุเพิ่มเติม" rows={2}
+                      hint="หากมีสิ่งที่ชอบในรายการนี้ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
                       value={editingUrl ? (editingUrl.note ?? "") : (editingImage!.note ?? "")}
                       onChange={(v) => (editingUrl ? updateUrlNote(editingUrl.id, v) : updateImageNote(editingImage!.id, v))}
-                      placeholder={ci ? "เช่น โลโก้เวอร์ชันล่าสุด หรือหน้าคู่มือที่ระบุรหัสสี · วางลิงก์ Google Drive ได้" : "เช่น ชอบการวางตัวเลขสำคัญไว้ด้านบน · วางลิงก์ Google Drive ได้"} />
+                      placeholder="ระบุรายละเอียดของรายการนี้…" />
                     {hasNote && (
                       <button type="button" onClick={() => clearItem(id)}
                         className="mt-1 inline-flex h-9 items-center rounded-full px-2 text-small font-semibold text-ir-t3 transition-colors hover:bg-ir-muted hover:text-ir-t1 focus-ring">
@@ -2228,7 +2226,7 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       <Head
         n={5}
         title="เพิ่มเติมแรงบันดาลใจ"
-        sub="แนบเว็บไซต์ วิดีโอ รูป หรือเอกสารที่ชอบ (ถ้ามี)"
+        sub="แนบเว็บ IR ที่ชอบ เว็บในเครือ ภาพหน้าจอ รายงานประจำปี หรือคู่มือ CI (ถ้ามี)"
         optional
       />
       {/* "Skippable" is said in plain text, not a badge: "(ไม่บังคับ)" on the title, the
@@ -2260,10 +2258,10 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
       {/* Text-only inspiration (user test AOT: "Note เป็น Text ได้") — describe what they
           like without needing a link or picture. Available whichever way they chose above. */}
       <SectionDivider />
-      <NoteField id="inspiration-note" className="mb-6" label="เล่าเป็นข้อความ"
-        hint="ไม่มีลิงก์หรือรูปก็ได้ เขียนบอกว่าชอบแบบไหน · วางลิงก์ Google Drive ไว้ในนี้ก็ได้"
+      <NoteField id="inspiration-note" className="mb-6" label="หมายเหตุเพิ่มเติม"
+        hint="หากมีสไตล์ที่ชอบ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
         value={draft.inspirationNote ?? ""} onChange={(v) => updateDraft({ inspirationNote: v })}
-        placeholder="เช่น ชอบเว็บที่ดูสะอาด ตัวเลขผลประกอบการเห็นชัดตั้งแต่หน้าแรก · วิดีโอองค์กร: drive.google.com/…" />
+        placeholder="ระบุสิ่งที่ชอบ…" />
 
       <StepNav
         onBack={() => go(6)}
@@ -2288,7 +2286,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
     name: draft.name.trim() ? "" : "กรุณากรอกชื่อ-นามสกุล",
     position: draft.position?.trim() ? "" : "กรุณากรอกตำแหน่ง",
     email: emailError(draft.email),
-    phone: (draft.callbackOk ?? true) ? phoneError(draft.phone) : "", // hidden when they chose email only
+    phone: phoneError(draft.phone), // phone is always shown now; only a malformed number is an error
   };
   const showError = (field: keyof typeof contactErrors) => (touched[field] || attempted) ? contactErrors[field] : "";
   const markTouched = (field: string) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
@@ -2423,8 +2421,9 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
 <F id="contact-phone" label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
               <F label="LINE ID (ไม่บังคับ)" value={draft.lineId ?? ""} onChange={(v) => updateDraft({ lineId: v.trim() })} placeholder="เช่น @irplus หรือ LINE ID ของคุณ" />
             </div>
+            {/* unticked until the client ticks it (20 Nov 2026): no nudge towards a call */}
             <label className="group mt-5 flex cursor-pointer items-start gap-3">
-              <input type="checkbox" checked={draft.callbackOk ?? true} onChange={(e) => updateDraft({ callbackOk: e.target.checked })} className="peer sr-only" />
+              <input type="checkbox" checked={draft.callbackOk === true} onChange={(e) => updateDraft({ callbackOk: e.target.checked })} className="peer sr-only" />
               {/* lime when ticked, like every other picked thing in the flow */}
               <span aria-hidden="true" className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-[5px] border-2 border-ir-border-hi bg-white text-transparent transition-colors group-hover:border-ir-select peer-checked:border-ir-accent peer-checked:bg-ir-accent peer-checked:text-ir-on-accent peer-focus-visible:ring-3 peer-focus-visible:ring-ir-ring/40">
                 <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>

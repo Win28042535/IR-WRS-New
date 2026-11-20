@@ -85,7 +85,7 @@ export default function SubmittedPage() {
               {[
                 ["ใครจะติดต่อ", "ผู้ดูแลโครงการจากทีม IR Plus"],
                 ["เมื่อไร", `ภายใน ${CONTACT_DAYS}`],
-                ["ทางไหน", (() => { const ways = req.callbackOk === false ? [req.email] : [req.phone, req.lineId && `LINE ${req.lineId}`, req.email]; return ways.filter(Boolean).join(" · ") || "ข้อมูลติดต่อที่ให้ไว้"; })()],
+                ["ทางไหน", (() => { const ways = req.callbackOk !== true ? [req.email] : [req.phone, req.lineId && `LINE ${req.lineId}`, req.email]; return ways.filter(Boolean).join(" · ") || "ข้อมูลติดต่อที่ให้ไว้"; })()],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-md bg-white px-4 py-3">
                   <dt className="text-small text-ir-t3">{k}</dt>

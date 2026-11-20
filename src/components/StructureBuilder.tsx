@@ -447,10 +447,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
 
       {/* หมายเหตุ — replaces the old "CTA หรือ Section อื่นๆ" pick: a free note for anything
           else they want, without having to name a section type or format */}
-      <NoteField id="structure-note" className="mt-6" label="หมายเหตุ"
-        hint="มีอะไรอยากได้เพิ่มบนหน้าแรก หรืออยากบอกทีม เขียนไว้ได้เลย"
+      <NoteField id="structure-note" className="mt-6" label="หมายเหตุเพิ่มเติม"
+        hint="หากมีสิ่งที่อยากเพิ่มในเว็บไซต์ หรือรายละเอียดที่อยากให้ทีมออกแบบทราบ สามารถระบุไว้ได้เลย"
         value={draft.structureNote ?? ""} onChange={(v) => updateDraft({ structureNote: v })}
-        placeholder="เช่น อยากมีส่วนสมัครรับข่าวสาร IR หรือเน้นวิดีโอสรุปผลประกอบการ" />
+        placeholder="ระบุสิ่งที่อยากเพิ่มเติม…" />
 
       <FlightLayer flights={flights} onDone={(key) => setFlights((f) => f.filter((x) => x.key !== key))} />
     </div>
