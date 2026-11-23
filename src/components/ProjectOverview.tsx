@@ -95,7 +95,7 @@ export function ProjectOverview({ draft }: { draft: any }) {
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
         {moods.length > 0 && (
-          <div className="mt-8 max-w-[36rem] border-t pt-5" style={{ borderColor: "currentColor", borderTopColor: "color-mix(in srgb, currentColor 22%, transparent)" }}>
+          <div className="mt-8 border-t pt-5" style={{ borderColor: "currentColor", borderTopColor: "color-mix(in srgb, currentColor 22%, transparent)" }}>
             <p className="text-caption font-medium uppercase tracking-[0.04em] opacity-65">อารมณ์ของเว็บไซต์</p>
             {d.mainMood && <p className="mt-1.5 text-title font-semibold leading-snug">{d.mainMood}</p>}
             {d.supportMoods.length > 0 && <p className="mt-1 text-body opacity-75">เสริมด้วย {d.supportMoods.join(" · ")}</p>}

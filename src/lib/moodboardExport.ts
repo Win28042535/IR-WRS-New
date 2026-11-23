@@ -277,7 +277,7 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   y -= LH;
   if (hasMoods) {
     y += 60;
-    ctx.globalAlpha = 0.22; ctx.fillStyle = on; ctx.fillRect(M, y, Math.min(CW, 900), 2); ctx.globalAlpha = 1;
+    ctx.globalAlpha = 0.22; ctx.fillStyle = on; ctx.fillRect(M, y, CW, 2); ctx.globalAlpha = 1;
     y += 54; ctx.globalAlpha = 0.65; font(500, 28); text("อารมณ์ของเว็บไซต์", M, y, on); ctx.globalAlpha = 1;
     if (d.mainMood) { y += 74; font(600, 56); text(d.mainMood, M, y, on); }
     if (d.supportMoods.length) { y += 58; ctx.globalAlpha = 0.75; font(400, 36); text(`เสริมด้วย ${d.supportMoods.join(" · ")}`, M, y, on); ctx.globalAlpha = 1; }
