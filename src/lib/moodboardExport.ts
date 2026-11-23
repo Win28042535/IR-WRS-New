@@ -102,6 +102,75 @@ function hexA(hex: string, a: number) {
   const h = hex.replace("#", "").padEnd(6, "0");
   return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${a})`;
 }
+// ── Cover headline: one set of rules for the screen and the PDF / PNG (23 Nov 2026) ──
+// The headline is cut into phrases at its spaces (or at " · " for the mood fallback, the
+// dot staying with the phrase before it), and a phrase is kept whole on one line. Thai
+// has no spaces inside a phrase, so a long run-on phrase ("เน้นตัวเลขและผลประกอบการที่ชัดเจน")
+// can't be kept whole: it breaks between Thai words instead, and the headline steps
+// down a size, so it never runs off the cover.
+export const HEADLINE_LONG_PHRASE = 16;
+export function headlinePhrases(t: string): string[] {
+  return t.includes(" · ")
+    ? t.split(" · ").map((p, i, a) => (i < a.length - 1 ? `${p} ·` : p))
+    : t.split(" ").filter(Boolean);
+}
+/** A phrase too long to keep on one line: a run of Thai with no space in it. */
+export const isLongPhrase = (p: string) => !p.includes(" ") && p.length > HEADLINE_LONG_PHRASE;
+export const headlineIsLong = (t: string) => headlinePhrases(t).some(isLongPhrase);
+/** Kept on one line on screen: a short single phrase. A multi-word one (the English mood
+ *  fallback, "Professional & Clean") wraps at its own spaces on a phone. */
+export const keepPhraseWhole = (p: string) => !p.includes(" ") && !isLongPhrase(p);
+
+const thaiWords = (s: string): string[] =>
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(s), (x) => x.segment)
+    : [s];
+
+// Thai linking words: a long run is cut into chunks that start at one of these, so a
+// line breaks between meaningful pieces ("เน้นตัวเลข / และผลประกอบการ / ที่ชัดเจน") and never
+// inside a compound the word splitter cuts in two ("ผล|ประกอบการ").
+const TH_LINKS = new Set(["และ", "ที่", "ด้วย", "ของ", "ใน", "เพื่อ", "กับ", "แก่", "สู่", "จาก", "โดย", "อย่าง", "หรือ", "แต่"]);
+export function headlineChunks(phrase: string): string[] {
+  const chunks: string[] = [];
+  for (const w of thaiWords(phrase)) {
+    if (chunks.length && !TH_LINKS.has(w)) chunks[chunks.length - 1] += w;
+    else chunks.push(w);
+  }
+  return chunks;
+}
+
+/** Headline lines for the canvas: phrases kept whole when they fit, else broken between
+ *  Thai words; the first line can be narrower (beside the logo); at most `maxLines`, the
+ *  last one ending in "…" when there's more. */
+function headlineLines(ctx: CanvasRenderingContext2D, text: string, firstW: number, restW: number, maxLines = 3): string[] {
+  const toks: { s: string; gap: boolean }[] = [];
+  headlinePhrases(text).forEach((p, i) => {
+    if (ctx.measureText(p).width <= Math.min(firstW, restW)) toks.push({ s: p, gap: i > 0 });
+    else headlineChunks(p).forEach((ch, j) => {
+      // a chunk still too wide falls back to single words
+      const parts = ctx.measureText(ch).width <= Math.min(firstW, restW) ? [ch] : thaiWords(ch);
+      parts.forEach((w, k) => toks.push({ s: w, gap: i > 0 && j === 0 && k === 0 }));
+    });
+  });
+  const lines: string[] = [];
+  let cur = "";
+  for (const t of toks) {
+    const next = cur ? cur + (t.gap ? " " : "") + t.s : t.s;
+    const maxW = lines.length === 0 ? firstW : restW;
+    if (cur.trim() && ctx.measureText(next).width > maxW) { lines.push(cur.trim()); cur = t.s.trimStart(); }
+    else cur = next;
+  }
+  if (cur.trim()) lines.push(cur.trim());
+  if (lines.length > maxLines) {
+    const g = typeof Intl !== "undefined" && "Segmenter" in Intl
+      ? Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(lines[maxLines - 1]), (x) => x.segment)
+      : Array.from(lines[maxLines - 1]);
+    while (g.length && ctx.measureText(g.join("") + "…").width > restW) g.pop();
+    lines.splice(maxLines - 1, lines.length, g.join("").trimEnd() + "…");
+  }
+  return lines;
+}
+
 /** Cover watermark: a faint grid and a rising line with a soft fill under it (the same
  *  shape as CoverWatermark on screen: COVER_LINE, in 0..100 units of the box). */
 export const COVER_LINE: [number, number][] = [[0, 82], [12, 74], [24, 78], [38, 60], [52, 64], [66, 44], [80, 48], [100, 22]];
@@ -163,23 +232,18 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   const on = d.moodInk;
   // mood leads, no style name: the tagline is the headline, then main / supporting moods
   const moods = [d.mainMood, ...d.supportMoods].filter(Boolean) as string[];
-  font(700, 112, head);
-  // break between the tagline's space-separated phrases when they fit, as on screen
+  // the headline follows the same rules as the screen (headlinePhrases): a long run-on
+  // Thai phrase steps the size down; the first line stops short of the logo chip
   const titleText = d.tagline ?? moods.join(" · ");
-  const phrases = titleText.split(" ");
-  const titleLines = phrases.every((w) => ctx.measureText(w).width <= CW)
-    ? phrases.reduce<string[]>((lines, w) => {
-        const last = lines[lines.length - 1];
-        if (last !== undefined && ctx.measureText(`${last} ${w}`).width <= CW) lines[lines.length - 1] = `${last} ${w}`;
-        else lines.push(w);
-        return lines;
-      }, []).slice(0, 3)
-    : wrap(ctx, titleText, CW, 3);
+  const TS = headlineIsLong(titleText) ? 88 : 112;
+  const LH = Math.round(TS * 1.15);
+  font(700, TS, head);
+  const titleLines = headlineLines(ctx, titleText, logoImg ? CW - 300 - 48 : CW, CW);
   // moods as type: label, main mood big, "เสริมด้วย …" smaller and softer
   const hasMoods = !!(d.mainMood || d.supportMoods.length);
   const moodH = hasMoods ? 60 + 54 + (d.mainMood ? 74 : 0) + (d.supportMoods.length ? 58 : 0) : 0;
   // the old company line above the kicker is gone, so the cover starts higher and is shorter
-  const coverH = 220 + titleLines.length * 128 + moodH + 100;
+  const coverH = 220 + titleLines.length * LH + moodH + 100;
   // Layered, not one flat block (19 Nov 2026): a diagonal from the main colour to a lighter
   // shade, a soft glow of the accent top right, and a faint grid with a rising line on the
   // right — investor data as a watermark, well under the type. Same as the screen.
@@ -208,9 +272,9 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
   font(500, 34);
   text("แนวทางที่ได้จากคำตอบของคุณ", M, 170, on);
   ctx.globalAlpha = 1;
-  let y = 170 + 130;
-  font(700, 112, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += 128; });
-  y -= 128;
+  let y = 170 + LH + 2;
+  font(700, TS, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += LH; });
+  y -= LH;
   if (hasMoods) {
     y += 60;
     ctx.globalAlpha = 0.22; ctx.fillStyle = on; ctx.fillRect(M, y, Math.min(CW, 900), 2); ctx.globalAlpha = 1;

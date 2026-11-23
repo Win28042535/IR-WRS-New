@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- drafts and submitted requirements both come in loosely typed */
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { isLightHex, sheetData } from "@/lib/sheetData";
-import { COVER_LINE } from "@/lib/moodboardExport";
+import { COVER_LINE, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 
@@ -58,6 +58,10 @@ export function ProjectOverview({ draft }: { draft: any }) {
   const d = sheetData(draft);
   const head = { fontFamily: d.fontStack } as CSSProperties;
   const moods = [d.mainMood, ...d.supportMoods].filter(Boolean);
+  // headline rules shared with the PDF / PNG (headlinePhrases): short phrases kept whole,
+  // a long run-on Thai phrase breaks between words, and a long headline steps down a size
+  const title = d.tagline ?? moods.join(" · ");
+  const titleLong = headlineIsLong(title);
   // the glow and the watermark line: the direction's accent, or white when the colours
   // come from their own website (not known here)
   const coverGlow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
@@ -74,9 +78,10 @@ export function ProjectOverview({ draft }: { draft: any }) {
       <div className="relative isolate overflow-hidden px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-8"
         style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${coverGlow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
         <CoverWatermark accent={coverGlow} />
-        {/* their logo, on a white chip so a dark or transparent logo still shows */}
+        {/* their logo, on a white chip so a dark or transparent logo still shows; above the
+            text on a phone, beside it from sm up (a float squeezed the kicker into two lines) */}
         {d.logo && (
-          <span className="float-right ml-4 grid h-14 w-28 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
+          <span className="mb-4 grid h-14 w-28 sm:float-right sm:mb-0 sm:ml-4 shrink-0 place-items-center rounded-md bg-white p-2 shadow-e1 md:h-16 md:w-32">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
           </span>
@@ -84,8 +89,9 @@ export function ProjectOverview({ draft }: { draft: any }) {
         {/* Mood leads, no style name (19 Nov 2026): a name like "Premium Corporate" read as
             more specific and settled than the answers really are. */}
         <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
-        <h3 className="mt-2 max-w-[36rem] font-bold leading-[1.15] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: "clamp(34px, 7vw, 56px)", textWrap: "balance" } as CSSProperties}>{/* each space-separated phrase stays whole: Thai has no spaces inside words */}
-          {(d.tagline ?? moods.join(" · ")).split(" ").map((w, i) => <Fragment key={i}>{i ? " " : ""}<span className="whitespace-nowrap">{w}</span></Fragment>)}</h3>
+        <h3 className="mt-2 max-w-[36rem] font-bold leading-[1.15] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", textWrap: "balance" } as CSSProperties}>{/* each phrase stays whole; a long Thai run breaks between words (the browser segments Thai) */}
+          {headlinePhrases(title).map((w, i) => <Fragment key={i}>{i ? " " : ""}{keepPhraseWhole(w) || w.includes(" ") ? <span className={keepPhraseWhole(w) ? "whitespace-nowrap" : undefined}>{w}</span>
+            : headlineChunks(w).map((c, j) => <Fragment key={j}>{j ? <wbr /> : null}<span className={c.length <= 16 ? "whitespace-nowrap" : undefined}>{c}</span></Fragment>)}</Fragment>)}</h3>
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
         {moods.length > 0 && (
