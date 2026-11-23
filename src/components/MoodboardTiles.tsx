@@ -124,6 +124,8 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
   const insp = [d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "", d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "", d.inspiration.note ?? ""].filter(Boolean).join(" · ");
   const shot = (i: number) => d.shots[i]?.url ?? d.shots[0]?.url;
   const fromSiteBoth = d.ownPending && !!d.ciSite;
+  // one line for where the fonts come from; "ทั้งสองฟอนต์…" when both are free Google faces
+  const fontSourceLine = d.fontSource === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${d.fontSource} · เนื้อหา · Google Fonts · ฟรี`;
   const fonts = [
     { label: "หัวข้อ", name: d.fontName, fam: head, wt: 700, src: d.fontSource, sample: BOARD_SAMPLE.headSample },
     { label: "เนื้อหา", name: d.bodyFont, fam: body, wt: 400, src: "Google Fonts · ฟรี", sample: BOARD_SAMPLE.bodySample },
@@ -152,17 +154,21 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
             )}
             {/* both fonts in one card, a row each */}
             {d.ciSite ? <FromSite what="ฟอนต์" site={d.ciSite} /> : (
-              <div className={`${CARD} divide-y divide-black/[0.07] px-4 @2xl:px-5`}>
-                {fonts.map((f) => (
-                  <div key={f.label} className="min-w-0 py-4">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <Label>{f.label}</Label>
-                      <span className={`truncate text-caption ${MUTED}`}>{f.src}</span>
-                    </div>
-                    <p className="mt-1 break-words leading-tight" style={{ ...f.fam, fontWeight: f.wt, fontSize: "clamp(24px, 4cqw, 34px)" }}>{f.name}</p>
-                    <p className="mt-1 line-clamp-2 text-small text-[#4A473F]" style={f.fam}>{f.sample}</p>
-                  </div>
-                ))}
+              // each row looks like what its font does (23 Nov 2026): the heading row large and
+              // bold, set like a heading; the body row small and quiet, set like a paragraph —
+              // two equal rows read as one flat block. The source is said once, at the foot.
+              <div className={`${CARD} px-4 @2xl:px-5`}>
+                <div className="min-w-0 py-5">
+                  <Label>{fonts[0].label}</Label>
+                  <p className="mt-1.5 break-words leading-tight" style={{ ...fonts[0].fam, fontWeight: 700, fontSize: "clamp(28px, 4.4cqw, 36px)" }}>{fonts[0].name}</p>
+                  <p className="mt-2 text-body font-semibold leading-snug text-[#2B2A26]" style={fonts[0].fam}>{fonts[0].sample}</p>
+                </div>
+                <div className="min-w-0 border-t border-black/[0.07] py-4">
+                  <Label>{fonts[1].label}</Label>
+                  <p className="mt-1 text-lead font-medium leading-tight" style={fonts[1].fam}>{fonts[1].name}</p>
+                  <p className={`mt-1 line-clamp-2 text-small leading-relaxed ${MUTED}`} style={fonts[1].fam}>{fonts[1].sample}</p>
+                </div>
+                <p className={`border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
               </div>
             )}
           </div>

@@ -382,16 +382,21 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
         { lab: "หัวข้อ", name: d.fontName, fam: head, wt: 700, src: d.fontSource, sample: BOARD_SAMPLE.headSample },
         { lab: "เนื้อหา", name: d.bodyFont, fam: body, wt: 400, src: "Google Fonts · ฟรี", sample: BOARD_SAMPLE.bodySample },
       ];
-      const rh = 150; h2 = rows.length * rh;
+      // heading row large and bold, body row small and quiet, the source once at the foot
+      // (as on screen)
+      const [hd, bd] = rows;
+      const h1r = 168, h2r = 132, hf = 54; h2 = h1r + h2r + hf;
       card(x2, y, w2, h2);
-      rows.forEach((f, i) => {
-        const ry = y + i * rh;
-        if (i) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x2 + 28, ry, w2 - 56, 2); }
-        label(f.lab, x2 + 28, ry + 40);
-        font(400, 21); ctx.textAlign = "right"; text(f.src, x2 + w2 - 28, ry + 40, MUTED); ctx.textAlign = "left";
-        fit(f.name, w2 - 56, 46, f.wt, f.fam); text(f.name, x2 + 28, ry + 92);
-        font(400, 22, f.fam); text(wrap(ctx, f.sample, w2 - 56, 1)[0] ?? "", x2 + 28, ry + 128, "#4A473F");
-      });
+      const rule = (ry: number) => { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x2 + 28, ry, w2 - 56, 2); };
+      label(hd.lab, x2 + 28, y + 42);
+      fit(hd.name, w2 - 56, 56, 700, hd.fam); text(hd.name, x2 + 28, y + 104);
+      font(600, 26, hd.fam); text(wrap(ctx, hd.sample, w2 - 56, 1)[0] ?? "", x2 + 28, y + 146);
+      rule(y + h1r);
+      label(bd.lab, x2 + 28, y + h1r + 40);
+      font(500, 30, bd.fam); text(bd.name, x2 + 28, y + h1r + 80);
+      font(400, 21, bd.fam); text(wrap(ctx, bd.sample, w2 - 56, 1)[0] ?? "", x2 + 28, y + h1r + 112, MUTED);
+      rule(y + h1r + h2r);
+      font(400, 20); text(hd.src === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${hd.src} · เนื้อหา · Google Fonts · ฟรี`, x2 + 28, y + h1r + h2r + 36, MUTED);
     }
     y += Math.max(h1, h2);
   }
