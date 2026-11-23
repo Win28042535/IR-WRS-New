@@ -227,7 +227,7 @@ export function tintSteps(hex: string): string[] {
     .concat([hex.toUpperCase()], [0.22, 0.42, 0.6, 0.76].map((t) => mixHex(hex, "#000000", t)));
 }
 
-/** Sample words for the "ตัวอย่างหน้าเว็บ" cards — investor content, not lorem ipsum. */
+/** Sample words for the "องค์ประกอบบนเว็บ" cards — investor content, not lorem ipsum. */
 export const BOARD_SAMPLE = {
   url: "ir.company.co.th",
   primaryBtn: "ดูงบการเงิน",
@@ -398,7 +398,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 02 sample page: a browser frame — buttons + field on the left, cards running past the
   // right edge
-  section("02", "ตัวอย่างหน้าเว็บ", "ตัวอย่าง · ไม่ต้องกด");
+  section("02", "องค์ประกอบบนเว็บ", "ตัวอย่าง · ไม่ต้องกด");
   {
     const H = 380, btn = d.ownPending ? "#151823" : d.primary, onBtn = isLight(btn) ? INK : "#FFFFFF";
     card(M, y, CW, H, "#E6E2D8");

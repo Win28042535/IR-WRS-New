@@ -169,8 +169,8 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
 
       {/* samples, not controls: a picture of a page in a browser frame — nothing to press,
           nothing to type in */}
-      <Section n="02" title="ตัวอย่างหน้าเว็บ" chip="ตัวอย่าง · ไม่ต้องกด">
-        <div role="img" aria-label="ภาพตัวอย่างหน้าเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
+      <Section n="02" title="องค์ประกอบบนเว็บ" chip="ตัวอย่าง · ไม่ต้องกด">
+        <div role="img" aria-label="ภาพตัวอย่างองค์ประกอบบนเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
           className="pointer-events-none select-none rounded-md bg-[#E6E2D8] p-1.5">
           <div className="flex items-center gap-3 px-2 pb-1.5 pt-0.5" aria-hidden="true">
             <span className="flex gap-1">{[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 rounded-full bg-black/15" />)}</span>
