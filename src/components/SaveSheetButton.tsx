@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCheck } from "@/components/icons";
 import { Spinner } from "@/components/Loader";
-import { sheetData } from "@/lib/sheetData";
+import { BODY_FONT, sheetData } from "@/lib/sheetData";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import type { SheetView } from "@/lib/moodboardExport";
@@ -17,6 +17,7 @@ export function SaveSheetButton({ source, kind, refNo, view = "doc", className =
   // a font picked from the catalog has to be loaded on this page too, or the sheet falls back
   const pick = chosenThaiFont(source);
   useGoogleFont(pick.source === "selected" ? previewFamily(pick.family) : undefined, [400, 500, 600, 700]);
+  useGoogleFont(BODY_FONT, [400, 600]); // the moodboard's body font, drawn into the file
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);

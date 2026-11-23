@@ -106,6 +106,9 @@ export function conceptData(draft: any) {
 // spinner + "กำลังบันทึก…", then a check + "บันทึกแล้ว" for a few seconds.
 const SHEET_ROLE_TH: Record<string, string> = { Primary: "สีหลัก", Accent: "สีเน้น", Background: "พื้นหลัง", Text: "ตัวอักษร", Muted: "สีรอง" };
 
+/** the body font shown on the moodboard (loaded from Google Fonts where it's drawn) */
+export const BODY_FONT = "Sarabun";
+
 export function sheetData(draft: any): SheetData {
   const c = conceptData(draft);
   const vs = VISUAL_STYLES[draft.selectedDirection];
@@ -141,8 +144,10 @@ export function sheetData(draft: any): SheetData {
     fontName: c.mainFont,
     fontStack: c.thaiStack,
     fontSource: fontByFamily(c.mainFont)?.collection === "irplus" ? "ชุดฟอนต์ของ IR Plus" : "Google Fonts · ฟรี",
-    bodyFont: c.pairing.body,
-    bodyStack: fontStack(c.pairing.body),
+    // the body example is Sarabun (Thai + Latin, 23 Nov 2026): the pairing's Inter has no
+    // Thai, so the Thai sample line drew in a fallback face
+    bodyFont: BODY_FONT,
+    bodyStack: familyStack(BODY_FONT),
     fontNote: c.mainFontNote,
     // the Thai half of a name like "Header / เมนูหลัก" or "เกี่ยวกับบริษัท / About Us", when there
     // is one (23 Nov 2026)

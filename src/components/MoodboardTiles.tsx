@@ -13,10 +13,13 @@
 // labels — and things that belong together share a row or a card (moods in one row, the
 // three colours in one row with the greys as a strip, both fonts in one card, answers as
 // pairs, photos as thumbnails), so the board is about half as tall on a phone.
+// Spacing follows the app's 4px scale (23 Nov 2026): panels 16 / 20 like the app's cards,
+// 12 between cards, 8 inside a group, sections 24 / 32 like the document view's chapters.
 // Corners follow the app's radius scale (globals.css): panels 12px, tiles 8px, small 6px —
 // inside a sheet with 8px corners, the earlier 20-24px read too soft.
 import type { CSSProperties, ReactNode } from "react";
-import { isLightHex } from "@/lib/sheetData";
+import { BODY_FONT, isLightHex } from "@/lib/sheetData";
+import { useGoogleFont } from "@/lib/useGoogleFont";
 import { BOARD_SAMPLE, NEUTRALS, tintSteps, type SheetData } from "@/lib/moodboardExport";
 
 // solid, no outline: an outlined white box is what the form uses for "fill this in"
@@ -29,27 +32,27 @@ const Label = ({ children, className = "" }: { children: ReactNode; className?: 
 
 function Section({ n, title, chip, children }: { n: string; title: string; chip?: string; children: ReactNode }) {
   return (
-    <section className="pt-7 @2xl:pt-9">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+    <section className="pt-6 @2xl:pt-8">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         {/* numbered like a report's chapters, so it reads as a document to look through */}
-        <h4 className="flex items-baseline gap-2.5 text-[19px] font-semibold leading-tight @2xl:text-[22px]">
+        <h4 className="flex items-baseline gap-2 text-[19px] font-semibold leading-tight @2xl:text-[22px]">
           <span className={`font-mono text-caption font-normal ${MUTED}`}>{n}</span>{title}
         </h4>
-        {chip && <span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">{chip}</span>}
+        {chip && <span className="inline-block rounded-full bg-black/[0.06] px-3 py-0.5 text-caption font-semibold text-[#6F6A5E]">{chip}</span>}
       </div>
       {children}
     </section>
   );
 }
 
-const Note = ({ children }: { children: ReactNode }) => <p className={`mt-2.5 text-small leading-relaxed ${MUTED}`}>{children}</p>;
+const Note = ({ children }: { children: ReactNode }) => <p className={`mt-3 text-small leading-relaxed ${MUTED}`}>{children}</p>;
 
 /** a colour tile: role on top, hex below, its nine shades as a thin strip along the bottom */
 function Swatch({ s }: { s: SheetData["swatches"][number] }) {
   const light = isLightHex(s.hex);
   return (
     <div className="min-w-0">
-      <div className={`relative flex h-24 flex-col justify-between overflow-hidden rounded-sm px-2.5 pb-4 pt-2.5 @sm:px-3 @2xl:h-28 ${light ? "ring-1 ring-inset ring-[#E4E0D6]" : ""}`}
+      <div className={`relative flex h-24 flex-col justify-between overflow-hidden rounded-sm px-2 pb-4 pt-2 @sm:px-3 @sm:pt-3 @2xl:h-28 ${light ? "ring-1 ring-inset ring-[#E4E0D6]" : ""}`}
         style={{ background: s.hex, color: light ? "#2B2A26" : "#fff" }}>
         <p className="whitespace-nowrap text-caption font-semibold @sm:text-small">{s.role}</p>
         <p className="whitespace-nowrap font-mono text-[11px] tracking-tight @sm:text-caption @sm:tracking-normal">{s.hex.toUpperCase()}</p>
@@ -57,37 +60,33 @@ function Swatch({ s }: { s: SheetData["swatches"][number] }) {
           {tintSteps(s.hex).map((t, i) => <span key={i} className="flex-1" style={{ background: t }} />)}
         </span>
       </div>
-      <p className={`mt-1.5 line-clamp-2 text-caption leading-snug ${MUTED}`}>{s.use}</p>
+      <p className={`mt-2 line-clamp-2 text-caption leading-snug ${MUTED}`}>{s.use}</p>
     </div>
   );
 }
 
 /** "ใช้สี / ฟอนต์จากเว็บไซต์เดิม" — one compact card in place of the swatches and/or fonts */
 const FromSite = ({ what, site }: { what: string; site?: string }) => (
-  <div className={`${CARD} px-4 py-3.5`}>
+  <div className={`${CARD} p-4 @2xl:p-5`}>
     <p className="text-body font-semibold">ใช้{what}จากเว็บไซต์เดิม</p>
     <p className="mt-0.5 text-small text-[#6F6A5E]">ทีมจะใช้{what}จาก {site ?? "เว็บไซต์ปัจจุบันของคุณ"}</p>
   </div>
 );
 
 // The direction + mood banner: the headline tile in the main colour (with the rising-line
-// watermark), then one row under it — main mood on the accent, supporting mood on a light
-// tint. Colours from their own site aren't known here, so keep-CI uses neutrals instead.
+// watermark), then the moods in one neutral card under it (23 Nov 2026). The direction's
+// colours show only here in the headline tile and in "สีและตัวอักษร" — mood cards in the
+// accent and a tint read as one more set of swatches and made the board busy. The main
+// mood leads by size, the supporting one sits beside it, split by a hairline.
 function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: ReactNode; watermark: ReactNode; glow: string }) {
-  const accent = d.ownPending ? "#2B2A26" : (d.swatches[1]?.hex ?? "#2B2A26");
-  const onAccent = isLightHex(accent) ? "#2B2A26" : "#fff";
-  const soft = d.ownPending ? "#E9E7E1" : `color-mix(in srgb, ${d.primary} 14%, #fff)`;
-  const moods = [
-    d.mainMood ? { label: "อารมณ์หลัก", value: d.mainMood, bg: accent, ink: onAccent } : null,
-    d.supportMoods.length ? { label: "เสริมด้วย", value: d.supportMoods.join(" · "), bg: soft, ink: "#2B2A26" } : null,
-  ].filter(Boolean) as { label: string; value: string; bg: string; ink: string }[];
+  const support = d.supportMoods.join(" · ");
   return (
-    <div className="grid gap-2">
-      <div className="relative isolate min-w-0 overflow-hidden rounded-md p-5 @2xl:px-7 @2xl:py-6"
+    <div className="grid gap-3">
+      <div className="relative isolate min-w-0 overflow-hidden rounded-md p-5 @2xl:p-6"
         style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${glow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
         {watermark}
         {d.logo && (
-          <span className="mb-3 grid h-11 w-22 place-items-center rounded-md bg-white p-1.5 shadow-e1 @md:float-right @md:mb-0 @md:ml-4">
+          <span className="mb-3 grid h-11 w-22 place-items-center rounded-md bg-white p-2 shadow-e1 @md:float-right @md:mb-0 @md:ml-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
           </span>
@@ -95,14 +94,18 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
         <p className="text-small font-medium text-balance opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
         {headline}
       </div>
-      {moods.length > 0 && (
-        <div className={`grid gap-2 ${moods.length > 1 ? "@sm:grid-cols-2" : ""}`}>
-          {moods.map((m) => (
-            <div key={m.label} className="min-w-0 rounded-md px-4 py-3" style={{ background: m.bg, color: m.ink }}>
-              <p className="text-caption font-medium opacity-75">{m.label}</p>
-              <p className="mt-0.5 text-body font-semibold leading-snug @2xl:text-lead">{m.value}</p>
-            </div>
-          ))}
+      {(d.mainMood || support) && (
+        <div className={`${CARD} p-4 @2xl:p-5`}>
+          <Label>อารมณ์ของเว็บไซต์</Label>
+          <div className={`mt-2 grid gap-3 ${d.mainMood && support ? "@sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] @sm:gap-0" : ""}`}>
+            {d.mainMood && <p className="min-w-0 text-title font-semibold leading-snug @sm:pr-5">{d.mainMood}</p>}
+            {support && (
+              <div className={`min-w-0 ${d.mainMood ? "border-t border-black/[0.08] pt-3 @sm:border-l @sm:border-t-0 @sm:pl-5 @sm:pt-0" : ""}`}>
+                <p className={`text-caption ${MUTED}`}>เสริมด้วย</p>
+                <p className="mt-0.5 text-body font-semibold leading-snug">{support}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -112,6 +115,7 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
 export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData; headline: ReactNode; watermark: ReactNode; glow: string }) {
   const head = { fontFamily: d.fontStack } as CSSProperties;
   const body = { fontFamily: d.bodyStack } as CSSProperties;
+  useGoogleFont(BODY_FONT, [400, 600]);
   const btn = d.ownPending ? "#151823" : d.primary;
   const onBtn = isLightHex(btn) ? "#2B2A26" : "#fff";
   // a light wash of the accent, behind the key figure's change
@@ -131,24 +135,26 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
 
       <Section n="01" title="สีและตัวอักษร">
         {fromSiteBoth ? <FromSite what="สีและฟอนต์" site={d.ciSite} /> : (
-          <div className="grid gap-2.5 @lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="grid gap-3 @lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             {/* colours: three tiles in one row, the greys as a strip under them */}
             {d.ownPending ? <FromSite what="สี" site={d.ciSite} /> : (
               <div className="min-w-0">
                 <div className="grid grid-cols-3 gap-2">{d.swatches.map((s) => <Swatch key={s.role} s={s} />)}</div>
                 <div className="mt-3 flex items-center gap-3">
-                  <Label className="shrink-0">สีกลาง</Label>
-                  <span className="flex h-3.5 flex-1 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/[0.06]" aria-hidden="true">
+                  <Label className="shrink-0">โทนเทา</Label>
+                  <span className="flex h-3 flex-1 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/[0.06]" aria-hidden="true">
                     {NEUTRALS.slice(1).map((n) => <span key={n} className="flex-1" style={{ background: n }} />)}
                   </span>
                 </div>
+                {/* what the greys are for — "สีกลาง" alone left testers asking */}
+                <p className={`mt-2 text-caption leading-snug ${MUTED}`}>ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง</p>
               </div>
             )}
             {/* both fonts in one card, a row each */}
             {d.ciSite ? <FromSite what="ฟอนต์" site={d.ciSite} /> : (
-              <div className={`${CARD} divide-y divide-black/[0.07] px-4`}>
+              <div className={`${CARD} divide-y divide-black/[0.07] px-4 @2xl:px-5`}>
                 {fonts.map((f) => (
-                  <div key={f.label} className="min-w-0 py-3.5">
+                  <div key={f.label} className="min-w-0 py-4">
                     <div className="flex items-baseline justify-between gap-3">
                       <Label>{f.label}</Label>
                       <span className={`truncate text-caption ${MUTED}`}>{f.src}</span>
@@ -162,7 +168,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
           </div>
         )}
         {!d.ownPending && !d.ciSite && <Note>สีและฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>}
-        {d.fontInterest && <p className="mt-1.5 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
+        {d.fontInterest && <p className="mt-3 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
         {d.ciAssets && <Note>CI ที่แนบ · {d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้</Note>}
         {d.ciNote && <Note>หมายเหตุ · {d.ciNote}</Note>}
       </Section>
@@ -219,7 +225,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
               </div>
               {/* event: a date block in the main colour, the title, a small button */}
               <div className="flex w-[40%] shrink-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
-                <div className="flex items-start gap-2.5">
+                <div className="flex items-start gap-2">
                   <span className="grid w-11 shrink-0 place-items-center rounded-[6px] py-1 text-center leading-tight" style={{ background: btn, color: onBtn }}>
                     <span className="text-lead font-bold">{BOARD_SAMPLE.eventDay}</span><span className="text-[11px]">{BOARD_SAMPLE.eventMonth}</span>
                   </span>
@@ -236,13 +242,13 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
       </Section>
 
       <Section n="03" title="คำตอบและหน้าแรก">
-        <div className="grid gap-2.5 @2xl:grid-cols-2">
-          <div className={`${CARD} p-4`}>
+        <div className="grid gap-3 @2xl:grid-cols-2">
+          <div className={`${CARD} p-4 @2xl:p-5`}>
             <Label>คำตอบของคุณ</Label>
             {d.answers.length ? (
               // one answer a row, divided by hairlines: topic muted on the left, the answer on the
               // right, every answer starting on the same line so both sides read straight down
-              <dl className="mt-1.5 divide-y divide-black/[0.08]">
+              <dl className="mt-2 divide-y divide-black/[0.08]">
                 {d.answers.map((a) => (
                   <div key={a.topic} className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-baseline gap-3 py-2">
                     <dt className={`text-small leading-snug ${MUTED}`}>{a.topic}</dt>
@@ -252,12 +258,12 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
               </dl>
             ) : <p className={`mt-2 text-small ${MUTED}`}>ยังไม่ได้ตอบคำถามสำรวจแนวทาง</p>}
           </div>
-          <div className={`${CARD} p-4`}>
+          <div className={`${CARD} p-4 @2xl:p-5`}>
             <Label>หน้าแรก · เรียงจากบนลงล่าง</Label>
             {names.length ? (
               // a plain numbered list, divided by hairlines: no boxes, no row standing out —
               // filled rows with a highlighted first one read as something to pick
-              <ol className="mt-1.5 grid grid-cols-[minmax(0,1fr)] divide-y divide-black/[0.08]">
+              <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] divide-y divide-black/[0.08]">
                 {names.map((n, i) => (
                   <li key={n} className="flex items-baseline gap-3 py-2 text-small">
                     <span className={`w-5 shrink-0 font-mono text-caption ${MUTED}`}>{String(i + 1).padStart(2, "0")}</span>
@@ -274,8 +280,8 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
 
       {d.shots.length > 0 && (
         <Section n="04" title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
-          {d.visualMood && <p className="mb-2.5 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
-          <div className="grid grid-cols-3 gap-1.5 @2xl:grid-cols-6">
+          {d.visualMood && <p className="mb-3 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
+          <div className="grid grid-cols-3 gap-2 @2xl:grid-cols-6">
             {d.shots.slice(0, 6).map((s) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={s.url} src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none rounded-[6px] object-cover" style={{ aspectRatio: "4 / 3" }} />
@@ -285,7 +291,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
         </Section>
       )}
 
-      <p className="mt-8 border-t border-black/[0.08] py-5 text-small text-[#8A8578]">
+      <p className="mt-6 border-t border-black/[0.08] py-5 @2xl:mt-8 text-small text-[#8A8578]">
         เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง
       </p>
     </div>

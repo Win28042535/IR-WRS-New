@@ -218,7 +218,7 @@ const isLight = (hex: string) => {
 // presentation is borrowed — nothing here is a control (no shuffle, lock or "+"), as testers
 // tried to click things on the summary before. Screen: ProjectOverview view="board".
 
-/** Neutral greys, light to dark (the "สีกลาง" card). */
+/** Neutral greys, light to dark ("โทนเทา": text, backgrounds and lines). */
 export const NEUTRALS = ["#FFFFFF", "#F2F1EE", "#DAD8D2", "#B3B0A8", "#85827A", "#53514B", "#22211E", "#0B0C08"];
 
 /** Nine shades of a colour, light to dark; index 4 is the colour itself. */
@@ -255,7 +255,7 @@ export const BOARD_SAMPLE = {
  *  row under it — main mood on the accent, supporting mood on a light tint — as on screen
  *  (Banner). Returns its bottom. */
 function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: string, ui: string, logoImg: HTMLImageElement | null): number {
-  const CW = W - 2 * M, G = 16, top = 96;
+  const CW = W - 2 * M, G = 20, top = 96; // card-to-card gap, as in drawBoard
   const font = (w: number, px: number, fam = ui) => { ctx.font = `${w} ${px}px ${fam}`; };
   const text = (s: string, x: number, y: number, color = INK) => { ctx.fillStyle = color; ctx.fillText(s, x, y); };
   const on = d.moodInk;
@@ -282,19 +282,22 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   }
   ctx.globalAlpha = 0.78; font(500, 28); text("แนวทางที่ได้จากคำตอบของคุณ", M + 40, top + 66, on); ctx.globalAlpha = 1;
   font(700, TS, head); lines.forEach((ln, i) => text(ln, M + 40, top + 82 + LH * (i + 1) - Math.round(LH * 0.18), on));
-  // moods: one row under the headline
-  const moods = [
-    d.mainMood ? { label: "อารมณ์หลัก", value: d.mainMood, bg: d.ownPending ? "#2B2A26" : (d.swatches[1]?.hex ?? "#2B2A26") } : null,
-    d.supportMoods.length ? { label: "เสริมด้วย", value: d.supportMoods.join(" · "), bg: d.ownPending ? "#E9E7E1" : mixHex(d.primary, "#FFFFFF", 0.86) } : null,
-  ].filter(Boolean) as { label: string; value: string; bg: string }[];
-  if (!moods.length) return top + H;
-  const my = top + H + G, mh = 132, mw = (CW - G * (moods.length - 1)) / moods.length;
-  moods.forEach((m, i) => {
-    const x = M + i * (mw + G), ink = isLight(m.bg) ? INK : "#FFFFFF";
-    ctx.fillStyle = m.bg; ctx.beginPath(); ctx.roundRect(x, my, mw, mh, 20); ctx.fill();
-    ctx.globalAlpha = 0.75; font(500, 24); text(m.label, x + 30, my + 48, ink); ctx.globalAlpha = 1;
-    font(600, 36); text(wrap(ctx, m.value, mw - 60, 1)[0] ?? "", x + 30, my + 100, ink);
-  });
+  // moods: one neutral card under the headline — the main mood large on the left, the
+  // supporting one beside it after a hairline (as on screen)
+  const support = d.supportMoods.join(" · ");
+  if (!d.mainMood && !support) return top + H;
+  const my = top + H + G, mh = 160;
+  ctx.fillStyle = PANEL; ctx.beginPath(); ctx.roundRect(M, my, CW, mh, 20); ctx.fill();
+  font(600, 22); text("อารมณ์ของเว็บไซต์", M + 34, my + 48, MUTED);
+  const half = d.mainMood && support ? CW / 2 : CW;
+  if (d.mainMood) { font(600, 44); text(wrap(ctx, d.mainMood, half - 68, 1)[0] ?? "", M + 34, my + 116); }
+  if (support) {
+    const sx = d.mainMood ? M + half : M;
+    if (d.mainMood) { ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(sx, my + 70, 2, 64); }
+    const tx = sx + (d.mainMood ? 34 : 34);
+    font(400, 22); text("เสริมด้วย", tx, my + 86, MUTED);
+    font(600, 30); text(wrap(ctx, support, CW - (tx - M) - 34, 1)[0] ?? "", tx, my + 124);
+  }
   return my + mh;
 }
 
@@ -329,10 +332,11 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
   const muted = (s: string, lines = 3) => { font(400, 26); wrap(ctx, s, CW, lines).forEach((ln) => { y += 40; text(ln, M, y, MUTED); }); };
   let y = top;
   const section = (n: string, title: string, chip?: string) => {
-    y += 100; font(400, 26); text(n, M, y, MUTED);
+    // section rhythm and title → content gap follow the screen (32 / 16 on a wide sheet)
+    y += 94; font(400, 26); text(n, M, y, MUTED);
     font(700, 40); text(title, M + 56, y);
     if (chip) pill(chip, M + CW, y - 12);
-    y += 30;
+    y += 38;
   };
   const fromSite = (what: string, x: number, w: number) => {
     card(x, y, w, 130);
@@ -363,13 +367,14 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
         font(400, 21); wrap(ctx, s.use, tw - 4, 2).forEach((ln, k) => text(ln, x + 2, y + th + 34 + k * 28, MUTED));
       });
       const ny = y + th + 104;
-      label("สีกลาง", M, ny + 8);
+      label("โทนเทา", M, ny + 8);
       const bx = M + 96, bw = w1 - 96;
       clip(bx, ny - 12, bw, 26, 6, () => {
         const sw = bw / (NEUTRALS.length - 1);
         NEUTRALS.slice(1).forEach((n, k) => { ctx.fillStyle = n; ctx.fillRect(bx + k * sw, ny - 12, sw + 1, 26); });
       });
-      h1 = th + 104 + 18;
+      font(400, 21); text("ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง", M, ny + 52, MUTED);
+      h1 = th + 104 + 62;
     }
     if (d.ciSite) h2 = fromSite("ฟอนต์", x2, w2);
     else {
