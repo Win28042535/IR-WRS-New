@@ -34,6 +34,11 @@ export type SheetData = {
   fontName: string;
   /** CSS font-family stack of the main Thai font (may contain var(--…)) */
   fontStack: string;
+  /** where the main font comes from, for the moodboard view ("Google Fonts · ฟรี" / IR Plus set) */
+  fontSource: string;
+  /** the body (Latin) font of the pairing and its CSS stack — moodboard view only */
+  bodyFont: string;
+  bodyStack: string;
   fontNote?: string;
   sections: string[];
   note?: string;
@@ -49,6 +54,8 @@ const PAPER = "#FBFAF6";
 const INK = "#2B2A26";
 const MUTED = "#8A8578";
 const LINE = "#E4E0D6";
+/** moodboard panels: a solid paper tone, darker than the sheet, never outlined */
+const PANEL = "#F1EEE6";
 
 /** var(--x) → the actual family names, so canvas `ctx.font` can use the stack. */
 function resolveStack(stack: string) {
@@ -204,13 +211,317 @@ const isLight = (hex: string) => {
   return 0.299 * r + 0.587 * g + 0.114 * b > 170;
 };
 
-export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> {
+
+// ── Moodboard view (23 Nov 2026) ──
+// The same answers laid out as a style tile: cards for colour, type, sample UI, answers and
+// homepage, after a reference the team liked (Colors / Typography / UI Styling). Only the
+// presentation is borrowed — nothing here is a control (no shuffle, lock or "+"), as testers
+// tried to click things on the summary before. Screen: ProjectOverview view="board".
+
+/** Neutral greys, light to dark (the "สีกลาง" card). */
+export const NEUTRALS = ["#FFFFFF", "#F2F1EE", "#DAD8D2", "#B3B0A8", "#85827A", "#53514B", "#22211E", "#0B0C08"];
+
+/** Nine shades of a colour, light to dark; index 4 is the colour itself. */
+export function tintSteps(hex: string): string[] {
+  return [0.86, 0.7, 0.5, 0.26].map((t) => mixHex(hex, "#FFFFFF", t))
+    .concat([hex.toUpperCase()], [0.22, 0.42, 0.6, 0.76].map((t) => mixHex(hex, "#000000", t)));
+}
+
+/** Sample words for the "ตัวอย่างหน้าเว็บ" cards — investor content, not lorem ipsum. */
+export const BOARD_SAMPLE = {
+  url: "ir.company.co.th",
+  primaryBtn: "ดูงบการเงิน",
+  secondaryBtn: "ดาวน์โหลด",
+  fieldLabel: "อีเมลรับข่าวสารนักลงทุน",
+  fieldPlaceholder: "name@company.com",
+  cardTitle: "ผลประกอบการ Q3",
+  cardText: "สรุปตัวเลขสำคัญและบทวิเคราะห์จากผู้บริหาร",
+  card2Title: "รายงานประจำปี 2567",
+  card2Text: "ดาวน์โหลดเอกสารฉบับเต็ม",
+  kpiLabel: "รายได้รวม Q3",
+  kpiValue: "12,480",
+  kpiUnit: "ล้านบาท",
+  kpiDelta: "▲ 8.2%",
+  eventDay: "14",
+  eventMonth: "พ.ย.",
+  eventTitle: "ประชุมนักวิเคราะห์",
+  eventText: "10:00 น. · ออนไลน์",
+  eventBtn: "ลงทะเบียน",
+  headSample: "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน",
+  bodySample: "รายได้รวม 12,480 ล้านบาท เพิ่มขึ้น 8.2% จากปีก่อน",
+};
+
+/** The moodboard banner: the headline tile in the main colour (with the watermark), then one
+ *  row under it — main mood on the accent, supporting mood on a light tint — as on screen
+ *  (Banner). Returns its bottom. */
+function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: string, ui: string, logoImg: HTMLImageElement | null): number {
+  const CW = W - 2 * M, G = 16, top = 96;
+  const font = (w: number, px: number, fam = ui) => { ctx.font = `${w} ${px}px ${fam}`; };
+  const text = (s: string, x: number, y: number, color = INK) => { ctx.fillStyle = color; ctx.fillText(s, x, y); };
+  const on = d.moodInk;
+  const titleText = d.tagline ?? [d.mainMood, ...d.supportMoods].filter(Boolean).join(" · ");
+  const TS = headlineIsLong(titleText) ? 64 : 84, LH = Math.round(TS * 1.15);
+  font(700, TS, head);
+  const lines = headlineLines(ctx, titleText, logoImg ? CW - 80 - 230 : CW - 80, CW - 80);
+  const H = Math.max(240, 112 + lines.length * LH + 30);
+  ctx.save(); ctx.beginPath(); ctx.roundRect(M, top, CW, H, 20); ctx.clip();
+  const g = ctx.createLinearGradient(M, top, M + CW, top + H);
+  g.addColorStop(0, d.primary); g.addColorStop(1, mixHex(d.primary, isLight(d.primary) ? "#000000" : "#FFFFFF", 0.22));
+  ctx.fillStyle = g; ctx.fillRect(M, top, CW, H);
+  const glow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
+  const rg = ctx.createRadialGradient(M + CW, top, 0, M + CW, top, CW * 0.6);
+  rg.addColorStop(0, hexA(glow, 0.3)); rg.addColorStop(1, hexA(glow, 0));
+  ctx.fillStyle = rg; ctx.fillRect(M, top, CW, H);
+  drawCoverWatermark(ctx, M + CW * 0.42, top, CW * 0.58, H, on, glow);
+  ctx.restore();
+  if (logoImg) {
+    const lw0 = 190, lh0 = 96, lx = M + CW - 40 - lw0, ly = top + 36, pad = 16;
+    ctx.fillStyle = "#FFFFFF"; ctx.beginPath(); ctx.roundRect(lx, ly, lw0, lh0, 14); ctx.fill();
+    const s = Math.min((lw0 - 2 * pad) / logoImg.naturalWidth, (lh0 - 2 * pad) / logoImg.naturalHeight);
+    ctx.drawImage(logoImg, lx + (lw0 - logoImg.naturalWidth * s) / 2, ly + (lh0 - logoImg.naturalHeight * s) / 2, logoImg.naturalWidth * s, logoImg.naturalHeight * s);
+  }
+  ctx.globalAlpha = 0.78; font(500, 28); text("แนวทางที่ได้จากคำตอบของคุณ", M + 40, top + 66, on); ctx.globalAlpha = 1;
+  font(700, TS, head); lines.forEach((ln, i) => text(ln, M + 40, top + 82 + LH * (i + 1) - Math.round(LH * 0.18), on));
+  // moods: one row under the headline
+  const moods = [
+    d.mainMood ? { label: "อารมณ์หลัก", value: d.mainMood, bg: d.ownPending ? "#2B2A26" : (d.swatches[1]?.hex ?? "#2B2A26") } : null,
+    d.supportMoods.length ? { label: "เสริมด้วย", value: d.supportMoods.join(" · "), bg: d.ownPending ? "#E9E7E1" : mixHex(d.primary, "#FFFFFF", 0.86) } : null,
+  ].filter(Boolean) as { label: string; value: string; bg: string }[];
+  if (!moods.length) return top + H;
+  const my = top + H + G, mh = 132, mw = (CW - G * (moods.length - 1)) / moods.length;
+  moods.forEach((m, i) => {
+    const x = M + i * (mw + G), ink = isLight(m.bg) ? INK : "#FFFFFF";
+    ctx.fillStyle = m.bg; ctx.beginPath(); ctx.roundRect(x, my, mw, mh, 20); ctx.fill();
+    ctx.globalAlpha = 0.75; font(500, 24); text(m.label, x + 30, my + 48, ink); ctx.globalAlpha = 1;
+    font(600, 36); text(wrap(ctx, m.value, mw - 60, 1)[0] ?? "", x + 30, my + 100, ink);
+  });
+  return my + mh;
+}
+
+function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, imgs: (HTMLImageElement | null)[], head: string, ui: string, body: string): number {
+  const CW = W - 2 * M;
+  const G = 20, R = 20; // panels: 12px on screen, on the app's radius scale
+  const font = (w: number, px: number, fam = ui) => { ctx.font = `${w} ${px}px ${fam}`; };
+  const text = (s: string, x: number, y: number, color = INK) => { ctx.fillStyle = color; ctx.fillText(s, x, y); };
+  const card = (x: number, y: number, w: number, h: number, fill = PANEL, stroke: string | null = null, r = R) => {
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill();
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+  };
+  const clip = (x: number, y: number, w: number, h: number, r: number | number[], fn: () => void) => {
+    ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip(); fn(); ctx.restore();
+  };
+  const cover = (img: HTMLImageElement | null, x: number, y: number, w: number, h: number) => {
+    ctx.fillStyle = "#ECE9E1"; ctx.fillRect(x, y, w, h);
+    if (!img) return;
+    const s = Math.max(w / img.width, h / img.height);
+    ctx.drawImage(img, x + (w - img.width * s) / 2, y + (h - img.height * s) / 2, img.width * s, img.height * s);
+  };
+  const pill = (label: string, xRight: number, yMid: number) => {
+    font(600, 24); const tw = ctx.measureText(label).width;
+    ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.beginPath(); ctx.roundRect(xRight - tw - 32, yMid - 21, tw + 32, 42, 21); ctx.fill();
+    text(label, xRight - tw - 16, yMid + 8, "#6F6A5E");
+  };
+  const fit = (s: string, w: number, px: number, weight: number, fam: string) => {
+    let size = px; font(weight, size, fam);
+    while (size > 28 && ctx.measureText(s).width > w) { size -= 2; font(weight, size, fam); }
+  };
+  const label = (s: string, x: number, yy: number) => { font(600, 22); text(s, x, yy, MUTED); };
+  const muted = (s: string, lines = 3) => { font(400, 26); wrap(ctx, s, CW, lines).forEach((ln) => { y += 40; text(ln, M, y, MUTED); }); };
+  let y = top;
+  const section = (n: string, title: string, chip?: string) => {
+    y += 100; font(400, 26); text(n, M, y, MUTED);
+    font(700, 40); text(title, M + 56, y);
+    if (chip) pill(chip, M + CW, y - 12);
+    y += 30;
+  };
+  const fromSite = (what: string, x: number, w: number) => {
+    card(x, y, w, 130);
+    font(600, 34); text(`ใช้${what}จากเว็บไซต์เดิม`, x + 30, y + 58);
+    font(400, 26); text(`ทีมจะใช้${what}จาก ${d.ciSite ?? "เว็บไซต์ปัจจุบันของคุณ"}`, x + 30, y + 100, "#6F6A5E");
+    return 130;
+  };
+
+  // ── 01 colours and type: the three colours in a row (greys as a strip) beside one font card
+  section("01", "สีและตัวอักษร");
+  if (d.ownPending && d.ciSite) y += fromSite("สีและฟอนต์", M, CW);
+  else {
+    const w1 = Math.round((CW - G) * 0.6), w2 = CW - w1 - G, x2 = M + w1 + G;
+    let h1 = 0, h2 = 0;
+    if (d.ownPending) h1 = fromSite("สี", M, w1);
+    else {
+      const tw = (w1 - 2 * 16) / 3, th = 170;
+      d.swatches.slice(0, 3).forEach((s, i) => {
+        const x = M + i * (tw + 16), light = isLight(s.hex), ink = light ? INK : "#FFFFFF";
+        clip(x, y, tw, th, 14, () => {
+          ctx.fillStyle = s.hex; ctx.fillRect(x, y, tw, th);
+          const steps = tintSteps(s.hex), sw = tw / steps.length;
+          steps.forEach((t, k) => { ctx.fillStyle = t; ctx.fillRect(x + k * sw, y + th - 10, sw + 1, 10); });
+        });
+        if (light) { ctx.beginPath(); ctx.roundRect(x, y, tw, th, 14); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); }
+        font(600, 26); text(s.role, x + 22, y + 44, ink);
+        font(500, 22); text(s.hex.toUpperCase(), x + 22, y + th - 32, ink);
+        font(400, 21); wrap(ctx, s.use, tw - 4, 2).forEach((ln, k) => text(ln, x + 2, y + th + 34 + k * 28, MUTED));
+      });
+      const ny = y + th + 104;
+      label("สีกลาง", M, ny + 8);
+      const bx = M + 96, bw = w1 - 96;
+      clip(bx, ny - 12, bw, 26, 6, () => {
+        const sw = bw / (NEUTRALS.length - 1);
+        NEUTRALS.slice(1).forEach((n, k) => { ctx.fillStyle = n; ctx.fillRect(bx + k * sw, ny - 12, sw + 1, 26); });
+      });
+      h1 = th + 104 + 18;
+    }
+    if (d.ciSite) h2 = fromSite("ฟอนต์", x2, w2);
+    else {
+      const rows = [
+        { lab: "หัวข้อ", name: d.fontName, fam: head, wt: 700, src: d.fontSource, sample: BOARD_SAMPLE.headSample },
+        { lab: "เนื้อหา", name: d.bodyFont, fam: body, wt: 400, src: "Google Fonts · ฟรี", sample: BOARD_SAMPLE.bodySample },
+      ];
+      const rh = 150; h2 = rows.length * rh;
+      card(x2, y, w2, h2);
+      rows.forEach((f, i) => {
+        const ry = y + i * rh;
+        if (i) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x2 + 28, ry, w2 - 56, 2); }
+        label(f.lab, x2 + 28, ry + 40);
+        font(400, 21); ctx.textAlign = "right"; text(f.src, x2 + w2 - 28, ry + 40, MUTED); ctx.textAlign = "left";
+        fit(f.name, w2 - 56, 46, f.wt, f.fam); text(f.name, x2 + 28, ry + 92);
+        font(400, 22, f.fam); text(wrap(ctx, f.sample, w2 - 56, 1)[0] ?? "", x2 + 28, ry + 128, "#4A473F");
+      });
+    }
+    y += Math.max(h1, h2);
+  }
+  y += 6;
+  if (!d.ownPending && !d.ciSite) muted("สีและฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
+  if (d.fontInterest) { y += 40; font(500, 26); text(`ลูกค้าสนใจฟอนต์ · ${d.fontInterest}`, M, y); }
+  if (d.ciAssets) muted(`CI ที่แนบ · ${d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้`, 2);
+  if (d.ciNote) muted(`หมายเหตุ · ${d.ciNote}`, 3);
+
+  // ── 02 sample page: a browser frame — buttons + field on the left, cards running past the
+  // right edge
+  section("02", "ตัวอย่างหน้าเว็บ", "ตัวอย่าง · ไม่ต้องกด");
+  {
+    const H = 380, btn = d.ownPending ? "#151823" : d.primary, onBtn = isLight(btn) ? INK : "#FFFFFF";
+    card(M, y, CW, H, "#E6E2D8");
+    [0, 1, 2].forEach((i) => { ctx.fillStyle = "rgba(0,0,0,0.15)"; ctx.beginPath(); ctx.arc(M + 30 + i * 22, y + 26, 7, 0, Math.PI * 2); ctx.fill(); });
+    font(400, 20); const uw = ctx.measureText(BOARD_SAMPLE.url).width + 44;
+    ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.beginPath(); ctx.roundRect(M + (CW - uw) / 2, y + 10, uw, 32, 16); ctx.fill();
+    text(BOARD_SAMPLE.url, M + (CW - uw) / 2 + 22, y + 33, MUTED);
+    const px = M + 12, py = y + 52, pw = CW - 24, ph = H - 64, lw = Math.round(pw * 0.44);
+    // two white panels split by a gap of the frame colour — never a line, so an underlined
+    // field can't read as a divider (as on screen)
+    const zg = 12;
+    card(px, py, lw - zg / 2, ph, "#FFFFFF", null, 10);
+    card(px + lw + zg / 2, py, pw - lw - zg / 2, ph, "#FFFFFF", null, 10);
+    font(600, 26);
+    const b1 = ctx.measureText(BOARD_SAMPLE.primaryBtn).width + 52, b2 = ctx.measureText(BOARD_SAMPLE.secondaryBtn).width + 52;
+    ctx.fillStyle = btn; ctx.beginPath(); ctx.roundRect(px + 32, py + 34, b1, 60, 30); ctx.fill();
+    text(BOARD_SAMPLE.primaryBtn, px + 58, py + 73, onBtn);
+    ctx.beginPath(); ctx.roundRect(px + 32 + b1 + 14, py + 34, b2, 60, 30); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
+    text(BOARD_SAMPLE.secondaryBtn, px + 58 + b1 + 14, py + 73);
+    font(500, 22); text(BOARD_SAMPLE.fieldLabel, px + 32, py + 160);
+    // underlined field: heavier and darker than any rule, only as long as the field, with a
+    // send arrow at its end
+    font(400, 26); text(BOARD_SAMPLE.fieldPlaceholder, px + 32, py + 206, "#A7A296");
+    const fw = Math.min(460, lw - zg / 2 - 64);
+    ctx.fillStyle = "rgba(43,42,38,0.4)"; ctx.fillRect(px + 32, py + 224, fw, 3);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    const ax = px + 32 + fw - 6, ay = py + 198;
+    ctx.beginPath(); ctx.moveTo(ax - 22, ay); ctx.lineTo(ax, ay); ctx.moveTo(ax - 9, ay - 9); ctx.lineTo(ax, ay); ctx.lineTo(ax - 9, ay + 9); ctx.stroke();
+    ctx.lineCap = "butt"; ctx.lineJoin = "miter";
+    const x0 = px + lw + zg / 2;
+    clip(x0, py, pw - lw - zg / 2, ph, 10, () => {
+      // three kinds of card — news with a photo, a key figure, an event — two whole and the
+      // third peeking past the edge (each 40% of the row)
+      const cy = py + 32, ch = ph - 64, rx = x0 + 28, cw = Math.round((px + pw - rx) * 0.4), gap = 14;
+      const box = (x: number) => { ctx.beginPath(); ctx.roundRect(x, cy, cw, ch, 10); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); };
+      // news
+      const ih = 128;
+      clip(rx, cy, cw, ih, [10, 10, 0, 0], () => cover(imgs[1] ?? imgs[0] ?? null, rx, cy, cw, ih));
+      box(rx);
+      font(700, 24, head); text(wrap(ctx, BOARD_SAMPLE.cardTitle, cw - 40, 1)[0] ?? "", rx + 20, cy + ih + 40);
+      font(400, 19); wrap(ctx, BOARD_SAMPLE.cardText, cw - 40, 2).forEach((ln, k) => text(ln, rx + 20, cy + ih + 74 + k * 26, "#6F6A5E"));
+      // key figure
+      const kx = rx + cw + gap;
+      box(kx);
+      font(400, 20); text(BOARD_SAMPLE.kpiLabel, kx + 20, cy + 44, "#6F6A5E");
+      font(700, 60, head); text(BOARD_SAMPLE.kpiValue, kx + 20, cy + 140);
+      font(400, 20); text(BOARD_SAMPLE.kpiUnit, kx + 20, cy + 174, "#6F6A5E");
+      const acc = d.ownPending ? "#E9E7E1" : mixHex(d.swatches[1]?.hex ?? "#BCC416", "#FFFFFF", 0.65);
+      font(600, 20); const dw = ctx.measureText(BOARD_SAMPLE.kpiDelta).width + 28;
+      ctx.fillStyle = acc; ctx.beginPath(); ctx.roundRect(kx + 20, cy + ch - 60, dw, 38, 19); ctx.fill();
+      text(BOARD_SAMPLE.kpiDelta, kx + 34, cy + ch - 34);
+      // event
+      const ex = kx + cw + gap;
+      box(ex);
+      ctx.fillStyle = btn; ctx.beginPath(); ctx.roundRect(ex + 20, cy + 20, 76, 84, 10); ctx.fill();
+      ctx.textAlign = "center"; font(700, 34); text(BOARD_SAMPLE.eventDay, ex + 58, cy + 62, onBtn); font(400, 18); text(BOARD_SAMPLE.eventMonth, ex + 58, cy + 90, onBtn); ctx.textAlign = "left";
+      font(700, 22, head); text(wrap(ctx, BOARD_SAMPLE.eventTitle, cw - 140, 1)[0] ?? "", ex + 112, cy + 52);
+      font(400, 18); text(BOARD_SAMPLE.eventText, ex + 112, cy + 82, "#6F6A5E");
+      font(600, 20); const bw = ctx.measureText(BOARD_SAMPLE.eventBtn).width + 36;
+      ctx.beginPath(); ctx.roundRect(ex + 20, cy + ch - 64, bw, 44, 22); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
+      text(BOARD_SAMPLE.eventBtn, ex + 38, cy + ch - 35);
+    });
+    y += H;
+  }
+
+  // ── 03 answers + homepage order: plain lists, one item a row, divided by hairlines —
+  // no boxes, no highlighted row (they read as something to pick)
+  section("03", "คำตอบและหน้าแรก");
+  {
+    const w2 = (CW - G) / 2, RH = 56;
+    const names = d.sections.map((n) => n.split(" / ")[0]);
+    const aH = 70 + Math.max(1, d.answers.length) * RH + 14;
+    const hH = 70 + Math.max(1, names.length) * RH + 14;
+    const H = Math.max(aH, hH);
+    const rule = (x: number, yy: number) => { ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(x + 28, yy, w2 - 56, 2); };
+    card(M, y, w2, H);
+    label("คำตอบของคุณ", M + 28, y + 46);
+    const vx = M + 28 + Math.round((w2 - 56) * 0.53);
+    if (d.answers.length) d.answers.forEach((a, i) => {
+      const ry = y + 70 + i * RH;
+      if (i) rule(M, ry);
+      font(400, 23); text(wrap(ctx, a.topic, vx - M - 44, 1)[0] ?? "", M + 28, ry + 37, MUTED);
+      font(600, 24); text(wrap(ctx, a.choice, M + w2 - 28 - vx, 1)[0] ?? "", vx, ry + 37);
+    });
+    else { font(400, 26); text("ยังไม่ได้ตอบคำถามสำรวจแนวทาง", M + 28, y + 100, MUTED); }
+    const x = M + w2 + G;
+    card(x, y, w2, H);
+    label("หน้าแรก · เรียงจากบนลงล่าง", x + 28, y + 46);
+    if (names.length) names.forEach((n, i) => {
+      const ry = y + 70 + i * RH;
+      if (i) rule(x, ry);
+      font(500, 20); text(String(i + 1).padStart(2, "0"), x + 28, ry + 37, MUTED);
+      font(400, 24); text(wrap(ctx, n, w2 - 130, 1)[0] ?? "", x + 76, ry + 37);
+    });
+    else { font(400, 26); text("ยังไม่ได้จัดหน้าแรก", x + 28, y + 100, MUTED); }
+    y += H;
+    const insp = [d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "", d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "", d.inspiration.note ?? ""].filter(Boolean).join(" · ");
+    if (d.note) muted(`หมายเหตุ · ${d.note.replace(/\s+/g, " ")}`, 4);
+    if (insp) muted(`แรงบันดาลใจที่แนบ · ${insp}`, 4);
+  }
+
+  // ── 04 photos as thumbnails, one row
+  if (imgs.length) {
+    section("04", "แนวภาพ", "ตัวอย่างโทนภาพ · ไม่ต้องเลือก");
+    if (d.visualMood) { font(400, 26); wrap(ctx, d.visualMood, CW, 2).forEach((ln) => { y += 38; text(ln, M, y, "#4A473F"); }); y += 22; }
+    const n = Math.min(6, imgs.length), gap = 12, pw = (CW - gap * (n - 1)) / n, ph = pw * 0.75;
+    imgs.slice(0, n).forEach((img, i) => { const px = M + i * (pw + gap); clip(px, y, pw, ph, 10, () => cover(img, px, y, pw, ph)); });
+    y += ph;
+    muted("ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง", 2);
+  }
+  return y;
+}
+
+export type SheetView = "doc" | "board";
+
+export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Promise<HTMLCanvasElement> {
   const ui = resolveStack("var(--font-plex), 'IBM Plex Sans Thai', system-ui, sans-serif");
   const head = resolveStack(d.fontStack);
+  const body = resolveStack(d.bodyStack);
   // Make sure the faces are ready before drawing (canvas won't wait for them).
   await Promise.all([
     document.fonts.load(`400 40px ${ui}`), document.fonts.load(`600 40px ${ui}`),
-    document.fonts.load(`700 40px ${head}`), document.fonts.load(`400 40px ${head}`),
+    document.fonts.load(`700 40px ${head}`), document.fonts.load(`400 40px ${head}`), document.fonts.load(`400 40px ${body}`),
   ]).catch(() => undefined);
   const imgs = await Promise.all(d.shots.slice(0, 6).map((s) => loadImage(s.url)));
   const logoImg = d.logo ? await loadImage(d.logo) : null;
@@ -283,6 +594,12 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     if (d.supportMoods.length) { y += 58; ctx.globalAlpha = 0.75; font(400, 36); text(`เสริมด้วย ${d.supportMoods.join(" · ")}`, M, y, on); ctx.globalAlpha = 1; }
   }
 
+  if (view === "board") {
+    // the board has its own banner in place of the cover band
+    ctx.fillStyle = PAPER; ctx.fillRect(0, 0, W, coverH);
+    y = drawBoard(ctx, d, drawBoardBanner(ctx, d, head, ui, logoImg) - 30, imgs, head, ui, body);
+  }
+  else {
   // ── chapters: hairline, "01  title", then content full width (reads like the phone view)
   y = coverH + 20;
   const chapter = (n: string, title: string) => {
@@ -380,6 +697,8 @@ export async function renderMoodboard(d: SheetData): Promise<HTMLCanvasElement> 
     font(400, 36); wrap(ctx, `${k} · ${v}`, CW, 4).forEach((ln) => { y += 56; text(ln, M, y, "#4A473F"); });
   }
 
+  }
+
   // ── footer
   y += 90;
   ctx.fillStyle = LINE; ctx.fillRect(M, y, CW, 2);
@@ -454,8 +773,8 @@ export function moodboardFilename(company: string, ext: "pdf" | "png") {
   return `Moodboard-${name}-${be}.${ext}`;
 }
 
-export async function saveMoodboard(d: SheetData, kind: "pdf" | "png") {
-  const canvas = await renderMoodboard(d);
+export async function saveMoodboard(d: SheetData, kind: "pdf" | "png", view: SheetView = "doc") {
+  const canvas = await renderMoodboard(d, view);
   if (kind === "png") {
     download(await toBlob(canvas, "image/png"), moodboardFilename(d.company, "png"));
   } else {

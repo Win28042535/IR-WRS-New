@@ -1,0 +1,293 @@
+"use client";
+// ── Moodboard view of the summary (23 Nov 2026) ──
+// The same answers as the document view, laid out as a style tile (after a "Colors /
+// Typography / UI Styling" reference the team liked). Only the presentation is borrowed:
+// nothing here is a control — no shuffle, lock or "+" — since testers tried to click things
+// on the summary before. The PDF / PNG draws the same layout (drawBoard in moodboardExport).
+// Layout follows the sheet's own width (container queries): on the deliver step it sits in
+// a narrow column beside the form.
+// Read-only on purpose: panels are solid paper tones with no outline, so they never look
+// like the white, outlined contact form beside them; the sample UI sits inside a browser
+// frame, a picture of a page rather than a field to type in.
+// Compact (23 Nov 2026): three levels only — the banner, section titles, small muted card
+// labels — and things that belong together share a row or a card (moods in one row, the
+// three colours in one row with the greys as a strip, both fonts in one card, answers as
+// pairs, photos as thumbnails), so the board is about half as tall on a phone.
+// Corners follow the app's radius scale (globals.css): panels 12px, tiles 8px, small 6px —
+// inside a sheet with 8px corners, the earlier 20-24px read too soft.
+import type { CSSProperties, ReactNode } from "react";
+import { isLightHex } from "@/lib/sheetData";
+import { BOARD_SAMPLE, NEUTRALS, tintSteps, type SheetData } from "@/lib/moodboardExport";
+
+// solid, no outline: an outlined white box is what the form uses for "fill this in"
+const CARD = "min-w-0 rounded-md bg-[#F1EEE6]";
+const MUTED = "text-[#8A8578]";
+/** the third level: small muted card labels */
+const Label = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
+  <p className={`text-caption font-semibold tracking-[0.02em] ${MUTED} ${className}`}>{children}</p>
+);
+
+function Section({ n, title, chip, children }: { n: string; title: string; chip?: string; children: ReactNode }) {
+  return (
+    <section className="pt-7 @2xl:pt-9">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        {/* numbered like a report's chapters, so it reads as a document to look through */}
+        <h4 className="flex items-baseline gap-2.5 text-[19px] font-semibold leading-tight @2xl:text-[22px]">
+          <span className={`font-mono text-caption font-normal ${MUTED}`}>{n}</span>{title}
+        </h4>
+        {chip && <span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">{chip}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const Note = ({ children }: { children: ReactNode }) => <p className={`mt-2.5 text-small leading-relaxed ${MUTED}`}>{children}</p>;
+
+/** a colour tile: role on top, hex below, its nine shades as a thin strip along the bottom */
+function Swatch({ s }: { s: SheetData["swatches"][number] }) {
+  const light = isLightHex(s.hex);
+  return (
+    <div className="min-w-0">
+      <div className={`relative flex h-24 flex-col justify-between overflow-hidden rounded-sm px-2.5 pb-4 pt-2.5 @sm:px-3 @2xl:h-28 ${light ? "ring-1 ring-inset ring-[#E4E0D6]" : ""}`}
+        style={{ background: s.hex, color: light ? "#2B2A26" : "#fff" }}>
+        <p className="whitespace-nowrap text-caption font-semibold @sm:text-small">{s.role}</p>
+        <p className="whitespace-nowrap font-mono text-[11px] tracking-tight @sm:text-caption @sm:tracking-normal">{s.hex.toUpperCase()}</p>
+        <span className="absolute inset-x-0 bottom-0 flex h-1.5" aria-hidden="true">
+          {tintSteps(s.hex).map((t, i) => <span key={i} className="flex-1" style={{ background: t }} />)}
+        </span>
+      </div>
+      <p className={`mt-1.5 line-clamp-2 text-caption leading-snug ${MUTED}`}>{s.use}</p>
+    </div>
+  );
+}
+
+/** "ใช้สี / ฟอนต์จากเว็บไซต์เดิม" — one compact card in place of the swatches and/or fonts */
+const FromSite = ({ what, site }: { what: string; site?: string }) => (
+  <div className={`${CARD} px-4 py-3.5`}>
+    <p className="text-body font-semibold">ใช้{what}จากเว็บไซต์เดิม</p>
+    <p className="mt-0.5 text-small text-[#6F6A5E]">ทีมจะใช้{what}จาก {site ?? "เว็บไซต์ปัจจุบันของคุณ"}</p>
+  </div>
+);
+
+// The direction + mood banner: the headline tile in the main colour (with the rising-line
+// watermark), then one row under it — main mood on the accent, supporting mood on a light
+// tint. Colours from their own site aren't known here, so keep-CI uses neutrals instead.
+function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: ReactNode; watermark: ReactNode; glow: string }) {
+  const accent = d.ownPending ? "#2B2A26" : (d.swatches[1]?.hex ?? "#2B2A26");
+  const onAccent = isLightHex(accent) ? "#2B2A26" : "#fff";
+  const soft = d.ownPending ? "#E9E7E1" : `color-mix(in srgb, ${d.primary} 14%, #fff)`;
+  const moods = [
+    d.mainMood ? { label: "อารมณ์หลัก", value: d.mainMood, bg: accent, ink: onAccent } : null,
+    d.supportMoods.length ? { label: "เสริมด้วย", value: d.supportMoods.join(" · "), bg: soft, ink: "#2B2A26" } : null,
+  ].filter(Boolean) as { label: string; value: string; bg: string; ink: string }[];
+  return (
+    <div className="grid gap-2">
+      <div className="relative isolate min-w-0 overflow-hidden rounded-md p-5 @2xl:px-7 @2xl:py-6"
+        style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${glow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
+        {watermark}
+        {d.logo && (
+          <span className="mb-3 grid h-11 w-22 place-items-center rounded-md bg-white p-1.5 shadow-e1 @md:float-right @md:mb-0 @md:ml-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
+          </span>
+        )}
+        <p className="text-small font-medium text-balance opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
+        {headline}
+      </div>
+      {moods.length > 0 && (
+        <div className={`grid gap-2 ${moods.length > 1 ? "@sm:grid-cols-2" : ""}`}>
+          {moods.map((m) => (
+            <div key={m.label} className="min-w-0 rounded-md px-4 py-3" style={{ background: m.bg, color: m.ink }}>
+              <p className="text-caption font-medium opacity-75">{m.label}</p>
+              <p className="mt-0.5 text-body font-semibold leading-snug @2xl:text-lead">{m.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData; headline: ReactNode; watermark: ReactNode; glow: string }) {
+  const head = { fontFamily: d.fontStack } as CSSProperties;
+  const body = { fontFamily: d.bodyStack } as CSSProperties;
+  const btn = d.ownPending ? "#151823" : d.primary;
+  const onBtn = isLightHex(btn) ? "#2B2A26" : "#fff";
+  // a light wash of the accent, behind the key figure's change
+  const accentSoft = d.ownPending ? "#E9E7E1" : `color-mix(in srgb, ${d.swatches[1]?.hex ?? "#BCC416"} 35%, #fff)`;
+  const names = d.sections.map((n) => n.split(" / ")[0]);
+  const insp = [d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "", d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "", d.inspiration.note ?? ""].filter(Boolean).join(" · ");
+  const shot = (i: number) => d.shots[i]?.url ?? d.shots[0]?.url;
+  const fromSiteBoth = d.ownPending && !!d.ciSite;
+  const fonts = [
+    { label: "หัวข้อ", name: d.fontName, fam: head, wt: 700, src: d.fontSource, sample: BOARD_SAMPLE.headSample },
+    { label: "เนื้อหา", name: d.bodyFont, fam: body, wt: 400, src: "Google Fonts · ฟรี", sample: BOARD_SAMPLE.bodySample },
+  ];
+
+  return (
+    <div className="@container px-4 pb-2 pt-5 sm:px-6 sm:pt-6 md:px-10 md:pt-8">
+      <Banner d={d} headline={headline} watermark={watermark} glow={glow} />
+
+      <Section n="01" title="สีและตัวอักษร">
+        {fromSiteBoth ? <FromSite what="สีและฟอนต์" site={d.ciSite} /> : (
+          <div className="grid gap-2.5 @lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            {/* colours: three tiles in one row, the greys as a strip under them */}
+            {d.ownPending ? <FromSite what="สี" site={d.ciSite} /> : (
+              <div className="min-w-0">
+                <div className="grid grid-cols-3 gap-2">{d.swatches.map((s) => <Swatch key={s.role} s={s} />)}</div>
+                <div className="mt-3 flex items-center gap-3">
+                  <Label className="shrink-0">สีกลาง</Label>
+                  <span className="flex h-3.5 flex-1 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/[0.06]" aria-hidden="true">
+                    {NEUTRALS.slice(1).map((n) => <span key={n} className="flex-1" style={{ background: n }} />)}
+                  </span>
+                </div>
+              </div>
+            )}
+            {/* both fonts in one card, a row each */}
+            {d.ciSite ? <FromSite what="ฟอนต์" site={d.ciSite} /> : (
+              <div className={`${CARD} divide-y divide-black/[0.07] px-4`}>
+                {fonts.map((f) => (
+                  <div key={f.label} className="min-w-0 py-3.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <Label>{f.label}</Label>
+                      <span className={`truncate text-caption ${MUTED}`}>{f.src}</span>
+                    </div>
+                    <p className="mt-1 break-words leading-tight" style={{ ...f.fam, fontWeight: f.wt, fontSize: "clamp(24px, 4cqw, 34px)" }}>{f.name}</p>
+                    <p className="mt-1 line-clamp-2 text-small text-[#4A473F]" style={f.fam}>{f.sample}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {!d.ownPending && !d.ciSite && <Note>สีและฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>}
+        {d.fontInterest && <p className="mt-1.5 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
+        {d.ciAssets && <Note>CI ที่แนบ · {d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้</Note>}
+        {d.ciNote && <Note>หมายเหตุ · {d.ciNote}</Note>}
+      </Section>
+
+      {/* samples, not controls: a picture of a page in a browser frame — nothing to press,
+          nothing to type in */}
+      <Section n="02" title="ตัวอย่างหน้าเว็บ" chip="ตัวอย่าง · ไม่ต้องกด">
+        <div role="img" aria-label="ภาพตัวอย่างหน้าเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
+          className="pointer-events-none select-none rounded-md bg-[#E6E2D8] p-1.5">
+          <div className="flex items-center gap-3 px-2 pb-1.5 pt-0.5" aria-hidden="true">
+            <span className="flex gap-1">{[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 rounded-full bg-black/15" />)}</span>
+            <span className={`mx-auto max-w-[60%] truncate rounded-full bg-white/60 px-3 text-caption ${MUTED}`}>{BOARD_SAMPLE.url}</span>
+            <span className="w-[32px]" />
+          </div>
+          {/* zones are split by surface and space, never by a line (23 Nov 2026): inside the
+              sample page a line is always part of the UI — a field's underline, a table rule — so
+              an underlined field can never be mistaken for a divider */}
+          <div className="grid gap-1.5 @xl:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+            <div className="rounded-[6px] bg-white p-4 pb-6">
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex h-9 items-center rounded-full px-4 text-small font-semibold" style={{ background: btn, color: onBtn }}>{BOARD_SAMPLE.primaryBtn}</span>
+                <span className="inline-flex h-9 items-center rounded-full px-4 text-small font-semibold ring-1 ring-inset ring-[#D9D5CB]">{BOARD_SAMPLE.secondaryBtn}</span>
+              </div>
+              {/* an underlined field still reads as a field: label above, placeholder inside, a
+                  heavier line than any rule (1.5px, dark), only as long as the field, and a send
+                  arrow at its end */}
+              <p className="mt-5 text-caption font-medium">{BOARD_SAMPLE.fieldLabel}</p>
+              <div className="mt-1.5 flex max-w-[17rem] items-center gap-2 border-b-[1.5px] border-[#2B2A26]/40 pb-1.5">
+                <span className="min-w-0 flex-1 truncate text-small text-[#A7A296]">{BOARD_SAMPLE.fieldPlaceholder}</span>
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-[#2B2A26]"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </div>
+            </div>
+            {/* three kinds of card an IR site uses — news with a photo, a key figure, an event —
+                two whole and the third peeking past the right edge (each 40% of the row) */}
+            <div className="flex gap-2 overflow-hidden rounded-[6px] bg-white py-4 pl-4">
+              <div className="w-[40%] shrink-0 overflow-hidden rounded-[6px] ring-1 ring-inset ring-[#E4E0D6]">
+                <div className="aspect-[16/9] bg-[#ECE9E1]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {shot(1) && <img src={shot(1)} alt="" draggable={false} className="h-full w-full object-cover" />}
+                </div>
+                <div className="px-3 py-2">
+                  <p className="text-caption font-bold leading-snug @md:text-small" style={head}>{BOARD_SAMPLE.cardTitle}</p>
+                  <p className="mt-0.5 line-clamp-2 text-caption leading-snug text-[#6F6A5E]">{BOARD_SAMPLE.cardText}</p>
+                </div>
+              </div>
+              {/* key figure: the number in the heading font, the change on the accent colour */}
+              <div className="flex w-[40%] shrink-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
+                <p className="text-caption text-[#6F6A5E]">{BOARD_SAMPLE.kpiLabel}</p>
+                <div className="mt-3">
+                  <p className="text-[26px] font-bold leading-none tabular-nums @md:text-[32px]" style={head}>{BOARD_SAMPLE.kpiValue}</p>
+                  <p className="mt-1 text-caption text-[#6F6A5E]">{BOARD_SAMPLE.kpiUnit}</p>
+                </div>
+                <span className="mt-3 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-caption font-semibold" style={{ background: accentSoft, color: "#2B2A26" }}>{BOARD_SAMPLE.kpiDelta}</span>
+              </div>
+              {/* event: a date block in the main colour, the title, a small button */}
+              <div className="flex w-[40%] shrink-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
+                <div className="flex items-start gap-2.5">
+                  <span className="grid w-11 shrink-0 place-items-center rounded-[6px] py-1 text-center leading-tight" style={{ background: btn, color: onBtn }}>
+                    <span className="text-lead font-bold">{BOARD_SAMPLE.eventDay}</span><span className="text-[11px]">{BOARD_SAMPLE.eventMonth}</span>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-caption font-bold leading-snug @md:text-small" style={head}>{BOARD_SAMPLE.eventTitle}</p>
+                    <p className="mt-0.5 text-caption text-[#6F6A5E]">{BOARD_SAMPLE.eventText}</p>
+                  </div>
+                </div>
+                <span className="mt-3 inline-flex h-7 w-fit items-center rounded-full px-3 text-caption font-semibold ring-1 ring-inset ring-[#D9D5CB]">{BOARD_SAMPLE.eventBtn}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section n="03" title="คำตอบและหน้าแรก">
+        <div className="grid gap-2.5 @2xl:grid-cols-2">
+          <div className={`${CARD} p-4`}>
+            <Label>คำตอบของคุณ</Label>
+            {d.answers.length ? (
+              // one answer a row, divided by hairlines: topic muted on the left, the answer on the
+              // right, every answer starting on the same line so both sides read straight down
+              <dl className="mt-1.5 divide-y divide-black/[0.08]">
+                {d.answers.map((a) => (
+                  <div key={a.topic} className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-baseline gap-3 py-2">
+                    <dt className={`text-small leading-snug ${MUTED}`}>{a.topic}</dt>
+                    <dd className="m-0 text-small font-semibold leading-snug">{a.choice}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : <p className={`mt-2 text-small ${MUTED}`}>ยังไม่ได้ตอบคำถามสำรวจแนวทาง</p>}
+          </div>
+          <div className={`${CARD} p-4`}>
+            <Label>หน้าแรก · เรียงจากบนลงล่าง</Label>
+            {names.length ? (
+              // a plain numbered list, divided by hairlines: no boxes, no row standing out —
+              // filled rows with a highlighted first one read as something to pick
+              <ol className="mt-1.5 grid grid-cols-[minmax(0,1fr)] divide-y divide-black/[0.08]">
+                {names.map((n, i) => (
+                  <li key={n} className="flex items-baseline gap-3 py-2 text-small">
+                    <span className={`w-5 shrink-0 font-mono text-caption ${MUTED}`}>{String(i + 1).padStart(2, "0")}</span>
+                    <span className="min-w-0 break-words">{n}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : <p className={`mt-2 text-small ${MUTED}`}>ยังไม่ได้จัดหน้าแรก</p>}
+          </div>
+        </div>
+        {d.note && <Note>หมายเหตุ · {d.note}</Note>}
+        {insp && <Note>แรงบันดาลใจที่แนบ · {insp}</Note>}
+      </Section>
+
+      {d.shots.length > 0 && (
+        <Section n="04" title="แนวภาพ" chip="ตัวอย่างโทนภาพ · ไม่ต้องเลือก">
+          {d.visualMood && <p className="mb-2.5 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
+          <div className="grid grid-cols-3 gap-1.5 @2xl:grid-cols-6">
+            {d.shots.slice(0, 6).map((s) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={s.url} src={s.url} alt={s.cap} loading="lazy" draggable={false} className="pointer-events-none block w-full select-none rounded-[6px] object-cover" style={{ aspectRatio: "4 / 3" }} />
+            ))}
+          </div>
+          <Note>ภาพตัวอย่างเพื่อบอกโทนภาพ · ทีมจะเลือกภาพที่ตรงกับธุรกิจของคุณอีกครั้ง</Note>
+        </Section>
+      )}
+
+      <p className="mt-8 border-t border-black/[0.08] py-5 text-small text-[#8A8578]">
+        เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง
+      </p>
+    </div>
+  );
+}

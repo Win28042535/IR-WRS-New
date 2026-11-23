@@ -20,6 +20,7 @@ import { NoteField } from "@/components/NoteField";
 import { CoDeciders } from "@/components/CoDeciders";
 import type { DesignProfile, QuizOption } from "@/lib/types";
 import { SaveSheetButton } from "@/components/SaveSheetButton";
+import type { SheetView } from "@/lib/moodboardExport";
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { PageLoader, Spinner } from "@/components/Loader";
 import AIJourneyGuide from "@/components/AIJourneyGuide";
@@ -133,13 +134,13 @@ export default function Flow2() {
       if (summarizing) return;
       setSummarizing(true);
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      summaryTimer.current = setTimeout(finishSummary, reduce ? 500 : 3000);
+      summaryTimer.current = setTimeout(finishSummary, reduce ? 500 : 2000); // 2 s (23 Nov 2026)
       return;
     }
     goNow(n);
   };
 
-  // the loader ends on its own after 3 s, or straight away on a tap (audit 19 Nov 2026)
+  // the loader ends on its own after 2 s, or straight away on a tap (audit 19 Nov 2026)
   const finishSummary = () => {
     clearTimeout(summaryTimer.current);
     setSummarizing(false);
@@ -2296,6 +2297,51 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
 // already typed into an older draft still reach the team.
 const SHOW_CO_DECIDERS = false;
 
+// Moodboard / document switch (23 Nov 2026): a floating viewer control at the bottom of the
+// screen, not part of the sheet (inside the sheet's header it read as part of the design).
+// Same look as the homepage's mode switch (white blurred pill), centred so it clears the
+// back-to-top button. Shown only while the summary is on screen, so on a phone it never
+// covers the contact form below it. Both views show the same answers.
+function SheetViewSwitch({ value, onChange, targetId }: { value: SheetView; onChange: (v: SheetView) => void; targetId: string }) {
+  const [onScreen, setOnScreen] = useState(true);
+  useEffect(() => {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    // shown while the summary fills at least a third of the screen (a sliver of it at the
+    // top while reading the form does not count)
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect(), vh = window.innerHeight;
+      setOnScreen(Math.min(r.bottom, vh) - Math.max(r.top, 0) >= vh / 3);
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(check); };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll, { capture: true }); window.removeEventListener("resize", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, [targetId]);
+  const opts: { v: SheetView; label: string; icon: ReactNode }[] = [
+    { v: "board", label: "Moodboard", icon: <><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="5" rx="1.5" /><rect x="13" y="10" width="8" height="11" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /></> },
+    { v: "doc", label: "เอกสาร", icon: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h4" /></> },
+  ];
+  return (
+    <div className={`no-print fixed left-1/2 z-30 -translate-x-1/2 transition-[opacity,translate] duration-200 ${onScreen ? "opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`}
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }} inert={!onScreen}>
+      <div role="radiogroup" aria-label="ดูสรุปแบบ" className="flex items-center gap-1 rounded-full border border-black/10 bg-white/90 p-1 text-caption sm:pl-3.5 font-medium shadow-e2 backdrop-blur">
+        <span className="hidden whitespace-nowrap pr-1 text-ir-t3 sm:inline" aria-hidden="true">ดูสรุปแบบ</span>
+        {opts.map((o) => (
+          <button key={o.v} type="button" role="radio" aria-checked={value === o.v} onClick={() => onChange(o.v)}
+            className={`inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 font-semibold transition-colors focus-ring ${value === o.v ? "bg-ir-dark text-white" : "text-ir-t2 hover:text-ir-t1"}`}>
+            <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{o.icon}</svg>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebookEntry, router }: any) {
   const [submitting, setSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -2369,6 +2415,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   };
 
   const g = useGuide("analyst");
+  // which view of the summary is on screen (and in the saved file)
+  const [sheetView, setSheetView] = useState<SheetView>("board"); // Moodboard first (23 Nov 2026)
 
   // Long hesitation nudge if contact fields still empty after 15 s
   const shownHesitation = useRef(false);
@@ -2394,8 +2442,8 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
           {/* keep a copy before sending — a one-page moodboard sheet, downloaded straight
               away (no print dialog, nothing to set up) */}
           <div className="no-print flex shrink-0 items-center gap-2">
-            <SaveSheetButton source={draft} kind="pdf" />
-            <SaveSheetButton source={draft} kind="png" />
+            <SaveSheetButton source={draft} kind="pdf" view={sheetView} />
+            <SaveSheetButton source={draft} kind="png" view={sheetView} />
           </div>
         </div>
       </div>
@@ -2407,19 +2455,22 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
             on the right. Not the homepage step's dark card: no rows or controls here, just
             the paper. Print drops the backdrop. */}
         <div className="flex-1 min-w-0 w-full">
-          <div className="rounded-2xl bg-ir-dark p-3 sm:p-5 md:p-7 print:bg-transparent print:p-0">
-            <div className="no-print mb-4 flex items-center gap-3 px-1 sm:mb-5">
+          <div className="rounded-2xl bg-ir-dark p-3 pb-18 sm:p-5 sm:pb-18 md:p-7 md:pb-18 print:bg-transparent print:p-0">
+            <div className="no-print mb-4 flex min-w-0 items-center gap-3 px-1 sm:mb-5">
               <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-ir-on-accent">
                 <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
               </span>
               <div className="min-w-0">
                 <p className="text-title font-semibold leading-tight text-white">สรุปผลจากคำตอบของคุณ</p>
-                <p className="mt-0.5 text-small text-white/65">รวบรวมจากคำตอบทั้ง {FLOW_STEPS.length - 1} ขั้นก่อนหน้า</p>
+                                <p className="mt-0.5 text-small text-white/65">รวบรวมจากคำตอบทั้ง {FLOW_STEPS.length - 1} ขั้นก่อนหน้า</p>
               </div>
             </div>
+            {/* two ways to see the same summary (switch floats at the bottom of the screen);
+                the PDF / PNG saves the one on screen */}
+            <SheetViewSwitch value={sheetView} onChange={setSheetView} targetId="deliver-summary" />
             {/* faint light outline so a dark cover colour still separates from the backdrop */}
-            <div className="rounded-sm shadow-[0_24px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 print:shadow-none print:ring-0">
-              <ProjectOverview draft={draft} />
+            <div id="deliver-summary" className="rounded-sm shadow-[0_24px_60px_-20px_rgba(0,0,0,0.65)] ring-1 ring-white/15 print:shadow-none print:ring-0">
+              <ProjectOverview draft={draft} view={sheetView} />
             </div>
           </div>
         </div>

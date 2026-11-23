@@ -8,6 +8,8 @@ import { isLightHex, sheetData } from "@/lib/sheetData";
 import { COVER_LINE, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
+import { MoodboardTiles } from "@/components/MoodboardTiles";
+import type { SheetView } from "@/lib/moodboardExport";
 
 // Faint grid + rising line on the right half of the cover (same shape as the PDF / PNG).
 function CoverWatermark({ accent }: { accent: string }) {
@@ -52,7 +54,9 @@ function Chapter({ n, title, children }: { n: string; title: string; children: R
 // client's own colour, the chosen heading font at display size, numbered chapters split
 // by hairlines, flat colour fields and captioned photos. Nothing here is a control, so
 // nothing looks like one. The PDF / PNG download draws the same content (sheetData).
-export function ProjectOverview({ draft }: { draft: any }) {
+// `view`: "doc" = the numbered chapters (default), "board" = the moodboard cards; the
+// cover is the same in both.
+export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: SheetView }) {
   const thaiPick = chosenThaiFont(draft);
   useGoogleFont(thaiPick.source === "selected" ? previewFamily(thaiPick.family) : undefined, [400, 500, 600, 700]);
   const d = sheetData(draft);
@@ -65,6 +69,12 @@ export function ProjectOverview({ draft }: { draft: any }) {
   // the glow and the watermark line: the direction's accent, or white when the colours
   // come from their own website (not known here)
   const coverGlow = d.ownPending ? "#FFFFFF" : (d.swatches[1]?.hex ?? "#FFFFFF");
+  // the headline, shared by the doc cover band and the moodboard banner tile
+  const headline = (fontSize: string, className = "") => (
+    <h3 className={`font-bold leading-[1.15] tracking-[-0.02em] ${className}`} style={{ ...head, color: d.moodInk, fontSize, textWrap: "balance" } as CSSProperties}>{/* each phrase stays whole; a long Thai run breaks between words (the browser segments Thai) */}
+      {headlinePhrases(title).map((w, i) => <Fragment key={i}>{i ? " " : ""}{keepPhraseWhole(w) || w.includes(" ") ? <span className={keepPhraseWhole(w) ? "whitespace-nowrap" : undefined}>{w}</span>
+        : headlineChunks(w).map((c, j) => <Fragment key={j}>{j ? <wbr /> : null}<span className={c.length <= 16 ? "whitespace-nowrap" : undefined}>{c}</span></Fragment>)}</Fragment>)}</h3>
+  );
   const insp = [
     d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "",
     d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "",
@@ -75,6 +85,7 @@ export function ProjectOverview({ draft }: { draft: any }) {
       {/* cover — layered, not one flat block (19 Nov 2026): a diagonal from the main colour
           to a lighter shade, a soft accent glow top right, and a faint grid with a rising
           line on the right (investor data) under the type. The PDF / PNG draws the same. */}
+      {view === "doc" && (
       <div className="relative isolate overflow-hidden px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-8"
         style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${coverGlow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
         <CoverWatermark accent={coverGlow} />
@@ -89,9 +100,7 @@ export function ProjectOverview({ draft }: { draft: any }) {
         {/* Mood leads, no style name (19 Nov 2026): a name like "Premium Corporate" read as
             more specific and settled than the answers really are. */}
         <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
-        <h3 className="mt-2 max-w-[36rem] font-bold leading-[1.15] tracking-[-0.02em]" style={{ ...head, color: d.moodInk, fontSize: titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", textWrap: "balance" } as CSSProperties}>{/* each phrase stays whole; a long Thai run breaks between words (the browser segments Thai) */}
-          {headlinePhrases(title).map((w, i) => <Fragment key={i}>{i ? " " : ""}{keepPhraseWhole(w) || w.includes(" ") ? <span className={keepPhraseWhole(w) ? "whitespace-nowrap" : undefined}>{w}</span>
-            : headlineChunks(w).map((c, j) => <Fragment key={j}>{j ? <wbr /> : null}<span className={c.length <= 16 ? "whitespace-nowrap" : undefined}>{c}</span></Fragment>)}</Fragment>)}</h3>
+        {headline(titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", "mt-2 max-w-[36rem]")}
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
         {moods.length > 0 && (
@@ -102,7 +111,13 @@ export function ProjectOverview({ draft }: { draft: any }) {
           </div>
         )}
       </div>
+      )}
 
+      {view === "board" ? (
+        // the moodboard has its own banner: the same headline and moods, as tiles
+        <MoodboardTiles d={d} glow={coverGlow} watermark={<CoverWatermark accent={coverGlow} />}
+          headline={headline(titleLong ? "clamp(24px, 4.4cqw, 36px)" : "clamp(28px, 5.6cqw, 46px)", "mt-1.5")} />
+      ) : (
       <div className="px-6 md:px-10">
         <Chapter n="01" title="คำตอบของคุณ">
           {d.answers.length ? (
@@ -195,6 +210,7 @@ export function ProjectOverview({ draft }: { draft: any }) {
           เอกสารสรุปแนวทางจากคำตอบของคุณ ไม่ใช่งานออกแบบจริง · ทีม IR Plus จะคุยรายละเอียดกับคุณอีกครั้ง
         </p>
       </div>
+      )}
     </section>
   );
 }

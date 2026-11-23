@@ -1,7 +1,7 @@
 "use client";
 // ── Structure step: pick + order homepage sections (production WRS #story DNA) ──────
 //   recommendation — first visit fills the outline with the top recommended sections (≤5);
-//                         a note says so, with "กลับไปใช้ค่าแนะนำ" once they edit it
+//                         a note says so, with "ใช้ชุดที่ AI แนะนำ" once they edit it
 //   sources (left)     — "แนะนำสำหรับคุณ" (the top picks, no extra tag) then "เพิ่มได้"; the
 //                         "+" disc turns into the black rank number once the section is in
 //   outline (right)    — "หน้าแรก · เรียงจากบนลงล่าง" n/max: dashed empty slots, filled rows (bold,
@@ -27,6 +27,9 @@ import { NoteField } from "@/components/NoteField";
 // The AI proposes REC_MAX sections; the client can add up to MAX_OPT in all (header, hero and
 // footer not counted). A cap again, but a roomy one, shown as "n / 8".
 const MAX_OPT = 8;
+// The header / hero and footer rows ("ระบบจัดให้") are hidden (23 Nov 2026): they are fixed,
+// so they only added noise. Still saved with the homepage, so the summary is unchanged.
+const SHOW_FIXED_ROWS = false;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
 // "เพิ่มส่วนอื่น" groups, in this order (19 Nov 2026): investor info first, then the core
 // structure, then any other category after them (unknown ones land at the end too).
@@ -299,7 +302,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             {!isRecommended && recList.length > 0 && (
               <button type="button" onClick={resetToRec}
                 className="inline-flex h-11 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 transition-colors hover:bg-ir-accent focus-ring">
-                ✦ กลับไปใช้ที่ AI จัดให้
+                ✦ ใช้ชุดที่ AI แนะนำ
               </button>
             )}
             {optional.length > 0 && (
@@ -310,7 +313,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             )}
           </div>
 
-          <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />
+          {SHOW_FIXED_ROWS && <FixedRow label="เมนูด้านบน · ส่วนเปิดหน้าเว็บ" hint="เมนูด้านบนทีมจัดให้ตามเนื้อหาทั้งเว็บ" />}
           <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1.5">
             {/* the filled rows, then ONE dashed "next" slot — no row of empty slots to fill
                 (user test SCGP: "5/5" read as a quota) */}
@@ -381,7 +384,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               );
             })}
           </ol>
-          <FixedRow label="ส่วนท้ายเว็บ" />
+          {SHOW_FIXED_ROWS && <FixedRow label="ส่วนท้ายเว็บ" />}
           <p className="flex min-h-8 items-center px-1 pt-2 text-small font-semibold text-ir-t1" aria-live="polite">
             {movedMsg && (
               <span key={movedMsg} className="rk-moved inline-flex items-center gap-1.5 rounded-full bg-ir-accent px-3 py-1 text-ir-on-accent">
@@ -390,10 +393,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
               </span>
             )}
           </p>
-          <p className="px-1 pb-1 text-caption text-white/55">
-            {optional.length < MIN_OPT ? `เลือกอย่างน้อย ${MIN_OPT} ส่วน · ` : null}
-            เมนู ส่วนเปิดหน้า และส่วนท้าย ระบบจัดให้
-          </p>
+          {optional.length < MIN_OPT && <p className="px-1 pb-1 text-caption text-white/55">เลือกอย่างน้อย {MIN_OPT} ส่วน</p>}
         </section>
 
         {/* ── add more: only what isn't on the homepage yet. The AI's picks are already in
@@ -404,7 +404,7 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
           <div className="px-1 pb-1">
             <p className="text-lead font-semibold text-ir-t1">เพิ่มส่วนอื่นในหน้าแรก <span className="text-body font-normal text-ir-t3">(ถ้าต้องการ)</span></p>
             <p className="mt-0.5 text-small text-ir-t2">
-              {full ? `ครบ ${MAX_OPT} ส่วนแล้ว · เอาส่วนอื่นออกจากหน้าแรกก่อน ถ้าต้องการเปลี่ยน` : `กด “เพิ่ม” เพื่อใส่ในหน้าแรก · ได้สูงสุด ${MAX_OPT} ส่วน`}
+              {full ? `ครบ ${MAX_OPT} ส่วนแล้ว · เอาส่วนอื่นออกจากหน้าแรกก่อน ถ้าต้องการเปลี่ยน` : `กด “เพิ่ม” ได้สูงสุด ${MAX_OPT} ส่วน`}
             </p>
           </div>
           {addable.length === 0 && <p className="px-1 text-small text-ir-t3">ใส่ครบทุกส่วนแล้ว</p>}

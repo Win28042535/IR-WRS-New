@@ -9,9 +9,11 @@ import { Spinner } from "@/components/Loader";
 import { sheetData } from "@/lib/sheetData";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
+import type { SheetView } from "@/lib/moodboardExport";
 
+// `view` = which summary view the file draws (the one on screen): document or moodboard
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function SaveSheetButton({ source, kind, refNo, className = "" }: { source: any; kind: "pdf" | "png"; refNo?: string; className?: string }) {
+export function SaveSheetButton({ source, kind, refNo, view = "doc", className = "" }: { source: any; kind: "pdf" | "png"; refNo?: string; view?: SheetView; className?: string }) {
   // a font picked from the catalog has to be loaded on this page too, or the sheet falls back
   const pick = chosenThaiFont(source);
   useGoogleFont(pick.source === "selected" ? previewFamily(pick.family) : undefined, [400, 500, 600, 700]);
@@ -24,7 +26,7 @@ export function SaveSheetButton({ source, kind, refNo, className = "" }: { sourc
     setState("busy");
     try {
       const { saveMoodboard } = await import("@/lib/moodboardExport");
-      await saveMoodboard({ ...sheetData(source), refNo }, kind);
+      await saveMoodboard({ ...sheetData(source), refNo }, kind, view);
       setState("done");
     } catch {
       setState("error");

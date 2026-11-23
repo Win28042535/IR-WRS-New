@@ -140,8 +140,13 @@ export function sheetData(draft: any): SheetData {
     },
     fontName: c.mainFont,
     fontStack: c.thaiStack,
+    fontSource: fontByFamily(c.mainFont)?.collection === "irplus" ? "ชุดฟอนต์ของ IR Plus" : "Google Fonts · ฟรี",
+    bodyFont: c.pairing.body,
+    bodyStack: fontStack(c.pairing.body),
     fontNote: c.mainFontNote,
-    sections: c.homepageSections.map((s) => s.name),
+    // the Thai half of a name like "Header / เมนูหลัก" or "เกี่ยวกับบริษัท / About Us", when there
+    // is one (23 Nov 2026)
+    sections: c.homepageSections.map((s) => s.name.split(" / ").map((p) => p.trim()).find((p) => /[฀-๿]/.test(p)) ?? s.name),
     note: noteWithLinkNames(draft.structureNote, draft.noteLinks?.structure),
     visualMood: vs?.mood,
     shots: (vs?.shots ?? []).map((s) => ({ url: unsplashUrl(s.id, 700), cap: s.cap })),
