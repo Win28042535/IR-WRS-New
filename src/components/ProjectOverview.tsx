@@ -174,7 +174,7 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
             {d.visualMood && <p className="mb-4 text-body leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
             {/* photos without captions: a caption per photo read as a promise of that exact shot (user test CBG) */}
             {/* labelled as samples so they don't read as something to click or pick (user test AOT) */}
-            <p className="mb-2"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างโทนภาพ · ไม่ต้องเลือก</span></p>
+            <p className="mb-2"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างโทนภาพ</span></p>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {d.shots.slice(0, 6).map((s) => (
                 <figure key={s.url} className="m-0">

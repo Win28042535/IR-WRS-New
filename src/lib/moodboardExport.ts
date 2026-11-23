@@ -398,7 +398,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 02 sample page: a browser frame — buttons + field on the left, cards running past the
   // right edge
-  section("02", "องค์ประกอบบนเว็บ", "ตัวอย่าง · ไม่ต้องกด");
+  section("02", "องค์ประกอบบนเว็บ", "ตัวอย่างองค์ประกอบ");
   {
     const H = 380, btn = d.ownPending ? "#151823" : d.primary, onBtn = isLight(btn) ? INK : "#FFFFFF";
     card(M, y, CW, H, "#E6E2D8");
@@ -502,7 +502,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 04 photos as thumbnails, one row
   if (imgs.length) {
-    section("04", "แนวภาพ", "ตัวอย่างโทนภาพ · ไม่ต้องเลือก");
+    section("04", "แนวภาพ", "ตัวอย่างโทนภาพ");
     if (d.visualMood) { font(400, 26); wrap(ctx, d.visualMood, CW, 2).forEach((ln) => { y += 38; text(ln, M, y, "#4A473F"); }); y += 22; }
     const n = Math.min(6, imgs.length), gap = 12, pw = (CW - gap * (n - 1)) / n, ph = pw * 0.75;
     imgs.slice(0, n).forEach((img, i) => { const px = M + i * (pw + gap); clip(px, y, pw, ph, 10, () => cover(img, px, y, pw, ph)); });

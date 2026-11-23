@@ -169,7 +169,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
 
       {/* samples, not controls: a picture of a page in a browser frame — nothing to press,
           nothing to type in */}
-      <Section n="02" title="องค์ประกอบบนเว็บ" chip="ตัวอย่าง · ไม่ต้องกด">
+      <Section n="02" title="องค์ประกอบบนเว็บ" chip="ตัวอย่างองค์ประกอบ">
         <div role="img" aria-label="ภาพตัวอย่างองค์ประกอบบนเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
           className="pointer-events-none select-none rounded-md bg-[#E6E2D8] p-1.5">
           <div className="flex items-center gap-3 px-2 pb-1.5 pt-0.5" aria-hidden="true">
@@ -273,7 +273,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
       </Section>
 
       {d.shots.length > 0 && (
-        <Section n="04" title="แนวภาพ" chip="ตัวอย่างโทนภาพ · ไม่ต้องเลือก">
+        <Section n="04" title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
           {d.visualMood && <p className="mb-2.5 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
           <div className="grid grid-cols-3 gap-1.5 @2xl:grid-cols-6">
             {d.shots.slice(0, 6).map((s) => (
