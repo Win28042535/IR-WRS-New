@@ -257,6 +257,9 @@ export const BOARD_SAMPLE = {
   cardText: "สรุปตัวเลขสำคัญและบทวิเคราะห์จากผู้บริหาร",
   card2Title: "รายงานประจำปี 2567",
   card2Text: "ดาวน์โหลดเอกสารฉบับเต็ม",
+  pairTitle: "ผลประกอบการไตรมาส 3",
+  pairText: "รายได้รวม 12,480 ล้านบาท เพิ่มขึ้น 8.2% จากปีก่อน",
+  pairLink: "อ่านเพิ่มเติม",
   kpiLabel: "รายได้รวม Q3",
   kpiValue: "12,480",
   kpiUnit: "ล้านบาท",
@@ -364,87 +367,62 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     return 130;
   };
 
-  // ── 01 colours and type: the three colours in a row (greys as a strip) beside one font card
-  section("01", "สีและตัวอักษร");
-  if (d.ownPending && d.ciSite) y += fromSite("สีและฟอนต์", M, CW);
+  // ── 01 colours: three tiles across the sheet, the greys as a strip (24 Nov 2026: colours
+  // and type are two full-width sections, as on screen)
+  section("01", "สี");
+  if (d.ownPending) y += fromSite("สี", M, CW);
   else {
-    const w1 = Math.round((CW - G) * 0.6), w2 = CW - w1 - G, x2 = M + w1 + G;
-    let h1 = 0, h2 = 0;
-    if (d.ownPending) h1 = fromSite("สี", M, w1);
-    else {
-      const tw = (w1 - 2 * 16) / 3, th = 170;
-      d.swatches.slice(0, 3).forEach((s, i) => {
-        const x = M + i * (tw + 16), light = isLight(s.hex), ink = light ? INK : "#FFFFFF";
-        clip(x, y, tw, th, 14, () => {
-          ctx.fillStyle = s.hex; ctx.fillRect(x, y, tw, th);
-          const steps = tintSteps(s.hex), sw = tw / steps.length;
-          steps.forEach((t, k) => { ctx.fillStyle = t; ctx.fillRect(x + k * sw, y + th - 10, sw + 1, 10); });
-        });
-        if (light) { ctx.beginPath(); ctx.roundRect(x, y, tw, th, 14); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); }
-        font(600, 26); text(s.role, x + 22, y + 44, ink);
-        font(500, 22); text(s.hex.toUpperCase(), x + 22, y + th - 32, ink);
-        font(400, 21); wrap(ctx, s.use, tw - 4, 2).forEach((ln, k) => text(ln, x + 2, y + th + 34 + k * 28, MUTED));
+    const tw = (CW - 2 * 20) / 3, th = 190;
+    d.swatches.slice(0, 3).forEach((s, i) => {
+      const x = M + i * (tw + 20), light = isLight(s.hex), ink = light ? INK : "#FFFFFF";
+      clip(x, y, tw, th, 14, () => {
+        ctx.fillStyle = s.hex; ctx.fillRect(x, y, tw, th);
+        const steps = tintSteps(s.hex), sw = tw / steps.length;
+        steps.forEach((t, k) => { ctx.fillStyle = t; ctx.fillRect(x + k * sw, y + th - 10, sw + 1, 10); });
       });
-      const ny = y + th + 104;
-      label("โทนเทา", M, ny + 8);
-      const bx = M + 96, bw = w1 - 96;
-      clip(bx, ny - 12, bw, 26, 6, () => {
-        const sw = bw / (NEUTRALS.length - 1);
-        NEUTRALS.slice(1).forEach((n, k) => { ctx.fillStyle = n; ctx.fillRect(bx + k * sw, ny - 12, sw + 1, 26); });
-      });
-      font(400, 21); text("ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง", M, ny + 52, MUTED);
-      // text on each colour: "Aa" in the heading font, its readability under it
-      const ay = ny + 84;
-      ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(M, ay, w1, 2);
-      label("ตัวอักษรบนสี", M, ay + 42);
-      const ah = 84;
-      d.swatches.slice(0, 3).forEach((s, i) => {
-        const x = M + i * (tw + 16), t = textOn(s.hex);
-        ctx.fillStyle = s.hex; ctx.beginPath(); ctx.roundRect(x, ay + 62, tw, ah, 14); ctx.fill();
-        if (isLight(s.hex)) { ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); }
-        font(700, 40, head); text("Aa", x + 22, ay + 62 + 58, t.ink);
-        font(400, 20); text(`${t.ok ? "✓ " : ""}${t.verdict} · ${t.ratio.toFixed(1)}:1`, x + 2, ay + 62 + ah + 32, t.ok ? MUTED : "#B42318");
-      });
-      h1 = th + 104 + 84 + 62 + ah + 48;
-    }
-    if (d.ciSite) h2 = fromSite("ฟอนต์", x2, w2);
-    else {
-      const rows = [
-        { lab: "หัวข้อ", name: d.fontName, fam: head, wt: 700, src: d.fontSource, sample: BOARD_SAMPLE.headSample },
-        { lab: "เนื้อหา", name: d.bodyFont, fam: body, wt: 400, src: "Google Fonts · ฟรี", sample: BOARD_SAMPLE.bodySample },
-      ];
-      // heading row large and bold, body row small and quiet, the source once at the foot
-      // (as on screen)
-      const [hd, bd] = rows;
-      // as tall as the colour column beside it: the spare height goes to the two rows (so
-      // their samples can take two lines), the source line stays at the foot
-      const hf = 54, base1 = 168, base2 = 132;
-      h2 = Math.max(h1, base1 + base2 + hf);
-      const extra = h2 - (base1 + base2 + hf), h1r = base1 + Math.round(extra * 0.55);
-      card(x2, y, w2, h2);
-      const rule = (ry: number) => { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x2 + 28, ry, w2 - 56, 2); };
-      const lines = (n: number) => (extra > 40 ? 2 : 1) >= n;
-      label(hd.lab, x2 + 28, y + 42);
-      fit(hd.name, w2 - 56, 56, 700, hd.fam); text(hd.name, x2 + 28, y + 104);
-      font(600, 26, hd.fam); wrap(ctx, hd.sample, w2 - 56, lines(2) ? 2 : 1).forEach((ln, k) => text(ln, x2 + 28, y + 146 + k * 36));
-      rule(y + h1r);
-      label(bd.lab, x2 + 28, y + h1r + 40);
-      font(500, 30, bd.fam); text(bd.name, x2 + 28, y + h1r + 80);
-      font(400, 21, bd.fam); wrap(ctx, bd.sample, w2 - 56, lines(2) ? 2 : 1).forEach((ln, k) => text(ln, x2 + 28, y + h1r + 112 + k * 32, MUTED));
-      rule(y + h2 - hf);
-      font(400, 20); text(hd.src === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${hd.src} · เนื้อหา · Google Fonts · ฟรี`, x2 + 28, y + h2 - hf + 36, MUTED);
-    }
-    y += Math.max(h1, h2);
+      if (light) { ctx.beginPath(); ctx.roundRect(x, y, tw, th, 14); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); }
+      font(600, 28); text(s.role, x + 26, y + 50, ink);
+      font(500, 24); text(s.hex.toUpperCase(), x + 26, y + th - 34, ink);
+      font(400, 22); wrap(ctx, s.use, tw - 4, 2).forEach((ln, k) => text(ln, x + 2, y + th + 36 + k * 30, MUTED));
+    });
+    const ny = y + th + 116;
+    label("โทนเทา", M, ny + 8);
+    const bx = M + 96, bw = CW - 96;
+    clip(bx, ny - 12, bw, 26, 6, () => {
+      const sw = bw / (NEUTRALS.length - 1);
+      NEUTRALS.slice(1).forEach((n, k) => { ctx.fillStyle = n; ctx.fillRect(bx + k * sw, ny - 12, sw + 1, 26); });
+    });
+    font(400, 21); text("ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง", M, ny + 52, MUTED);
+    y = ny + 52;
+    muted("สีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
   }
-  y += 6;
-  if (!d.ownPending && !d.ciSite) muted("สีและฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
-  if (d.fontInterest) { y += 40; font(500, 26); text(`ลูกค้าสนใจฟอนต์ · ${d.fontInterest}`, M, y); }
   if (d.ciAssets) muted(`CI ที่แนบ · ${d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้`, 2);
   if (d.ciNote) muted(`หมายเหตุ · ${d.ciNote}`, 3);
 
+  // ── 02 type: one card, the heading font leading on the left (3:2), the body font beside
+  // it, the source once at the foot
+  section("02", "ตัวอักษร");
+  if (d.ciSite) y += fromSite("ฟอนต์", M, CW);
+  else {
+    const H = 250, hf = 54, lw = Math.round((CW - 56) * 0.6), x1 = M + 28, x2 = x1 + lw + 32;
+    card(M, y, CW, H);
+    label("หัวข้อ", x1, y + 44);
+    fit(d.fontName, lw - 20, 64, 700, head); text(d.fontName, x1, y + 112);
+    font(600, 26, head); text(wrap(ctx, BOARD_SAMPLE.headSample, lw - 20, 1)[0] ?? "", x1, y + 158);
+    ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x1 + lw + 4, y + 28, 2, H - hf - 50);
+    label("เนื้อหา", x2, y + 44);
+    font(500, 32, body); text(d.bodyFont, x2, y + 96);
+    font(400, 22, body); wrap(ctx, BOARD_SAMPLE.bodySample, M + CW - 28 - x2, 2).forEach((ln, k) => text(ln, x2, y + 136 + k * 32, MUTED));
+    ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x1, y + H - hf, CW - 56, 2);
+    font(400, 20); text(d.fontSource === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${d.fontSource} · เนื้อหา · Google Fonts · ฟรี`, x1, y + H - hf + 36, MUTED);
+    y += H;
+    muted("ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
+  }
+  if (d.fontInterest) { y += 40; font(500, 26); text(`ลูกค้าสนใจฟอนต์ · ${d.fontInterest}`, M, y); }
+
   // ── 02 sample page: a browser frame — buttons + field on the left, cards running past the
   // right edge
-  section("02", "องค์ประกอบบนเว็บ", "ตัวอย่างองค์ประกอบ");
+  section("03", "องค์ประกอบบนเว็บ", "ตัวอย่างองค์ประกอบ");
   {
     const H = 380, btn = d.ownPending ? "#151823" : d.primary, onBtn = isLight(btn) ? INK : "#FFFFFF";
     card(M, y, CW, H, "#E6E2D8");
@@ -512,7 +490,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 03 answers + homepage order: plain lists, one item a row, divided by hairlines —
   // no boxes, no highlighted row (they read as something to pick)
-  section("03", "คำตอบและหน้าแรก");
+  section("04", "คำตอบและหน้าแรก");
   {
     const w2 = (CW - G) / 2, RH = 56;
     const names = d.sections.map((n) => n.split(" / ")[0]);
@@ -548,7 +526,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 04 photos as thumbnails, one row
   if (imgs.length) {
-    section("04", "แนวภาพ", "ตัวอย่างโทนภาพ");
+    section("05", "แนวภาพ", "ตัวอย่างโทนภาพ");
     if (d.visualMood) { font(400, 26); wrap(ctx, d.visualMood, CW, 2).forEach((ln) => { y += 38; text(ln, M, y, "#4A473F"); }); y += 22; }
     const n = Math.min(6, imgs.length), gap = 12, pw = (CW - gap * (n - 1)) / n, ph = pw * 0.75;
     imgs.slice(0, n).forEach((img, i) => { const px = M + i * (pw + gap); clip(px, y, pw, ph, 10, () => cover(img, px, y, pw, ph)); });

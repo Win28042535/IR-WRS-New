@@ -20,7 +20,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { BODY_FONT, isLightHex } from "@/lib/sheetData";
 import { useGoogleFont } from "@/lib/useGoogleFont";
-import { BOARD_SAMPLE, NEUTRALS, textOn, tintSteps, type SheetData } from "@/lib/moodboardExport";
+import { BOARD_SAMPLE, NEUTRALS, tintSteps, type SheetData } from "@/lib/moodboardExport";
 
 // solid, no outline: an outlined white box is what the form uses for "fill this in"
 const CARD = "min-w-0 rounded-md bg-[#F1EEE6]";
@@ -123,7 +123,6 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
   const names = d.sections.map((n) => n.split(" / ")[0]);
   const insp = [d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "", d.inspiration.files ? `${d.inspiration.files} ไฟล์` : "", d.inspiration.note ?? ""].filter(Boolean).join(" · ");
   const shot = (i: number) => d.shots[i]?.url ?? d.shots[0]?.url;
-  const fromSiteBoth = d.ownPending && !!d.ciSite;
   // one line for where the fonts come from; "ทั้งสองฟอนต์…" when both are free Google faces
   const fontSourceLine = d.fontSource === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${d.fontSource} · เนื้อหา · Google Fonts · ฟรี`;
   const fonts = [
@@ -135,71 +134,56 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
     <div className="@container px-4 pb-2 pt-5 sm:px-6 sm:pt-6 md:px-10 md:pt-8">
       <Banner d={d} headline={headline} watermark={watermark} glow={glow} />
 
-      <Section n="01" title="สีและตัวอักษร">
-        {fromSiteBoth ? <FromSite what="สีและฟอนต์" site={d.ciSite} /> : (
-          <div className="grid gap-3 @lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-            {/* colours: three tiles in one row, the greys as a strip under them */}
-            {d.ownPending ? <FromSite what="สี" site={d.ciSite} /> : (
-              <div className="min-w-0">
-                <div className="grid grid-cols-3 gap-2">{d.swatches.map((s) => <Swatch key={s.role} s={s} />)}</div>
-                <div className="mt-3 flex items-center gap-3">
-                  <Label className="shrink-0">โทนเทา</Label>
-                  <span className="flex h-3 flex-1 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/[0.06]" aria-hidden="true">
-                    {NEUTRALS.slice(1).map((n) => <span key={n} className="flex-1" style={{ background: n }} />)}
-                  </span>
-                </div>
-                {/* what the greys are for — "สีกลาง" alone left testers asking */}
-                <p className={`mt-2 text-caption leading-snug ${MUTED}`}>ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง</p>
-                {/* text on each colour (24 Nov 2026): which text colour reads on it and how well —
-                    real information for the team, and it fills the column beside the font card */}
-                <div className="mt-4 border-t border-black/[0.08] pt-3">
-                  <Label>ตัวอักษรบนสี</Label>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    {d.swatches.map((s) => {
-                      const t = textOn(s.hex);
-                      return (
-                        <div key={s.role} className="min-w-0">
-                          <div className={`grid h-12 place-items-center rounded-sm @2xl:h-14 ${isLightHex(s.hex) ? "ring-1 ring-inset ring-[#E4E0D6]" : ""}`} style={{ background: s.hex, color: t.ink }}>
-                            <span className="text-lead font-bold leading-none @2xl:text-title" style={head} aria-label={`ตัวอักษรบน${s.role}`}>Aa</span>
-                          </div>
-                          <p className={`mt-1.5 text-caption leading-snug ${t.ok ? MUTED : "text-ir-error"}`}>{t.ok ? "✓ " : ""}{t.verdict} · {t.ratio.toFixed(1)}:1</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* both fonts in one card, a row each */}
-            {d.ciSite ? <FromSite what="ฟอนต์" site={d.ciSite} /> : (
-              // each row looks like what its font does (23 Nov 2026): the heading row large and
-              // bold, set like a heading; the body row small and quiet, set like a paragraph —
-              // two equal rows read as one flat block. The source is said once, at the foot.
-              <div className={`${CARD} flex flex-col px-4 @2xl:px-5`}>
-                <div className="min-w-0 py-5">
-                  <Label>{fonts[0].label}</Label>
-                  <p className="mt-1.5 break-words leading-tight" style={{ ...fonts[0].fam, fontWeight: 700, fontSize: "clamp(28px, 4.4cqw, 36px)" }}>{fonts[0].name}</p>
-                  <p className="mt-2 text-body font-semibold leading-snug text-[#2B2A26]" style={fonts[0].fam}>{fonts[0].sample}</p>
-                </div>
-                <div className="min-w-0 border-t border-black/[0.07] py-4">
-                  <Label>{fonts[1].label}</Label>
-                  <p className="mt-1 text-lead font-medium leading-tight" style={fonts[1].fam}>{fonts[1].name}</p>
-                  <p className={`mt-1 line-clamp-2 text-small leading-relaxed ${MUTED}`} style={fonts[1].fam}>{fonts[1].sample}</p>
-                </div>
-                <p className={`mt-auto border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
-              </div>
-            )}
-          </div>
+      {/* colours and type as two full-width sections (24 Nov 2026): side by side their
+          heights never matched and the gap kept needing filling */}
+      <Section n="01" title="สี">
+        {d.ownPending ? <FromSite what="สี" site={d.ciSite} /> : (
+          <>
+            <div className="grid grid-cols-3 gap-2 @2xl:gap-3">{d.swatches.map((s) => <Swatch key={s.role} s={s} />)}</div>
+            <div className="mt-4 flex items-center gap-3">
+              <Label className="shrink-0">โทนเทา</Label>
+              <span className="flex h-3 flex-1 overflow-hidden rounded-[4px] ring-1 ring-inset ring-black/[0.06]" aria-hidden="true">
+                {NEUTRALS.slice(1).map((n) => <span key={n} className="flex-1" style={{ background: n }} />)}
+              </span>
+            </div>
+            {/* what the greys are for — "สีกลาง" alone left testers asking */}
+            <p className={`mt-2 text-caption leading-snug ${MUTED}`}>ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง</p>
+            <Note>สีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
+          </>
         )}
-        {!d.ownPending && !d.ciSite && <Note>สีและฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>}
-        {d.fontInterest && <p className="mt-3 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
         {d.ciAssets && <Note>CI ที่แนบ · {d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้</Note>}
         {d.ciNote && <Note>หมายเหตุ · {d.ciNote}</Note>}
       </Section>
 
+      <Section n="02" title="ตัวอักษร">
+        {d.ciSite ? <FromSite what="ฟอนต์" site={d.ciSite} /> : (
+          <>
+            {/* the heading font leads (wider, larger), the body font beside it, quieter; a
+                row each on a narrow sheet. The source is said once, at the foot. */}
+            <div className={`${CARD} px-4 @2xl:px-5`}>
+              <div className="grid @lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                <div className="min-w-0 py-5 @lg:pr-5">
+                  <Label>{fonts[0].label}</Label>
+                  <p className="mt-1.5 break-words leading-tight" style={{ ...fonts[0].fam, fontWeight: 700, fontSize: "clamp(28px, 4.4cqw, 40px)" }}>{fonts[0].name}</p>
+                  <p className="mt-2 text-body font-semibold leading-snug text-[#2B2A26]" style={fonts[0].fam}>{fonts[0].sample}</p>
+                </div>
+                <div className="min-w-0 border-t border-black/[0.07] py-4 @lg:border-l @lg:border-t-0 @lg:py-5 @lg:pl-5">
+                  <Label>{fonts[1].label}</Label>
+                  <p className="mt-1 text-lead font-medium leading-tight" style={fonts[1].fam}>{fonts[1].name}</p>
+                  <p className={`mt-1 line-clamp-2 text-small leading-relaxed ${MUTED}`} style={fonts[1].fam}>{fonts[1].sample}</p>
+                </div>
+              </div>
+              <p className={`border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
+            </div>
+            <Note>ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
+          </>
+        )}
+        {d.fontInterest && <p className="mt-3 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
+      </Section>
+
       {/* samples, not controls: a picture of a page in a browser frame — nothing to press,
           nothing to type in */}
-      <Section n="02" title="องค์ประกอบบนเว็บ" chip="ตัวอย่างองค์ประกอบ">
+      <Section n="03" title="องค์ประกอบบนเว็บ" chip="ตัวอย่างองค์ประกอบ">
         <div role="img" aria-label="ภาพตัวอย่างองค์ประกอบบนเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
           className="pointer-events-none select-none rounded-md bg-[#E6E2D8] p-1.5">
           <div className="flex items-center gap-3 px-2 pb-1.5 pt-0.5" aria-hidden="true">
@@ -265,7 +249,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
         </div>
       </Section>
 
-      <Section n="03" title="คำตอบและหน้าแรก">
+      <Section n="04" title="คำตอบและหน้าแรก">
         <div className="grid gap-3 @2xl:grid-cols-2">
           <div className={`${CARD} p-4 @2xl:p-5`}>
             <Label>คำตอบของคุณ</Label>
@@ -303,7 +287,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
       </Section>
 
       {d.shots.length > 0 && (
-        <Section n="04" title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
+        <Section n="05" title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
           {d.visualMood && <p className="mb-3 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
           <div className="grid grid-cols-3 gap-2 @2xl:grid-cols-6">
             {d.shots.slice(0, 6).map((s) => (
