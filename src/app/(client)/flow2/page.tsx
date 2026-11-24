@@ -9,7 +9,7 @@ import { rankDirections, buildProfile, profileToDirection, rankProfileDirections
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
-import { RankPicker } from "@/components/RankPicker";
+import { RankPicker, PickCount } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING } from "@/lib/fonts";
 import { BackToTop } from "@/components/BackToTop";
@@ -696,19 +696,27 @@ function SBrand({ go, draft, updateDraft }: any) {
 // A line above a pick list that opened with suggested answers: says they were picked for
 // the client and can be changed; once changed, offers to go back to the suggested set.
 // Same idea as the homepage step's "หน้าแรกที่ AI จัดให้คุณ" card, quieter.
-function SuggestedBar({ suggested, what, onUse }: { suggested: boolean; what: string; onUse: () => void }) {
+function SuggestedBar({ suggested, onUse, count, max, unit }: { suggested: boolean; onUse: () => void; count: number; max?: number; unit: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg bg-ir-accent-soft px-3 py-2.5 sm:px-4">
-      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ir-accent text-small text-ir-on-accent">✦</span>
-      <p role="status" className="min-w-0 flex-1 text-body leading-snug text-ir-t1">
-        {suggested ? `เลือก${what}ไว้ให้ตามเว็บ IR ทั่วไปแล้ว ปรับได้` : `ปรับ${what}จากที่แนะนำแล้ว`}
+    // Same height in both states (audit 24 Nov 2026: it grew when a pick changed, so the
+    // cards jumped under the finger). Phones: message on one line, count + button on a
+    // second row the same 32px height as the count. Wider: one row. The button is drawn at
+    // the count's height (32px) but its hit area stretches to 44px. The pick count
+    // lives here, so the list below starts straight away. Radius matches the cards (20px).
+    <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-ir-muted py-2 pl-3 pr-2 sm:flex-nowrap sm:pl-4">
+      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ir-dark text-small text-ir-accent">✦</span>
+      <p key={String(suggested)} role="status" className="swap-in min-w-0 flex-1 text-body leading-snug text-ir-t1">
+        {suggested ? "แนะนำตามเว็บ IR ทั่วไป · ปรับได้" : "ปรับจากที่แนะนำแล้ว"}
       </p>
-      {!suggested && (
-        <button type="button" onClick={onUse}
-          className="inline-flex h-11 shrink-0 items-center rounded-full bg-white px-4 text-caption font-semibold text-ir-t1 shadow-e1 transition-colors hover:bg-ir-accent focus-ring">
-          ✦ ใช้ชุดที่แนะนำ
-        </button>
-      )}
+      <div className="flex min-h-8 w-full items-center gap-2 sm:w-auto sm:shrink-0">
+        <PickCount count={count} max={max} unit={unit} />
+        {!suggested && (
+          <button type="button" onClick={onUse}
+            className="swap-in relative ml-auto inline-flex h-8 shrink-0 items-center rounded-full bg-white px-3 text-small font-semibold text-ir-t1 shadow-e1 transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:bg-ir-accent focus-ring">
+            ✦ ใช้ชุดที่แนะนำ
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -747,10 +755,10 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
 
   return (
     <>
-      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="กดเลือกเรียงจากกลุ่มที่สำคัญที่สุด" />
+      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="เรียงจากกลุ่มที่สำคัญที่สุด · กดการ์ดเพื่อเพิ่มหรือเอาออก" />
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
-      <SuggestedBar suggested={suggested} what="กลุ่มผู้อ่าน" onUse={useSuggested} />
+      <SuggestedBar suggested={suggested} onUse={useSuggested} count={selectedAudiences.length} unit="กลุ่ม" />
       <div id="audience-field" className="scroll-mt-28">
         {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
         <RankPicker
@@ -758,6 +766,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
           selected={selectedAudiences}
           onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
           unit="กลุ่ม"
+          hideCount
         />
       </div>
 
@@ -831,10 +840,10 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
   return (
     <>
-      <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="กดเลือกเรียงจากเรื่องที่สำคัญที่สุด" />
+      <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="เรียงจากเรื่องที่สำคัญที่สุด · กดการ์ดเพื่อเพิ่มหรือเอาออก" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
-      <SuggestedBar suggested={suggested} what="เป้าหมาย" onUse={useSuggested} />
+      <SuggestedBar suggested={suggested} onUse={useSuggested} count={draft.businessGoals.length} max={RULES.goals.max} unit="ข้อ" />
       <div id="goals-field" className="scroll-mt-28">
         {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
         <RankPicker
@@ -843,6 +852,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
           max={RULES.goals.max}
           topLabel="เป้าหมายหลัก"
           unit="ข้อ"
+          hideCount
           cols="md:grid-cols-2"
           onChange={(next) => updateDraft({ businessGoals: next })}
           itemClassName={(_id, i) => (i >= GOALS_COLLAPSE_AT && !goalsExpanded ? "max-md:hidden" : "")}
@@ -1746,6 +1756,17 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // "เพิ่มลิงก์" is never greyed out (user test 24 Nov 2026: the grey button beside an empty
+  // field read as "this step is locked"). Pressed before a usable link is in the field, it
+  // puts the cursor in the field and, when it's empty, says what to do.
+  const urlInputRef = useRef<HTMLInputElement>(null);
+  const [askPaste, setAskPaste] = useState(false);
+  const urlReady = urlValidation === "valid" && !driveHere;
+  const pressAddUrl = () => {
+    if (urlReady) { commitUrl(); return; }
+    urlInputRef.current?.focus();
+    if (urlValidation === "empty") setAskPaste(true);
+  };
   const commitUrl = () => {
     if (isCommittingUrl) return;
     const value = urlInput.trim();
@@ -1944,21 +1965,22 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
               type="url"
               aria-label={ci ? "ลิงก์ CI" : "ลิงก์เว็บไซต์หรือวิดีโอ"}
               placeholder={urlCapReached ? `ครบ ${MAX_REFERENCE_URLS} ลิงก์แล้ว` : ci ? "วางลิงก์ เช่น โลโก้ คู่มือ หรือ Google Drive" : "วางลิงก์ที่นี่"}
+              ref={urlInputRef}
               value={urlInput}
               disabled={urlCapReached}
               aria-invalid={urlValidation === "invalid" || urlValidation === "unsupported"}
-              onChange={(e) => setUrlInput(e.target.value)}
+              onChange={(e) => { setUrlInput(e.target.value); setAskPaste(false); }}
               onKeyDown={(e) => { if (e.key === "Enter") commitUrl(); }}
               className="h-11 flex-1 min-w-0 bg-transparent px-1 text-body text-ir-t1 placeholder:text-ir-t3 outline-none !shadow-none disabled:cursor-not-allowed"
             />
-            {/* lime only once the pasted link is usable; before that a quiet outline, so an
-                empty field doesn't carry a heavy grey block */}
+            {/* lime once the pasted link is usable; before that a white outlined button that
+                still reads as pressable (only the link cap disables it) */}
             <button
-              onClick={commitUrl}
-              disabled={urlValidation !== "valid" || urlCapReached || driveHere}
-              data-pulse={(urlValidation === "valid" && !driveHere) || undefined}
+              onClick={pressAddUrl}
+              disabled={urlCapReached}
+              data-pulse={urlReady || undefined}
               aria-busy={isCommittingUrl}
-              className="h-11 shrink-0 flex items-center gap-1.5 rounded-lg px-4 text-body font-semibold whitespace-nowrap text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi active:scale-[0.97] transition-[background-color,color,box-shadow,scale] disabled:bg-transparent disabled:text-ir-t3 disabled:shadow-[inset_0_0_0_1px_var(--color-ir-border)] disabled:cursor-not-allowed disabled:active:scale-100"
+              className={`h-11 shrink-0 flex items-center gap-1.5 rounded-lg px-4 text-body font-semibold whitespace-nowrap active:scale-[0.97] transition-[background-color,color,box-shadow,scale] disabled:bg-transparent disabled:text-ir-t3 disabled:shadow-[inset_0_0_0_1px_var(--color-ir-border)] disabled:cursor-not-allowed disabled:active:scale-100 ${urlReady ? "text-ir-on-accent bg-ir-accent hover:bg-ir-accent-hi" : "bg-white text-ir-t1 shadow-[inset_0_0_0_1px_var(--color-ir-border)] hover:bg-ir-muted"}`}
             >
               {/* Icon swaps between four states — idle (+) / loading (spinner) / completed
                   (check) — each mount plays a short, non-bouncy fade+scale so the swap reads
@@ -1979,7 +2001,12 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
               find out the link won't work. Falls back to the generic hint when empty. */}
           {/* nothing under an empty field (20 Nov 2026: the ①② steps went); a usable link
               turns the button lime and says to press it */}
-          {urlValidation === "empty" ? null : driveHere ? (
+          {urlValidation === "empty" ? (askPaste && !urlCapReached ? (
+            <p role="status" className="hint-in mt-1.5 flex items-start gap-1.5 text-small text-ir-t2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ir-t3" />
+              วางลิงก์ในช่องก่อน แล้วกด “เพิ่มลิงก์” · ไม่มีลิงก์ ข้ามขั้นนี้ได้
+            </p>
+          ) : null) : driveHere ? (
             <p role="status" className="mt-1.5 flex items-center gap-1.5 text-small text-ir-warn">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ir-warn" />
               ลิงก์ Google Drive ใส่ในช่องหมายเหตุเพิ่มเติมด้านล่าง

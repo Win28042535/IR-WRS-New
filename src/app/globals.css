@@ -157,7 +157,9 @@
   [data-pulse] { animation: save-pulse var(--motion-slow) var(--motion-ease-out); }
   .menu-in { animation: menu-in var(--motion-fast) var(--motion-ease-out) both; }
   .save-pulse { animation: save-pulse var(--motion-slow) var(--motion-ease-out); }
-  .save-note, .field-error { animation: fade-in-down var(--motion-fast) var(--motion-ease-out) both; }
+  .save-note, .field-error, .hint-in { animation: fade-in-down var(--motion-fast) var(--motion-ease-out) both; }
+  /* text or a control swapped in place (e.g. the suggestion bar's message) */
+  .swap-in { animation: fade-in var(--motion-fast) linear both; }
   .sheet-in { animation: sheet-up var(--motion-base) var(--motion-ease-out) both; }
   @media (min-width: 640px) { .sheet-in { animation-name: sheet-pop; } }
   .sheet-backdrop { animation: fade-in var(--motion-fast) linear both; }

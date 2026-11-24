@@ -56,7 +56,7 @@ export function PickCount({ count, max, unit }: { count: number; max?: number; u
 
 export function RankPicker({
   items, selected: rawSelected, onChange, max, title, hint,
-  cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด", unit = "รายการ",
+  cols = "sm:grid-cols-2", itemClassName, topLabel = "สำคัญที่สุด", unit = "รายการ", hideCount = false,
 }: {
   items: RankItem[];
   selected: string[];
@@ -70,6 +70,8 @@ export function RankPicker({
   topLabel?: string;
   /** what one pick is called in the count, e.g. "กลุ่ม", "ข้อ" */
   unit?: string;
+  /** the step shows the count itself (e.g. inside its suggestion bar) */
+  hideCount?: boolean;
 }) {
   // Only ids that are on the list count (a stale id in an old draft is ignored).
   const selected = rawSelected.filter((id) => items.some((it) => it.id === id));
@@ -186,17 +188,17 @@ export function RankPicker({
     <div data-rank-root>
       {/* No heading of its own by default: the step's title already asks the question and
           its subtitle says to pick in order (user test CBG: four lines said the same thing). */}
-      <div className="flex items-end justify-between gap-3">
+      {!(hideCount && !title && !hint) && <div className="flex items-end justify-between gap-3">
         {(title || hint) && (
           <div className="min-w-0">
             {title && <p className="text-body font-semibold text-ir-t1">{title}</p>}
             {hint && <p className="mt-0.5 text-caption text-ir-t3">{hint}</p>}
           </div>
         )}
-        <span className="ml-auto"><PickCount count={selected.length} max={max} unit={unit} /></span>
-      </div>
+        {!hideCount && <span className="ml-auto"><PickCount count={selected.length} max={max} unit={unit} /></span>}
+      </div>}
 
-      <div className={`mt-3 grid gap-2.5 ${cols}`}>
+      <div className={`${hideCount && !title && !hint ? "" : "mt-3 "}grid gap-2.5 ${cols}`}>
         {items.map((it, i) => {
           const order = drag?.over ? moveTo(selected, drag.id, drag.over) : selected;
           const rank = order.indexOf(it.id) + 1;
