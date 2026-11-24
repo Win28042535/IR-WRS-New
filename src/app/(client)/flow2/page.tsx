@@ -9,7 +9,7 @@ import { rankDirections, buildProfile, profileToDirection, rankProfileDirections
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
 import { ExploreMock } from "@/components/ExploreMock";
-import { RankPicker, PickCount } from "@/components/RankPicker";
+import { RankPicker } from "@/components/RankPicker";
 import { StructureBuilder, STRUCTURE_MIN_OPTIONAL, isRecommendedHomepage } from "@/components/StructureBuilder";
 import { FONT_PAIRINGS, DEFAULT_PAIRING } from "@/lib/fonts";
 import { BackToTop } from "@/components/BackToTop";
@@ -693,26 +693,30 @@ function SBrand({ go, draft, updateDraft }: any) {
   );
 }
 
-// A line above a pick list that opened with suggested answers: says they were picked for
-// the client and can be changed; once changed, offers to go back to the suggested set.
-// Same idea as the homepage step's "หน้าแรกที่ AI จัดให้คุณ" card, quieter.
-function SuggestedBar({ suggested, onUse, count, max, unit }: { suggested: boolean; onUse: () => void; count: number; max?: number; unit: string }) {
+// The header above a pick list that opened with suggested answers. Same build as the
+// homepage step's "หน้าแรกที่ AI จัดให้คุณ" header (24 Nov 2026), on the white card with no
+// box: lime ✦ disc, a bold line saying whose set it is, one quieter line on what to do,
+// then the count ("n / max") and, once changed or emptied, the way back to the AI set.
+// The count and the button are the same 32px tall (the button's hit area is 44px); the
+// bottom row keeps its height whether the button shows or not, so the cards never jump.
+function SuggestedBar({ suggested, onUse, count, max, unit, what, nextLabel }: { suggested: boolean; onUse: () => void; count: number; max: number; unit: string; what: string; nextLabel: string }) {
+  const title = suggested ? `${what}ที่ AI เลือกให้คุณ` : count === 0 ? `${what}ของคุณ (ยังว่าง)` : `${what}ของคุณ`;
+  const sub = suggested ? `เรียงตามที่เว็บ IR ส่วนใหญ่ใช้ เห็นด้วยกด “${nextLabel}” ได้เลย`
+    : count === 0 ? `เลือกอย่างน้อย 1 ${unit}` : "ปรับจากที่ AI เลือกให้ · กดการ์ดเพื่อเพิ่มหรือเอาออก";
   return (
-    // Same height in both states (audit 24 Nov 2026: it grew when a pick changed, so the
-    // cards jumped under the finger). Phones: message on one line, count + button on a
-    // second row the same 32px height as the count. Wider: one row. The button is drawn at
-    // the count's height (32px) but its hit area stretches to 44px. The pick count
-    // lives here, so the list below starts straight away. Radius matches the cards (20px).
-    <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-ir-muted py-2 pl-3 pr-2 sm:flex-nowrap sm:pl-4">
-      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ir-dark text-small text-ir-accent">✦</span>
-      <p key={String(suggested)} role="status" className="swap-in min-w-0 flex-1 text-body leading-snug text-ir-t1">
-        {suggested ? "AI แนะนำตามเว็บ IR ทั่วไป" : "ปรับจากที่ AI แนะนำแล้ว"}
-      </p>
-      <div className="flex min-h-8 w-full items-center gap-2 sm:w-auto sm:shrink-0">
-        <PickCount count={count} max={max} unit={unit} />
+    <div className="mb-4">
+      <div className="flex items-start gap-3">
+        <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ir-accent text-body text-ir-on-accent shadow-[0_0_0_6px_rgba(215,224,39,0.18)]">✦</span>
+        <div key={String(suggested) + String(count === 0)} role="status" className="swap-in min-w-0 flex-1">
+          <p className="text-lead font-semibold leading-snug text-ir-t1">{title}</p>
+          <p className="mt-0.5 text-small leading-snug text-ir-t2">{sub}</p>
+        </div>
+      </div>
+      <div className="mt-3 flex min-h-8 items-center gap-2">
+        <span className="inline-flex h-8 items-center rounded-full bg-ir-muted px-3 text-caption font-semibold tabular-nums text-ir-t1">{count} / {max} {unit}</span>
         {!suggested && (
           <button type="button" onClick={onUse}
-            className="swap-in relative ml-auto inline-flex h-8 shrink-0 items-center rounded-full bg-white px-3 text-small font-semibold text-ir-t1 shadow-e1 transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:bg-ir-accent focus-ring">
+            className="swap-in relative ml-auto inline-flex h-8 shrink-0 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 ring-1 ring-inset ring-ir-border transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:bg-ir-accent hover:ring-transparent focus-ring">
             ✦ ใช้ชุดที่ AI แนะนำ
           </button>
         )}
@@ -755,10 +759,10 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
 
   return (
     <>
-      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="เรียงจากกลุ่มที่สำคัญที่สุด · กดการ์ดเพื่อเพิ่มหรือเอาออก" />
+      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="เรียงจากกลุ่มที่สำคัญที่สุด" />
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
-      <SuggestedBar suggested={suggested} onUse={useSuggested} count={selectedAudiences.length} unit="กลุ่ม" />
+      <SuggestedBar suggested={suggested} onUse={useSuggested} count={selectedAudiences.length} max={IR_AUDIENCES.length} unit="กลุ่ม" what="กลุ่มผู้อ่าน" nextLabel="ใช้ชุดนี้" />
       <div id="audience-field" className="scroll-mt-28">
         {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
         <RankPicker
@@ -771,7 +775,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
       </div>
 
       <StepNav onBack={() => go(2)} next={
-        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>{suggested ? "ใช้ตามที่ AI แนะนำ" : "ถัดไป"}</NextButton>
+        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>{suggested ? "ใช้ชุดนี้" : "ถัดไป"}</NextButton>
       } />
     </>
   );
@@ -840,10 +844,10 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
 
   return (
     <>
-      <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="เรียงจากเรื่องที่สำคัญที่สุด · กดการ์ดเพื่อเพิ่มหรือเอาออก" />
+      <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="เรียงจากเรื่องที่สำคัญที่สุด" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
-      <SuggestedBar suggested={suggested} onUse={useSuggested} count={draft.businessGoals.length} max={RULES.goals.max} unit="ข้อ" />
+      <SuggestedBar suggested={suggested} onUse={useSuggested} count={draft.businessGoals.length} max={RULES.goals.max} unit="ข้อ" what="เป้าหมาย" nextLabel="ใช้ชุดนี้" />
       <div id="goals-field" className="scroll-mt-28">
         {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
         <RankPicker
@@ -880,7 +884,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       </div>
 
       <StepNav onBack={() => go(3)} next={
-        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>{suggested ? "ใช้ตามที่ AI แนะนำ" : "ถัดไป"}</NextButton>
+        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>{suggested ? "ใช้ชุดนี้" : "ถัดไป"}</NextButton>
       } />
     </>
   );

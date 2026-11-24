@@ -324,7 +324,7 @@ export function NextButton({
       onClick={(e) => (blocked ? onBlocked?.(e.currentTarget) : onClick?.())}
       disabled={disabled}
       aria-disabled={blocked || undefined}
-      className="group inline-flex items-center gap-2 h-11 pl-6 pr-5 rounded-full text-lead font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:bg-ir-border aria-disabled:text-ir-t3 aria-disabled:hover:bg-ir-border"
+      className="group inline-flex items-center gap-2 h-11 pl-5 pr-4 sm:pl-6 sm:pr-5 whitespace-nowrap rounded-full text-lead font-semibold text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] focus-ring transition-[background-color,color,transform] duration-fast disabled:bg-ir-border disabled:text-ir-t3 disabled:cursor-not-allowed disabled:active:scale-100 aria-disabled:bg-ir-border aria-disabled:text-ir-t3 aria-disabled:hover:bg-ir-border"
     >
       {children}
       {!accent && (
