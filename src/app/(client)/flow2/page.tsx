@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, typ
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useStore } from "@/lib/store";
-import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, IR_AUDIENCES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, flowStepOf, siteHostOf, audienceById, directionById, sectionById } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, IR_AUDIENCES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, SUGGESTED_AUDIENCES, SUGGESTED_GOALS, audienceIsSuggested, goalsAreSuggested, flowStepOf, siteHostOf, audienceById, directionById, sectionById } from "@/lib/data";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
@@ -47,7 +47,12 @@ const STEPS_EN = FLOW_STEPS_EN;
 
 // Goals offered in the IR flow — the non-IR ones (lead generation, product launch) stay in
 // the data for corporate-site projects but aren't shown here.
-const VISIBLE_GOALS = BUSINESS_GOALS.filter((g) => !g.hidden);
+// Suggested answers first, in the suggested order, so the picked cards read 1, 2, 3 from
+// the top on a first visit; the rest keep their order below.
+const suggestedFirst = <T extends { id: string }>(list: T[], ids: string[]) =>
+  [...list].sort((a, b) => (ids.includes(a.id) ? ids.indexOf(a.id) : ids.length) - (ids.includes(b.id) ? ids.indexOf(b.id) : ids.length));
+const VISIBLE_GOALS = suggestedFirst(BUSINESS_GOALS.filter((g) => !g.hidden), SUGGESTED_GOALS);
+const AUDIENCE_LIST = suggestedFirst(IR_AUDIENCES, SUGGESTED_AUDIENCES);
 
 
 export default function Flow2() {
@@ -688,6 +693,26 @@ function SBrand({ go, draft, updateDraft }: any) {
   );
 }
 
+// A line above a pick list that opened with suggested answers: says they were picked for
+// the client and can be changed; once changed, offers to go back to the suggested set.
+// Same idea as the homepage step's "หน้าแรกที่ AI จัดให้คุณ" card, quieter.
+function SuggestedBar({ suggested, what, onUse }: { suggested: boolean; what: string; onUse: () => void }) {
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg bg-ir-accent-soft px-3 py-2.5 sm:px-4">
+      <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ir-accent text-small text-ir-on-accent">✦</span>
+      <p role="status" className="min-w-0 flex-1 text-body leading-snug text-ir-t1">
+        {suggested ? `เลือก${what}ไว้ให้ตามเว็บ IR ทั่วไปแล้ว ปรับได้` : `ปรับ${what}จากที่แนะนำแล้ว`}
+      </p>
+      {!suggested && (
+        <button type="button" onClick={onUse}
+          className="inline-flex h-11 shrink-0 items-center rounded-full bg-white px-4 text-caption font-semibold text-ir-t1 shadow-e1 transition-colors hover:bg-ir-accent focus-ring">
+          ✦ ใช้ชุดที่แนะนำ
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── S2 · Audience: who the site is for (its own step since user test CBG — it used to
 // share step 1 with the company and brand questions) ──
 function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
@@ -696,6 +721,15 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
   const selectedAudiences: string[] = [draft.primaryAudience, ...(draft.secondaryAudiences ?? [])].filter(Boolean);
   const nudge = useNudge();
   const audienceErr = nudge.field === "audience-field" && !draft.primaryAudience;
+  const suggested = audienceIsSuggested(draft);
+  const useSuggested = () => updateDraft({ primaryAudience: SUGGESTED_AUDIENCES[0], secondaryAudiences: SUGGESTED_AUDIENCES.slice(1) });
+  // First visit: open with the suggested audiences already picked (user test: "อะไรแนะนำได้
+  // ให้แนะนำ"), once per draft, so clearing them later is respected.
+  useEffect(() => {
+    if (draft.audiencePrefilled) return;
+    updateDraft({ audiencePrefilled: true, ...(!draft.primaryAudience ? { primaryAudience: SUGGESTED_AUDIENCES[0], secondaryAudiences: SUGGESTED_AUDIENCES.slice(1) } : {}) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Audience → notebook insight (how it shapes the design)
   useEffect(() => {
@@ -716,10 +750,11 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
       <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="กดเลือกเรียงจากกลุ่มที่สำคัญที่สุด" />
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
+      <SuggestedBar suggested={suggested} what="กลุ่มผู้อ่าน" onUse={useSuggested} />
       <div id="audience-field" className="scroll-mt-28">
         {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
         <RankPicker
-          items={IR_AUDIENCES.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
+          items={AUDIENCE_LIST.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
           selected={selectedAudiences}
           onChange={(next) => updateDraft({ primaryAudience: next[0] ?? "", secondaryAudiences: next.slice(1) })}
           unit="กลุ่ม"
@@ -727,7 +762,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
       </div>
 
       <StepNav onBack={() => go(2)} next={
-        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>ถัดไป</NextButton>
+        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>{suggested ? "ใช้ตามที่แนะนำ" : "ถัดไป"}</NextButton>
       } />
     </>
   );
@@ -751,6 +786,14 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
   const ok = draft.businessGoals.length >= RULES.goals.min;
   const nudge = useNudge();
   const goalsErr = nudge.field === "goals-field" && !ok;
+  const suggested = goalsAreSuggested(draft);
+  const useSuggested = () => updateDraft({ businessGoals: SUGGESTED_GOALS });
+  // First visit: open with the suggested goals already picked, once per draft.
+  useEffect(() => {
+    if (draft.goalsPrefilled) return;
+    updateDraft({ goalsPrefilled: true, ...(draft.businessGoals.length === 0 ? { businessGoals: SUGGESTED_GOALS } : {}) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Objectives → timeline
   useEffect(() => {
@@ -791,6 +834,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       <Head n={3} title="เว็บไซต์ต้องทำอะไรได้บ้าง" sub="กดเลือกเรียงจากเรื่องที่สำคัญที่สุด" />
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
+      <SuggestedBar suggested={suggested} what="เป้าหมาย" onUse={useSuggested} />
       <div id="goals-field" className="scroll-mt-28">
         {goalsErr && <FieldError>เลือกเป้าหมายอีก {RULES.goals.min - draft.businessGoals.length} ข้อ</FieldError>}
         <RankPicker
@@ -826,7 +870,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       </div>
 
       <StepNav onBack={() => go(3)} next={
-        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>ถัดไป</NextButton>
+        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>{suggested ? "ใช้ตามที่แนะนำ" : "ถัดไป"}</NextButton>
       } />
     </>
   );

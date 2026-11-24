@@ -54,7 +54,7 @@ export const SECTION_BLURB: Record<string, string> = {
   analyst: "บทวิเคราะห์และราคาเป้าหมายจากโบรกเกอร์",
   sustainability: "การดูแลสิ่งแวดล้อม สังคม และธรรมาภิบาล",
   governance: "นโยบายความโปร่งใสและจรรยาบรรณ",
-  contact: "ช่องทางติดต่อฝ่ายนักลงทุนสัมพันธ์",
+  contact: "อีเมล เบอร์โทร และฟอร์มติดต่อทีม IR",
 };
 
 export const ESTIMATED_MINUTES: Record<string, number> = {
@@ -223,7 +223,7 @@ export const SECTIONS: SectionDef[] = [
   { id: "about", name: "เกี่ยวกับบริษัท / About Us", category: "Core", desc: "แนะนำองค์กร วิสัยทัศน์ พันธกิจ", popular: true, icon: "🏢", businessPurpose: "สร้างความน่าเชื่อถือ บอกเล่าประวัติ พันธกิจ โครงสร้างธุรกิจ และจุดยืนขององค์กร", example: "ประวัติบริษัท · วิสัยทัศน์ · โครงสร้างธุรกิจ" },
   { id: "history", name: "ประวัติองค์กร / Company History", category: "Core", desc: "ประวัติและ Milestone สำคัญ", icon: "📅", businessPurpose: "แสดง Heritage ขององค์กร ความมั่นคงและประสบการณ์ที่สั่งสมมา ด้วย Timeline ที่น่าประทับใจ", example: "ก่อตั้ง 2530 · จดทะเบียน SET 2545 · ขยายต่างประเทศ 2558" },
   { id: "chairman-message", name: "สารจากประธานกรรมการ", category: "Core", desc: "บทความจากผู้นำระดับสูงสุด", icon: "🧑‍💼", businessPurpose: "สื่อสารวิสัยทัศน์และทิศทางองค์กรโดยตรงจาก Chairman สร้างความเชื่อมั่นในระดับผู้นำแก่นักลงทุน", example: "สารประจำปี · ทิศทางกลยุทธ์ · ข้อความถึงผู้ถือหุ้น" },
-  { id: "contact", name: "ช่องทางการติดต่อ / Contact", category: "Core", desc: "ข้อมูลติดต่อ IR และทีมงาน", popular: true, icon: "📞", businessPurpose: "ช่องทางติดต่อครบถ้วน Form, แผนที่, เบอร์โทร, Email ทีม IR เพื่ออำนวยความสะดวกนักลงทุน", example: "Contact Form · Office Map · IR Contact · Email" },
+  { id: "contact", name: "ติดต่อนักลงทุนสัมพันธ์ / IR Contact", category: "Core", desc: "ข้อมูลติดต่อฝ่ายนักลงทุนสัมพันธ์ของบริษัท", popular: true, icon: "📞", businessPurpose: "ช่องทางติดต่อครบถ้วน Form, แผนที่, เบอร์โทร, Email ทีม IR เพื่ออำนวยความสะดวกนักลงทุน", example: "Contact Form · Office Map · IR Contact · Email" },
   { id: "footer", name: "Footer / ส่วนท้ายเว็บ", category: "Core", desc: "ลิงก์ท้ายเว็บ ข้อมูลกฎหมาย สิทธิ์", popular: true, icon: "⬇️", businessPurpose: "รวมลิงก์สำคัญ นโยบายความเป็นส่วนตัว ข้อมูลลิขสิทธิ์ และ Social Media ที่ท้ายทุกหน้า", example: "Site Map · Social Links · Privacy Policy · ©2568" },
 
   // ── People / บุคลากร ──
@@ -324,6 +324,20 @@ export const IR_AUDIENCES: AudienceDef[] = [
   { id: "shareholder", label: "ผู้ถือหุ้นปัจจุบัน", emoji: "🤝", desc: "ผู้ถือหุ้นที่ลงทุนอยู่แล้ว", shapes: "เน้นข่าวสาร ปันผล การประชุมผู้ถือหุ้น และสิทธิประโยชน์", prioritizes: ["ir-calendar", "financial", "shareholder-info", "contact"] },
   { id: "potential", label: "นักลงทุนที่สนใจ", emoji: "🌱", desc: "ผู้ที่กำลังพิจารณาลงทุน", shapes: "เน้นสร้างความน่าเชื่อถือ วิสัยทัศน์ การเติบโต และโอกาส", prioritizes: ["about", "history", "financial", "chairman-message"] },
 ];
+
+// ── Suggested answers (user test, 24 Nov 2026: "อะไรแนะนำได้ ให้แนะนำ ลดการคิด") ──
+// The audience and goal steps open with these already picked, in this order, like the
+// homepage step opens with the AI's set. The client accepts with one click or edits.
+// What most IR sites put first; to be tuned from real requirement sessions.
+export const SUGGESTED_AUDIENCES = ["institutional", "analyst", "retail"];
+export const SUGGESTED_GOALS = ["ir", "credibility", "compliance"];
+const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+export function audienceIsSuggested(r: { primaryAudience?: string; secondaryAudiences?: string[] }) {
+  return sameList([r.primaryAudience ?? "", ...(r.secondaryAudiences ?? [])].filter(Boolean), SUGGESTED_AUDIENCES);
+}
+export function goalsAreSuggested(r: { businessGoals?: string[] }) {
+  return sameList(r.businessGoals ?? [], SUGGESTED_GOALS);
+}
 
 export function audienceById(id: string): AudienceDef | undefined {
   return IR_AUDIENCES.find((a) => a.id === id);

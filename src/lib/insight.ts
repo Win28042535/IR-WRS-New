@@ -4,7 +4,20 @@
 import { noteWithLinks } from "@/lib/noteLinks";
 import { SOURCE_LABEL, chosenThaiFont } from "./fontCatalog";
 import type { Requirement, RequirementStatus } from "./types";
-import { directionById, keepsCi, siteHostOf } from "./data";
+import { audienceIsSuggested, directionById, goalsAreSuggested, keepsCi, siteHostOf } from "./data";
+import { isRecommendedHomepage } from "@/components/StructureBuilder";
+
+/** Which steps the client accepted exactly as suggested, so the team can tell an answer the
+ *  client chose from one they clicked through. */
+export function acceptedSuggestions(r: Requirement): string {
+  const kept = [
+    audienceIsSuggested(r) && "กลุ่มผู้อ่าน",
+    goalsAreSuggested(r) && "เป้าหมาย",
+    isRecommendedHomepage(r) && "หน้าแรก",
+  ].filter(Boolean);
+  if (kept.length === 3) return "รับตามที่แนะนำทุกข้อ (กลุ่มผู้อ่าน · เป้าหมาย · หน้าแรก)";
+  return kept.length ? `รับตามที่แนะนำ: ${kept.join(" · ")} · ข้ออื่นลูกค้าปรับเอง` : "ลูกค้าปรับเองทุกข้อ";
+}
 
 const IR_SECTIONS = ["financial", "ir-info", "reports", "ir-calendar", "shareholder-info"];
 const ESG_SECTIONS: string[] = [];
@@ -40,6 +53,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})${r.fontInterest ? ` · ลูกค้าสนใจ ${r.fontInterest}` : ""}`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },
     { label: "Selected Sections", value: `${r.selectedSections.length} Sections` },
+    { label: "Suggested Answers", value: acceptedSuggestions(r) },
     ...(noteWithLinks(r.structureNote, r.noteLinks?.structure) ? [{ label: "Homepage Note", value: noteWithLinks(r.structureNote, r.noteLinks?.structure) }] : []),
     ...(noteWithLinks(r.inspirationNote, r.noteLinks?.inspiration) ? [{ label: "Inspiration Note", value: noteWithLinks(r.inspirationNote, r.noteLinks?.inspiration) }] : []),
     { label: "Approval Status", value: approvalSummary(r) },

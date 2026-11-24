@@ -264,6 +264,9 @@ export interface Requirement {
   structureNote?: string;
   /** The AI-recommended homepage set was filled in once; never refill over the client's edits. */
   structurePrefilled?: boolean;
+  /** The suggested audiences / goals were filled in once; never refill over the client's edits. */
+  audiencePrefilled?: boolean;
+  goalsPrefilled?: boolean;
   references: ReferenceItem[];
   note: string;
   comments: string;
