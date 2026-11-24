@@ -227,6 +227,25 @@ export function tintSteps(hex: string): string[] {
     .concat([hex.toUpperCase()], [0.22, 0.42, 0.6, 0.76].map((t) => mixHex(hex, "#000000", t)));
 }
 
+// ── Text on each colour (24 Nov 2026): which text colour reads on a swatch, and how well —
+// WCAG contrast, so the team sees at a glance if a pairing needs care.
+const luminance = (hex: string) => {
+  const h = hex.replace("#", "").padEnd(6, "0");
+  const ch = [0, 2, 4].map((i) => { const v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+};
+export function contrastRatio(a: string, b: string) {
+  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+/** the text colour for a swatch, its contrast, and a plain verdict */
+export function textOn(bg: string): { ink: string; ratio: number; verdict: string; ok: boolean } {
+  const light = luminance(bg) > 0.4;
+  const ink = light ? "#2B2A26" : "#FFFFFF";
+  const ratio = contrastRatio(bg, ink);
+  return { ink, ratio, ok: ratio >= 4.5, verdict: ratio >= 4.5 ? "อ่านง่าย" : ratio >= 3 ? "ใช้กับตัวใหญ่" : "ระวังอ่านยาก" };
+}
+
 /** Sample words for the "องค์ประกอบบนเว็บ" cards — investor content, not lorem ipsum. */
 export const BOARD_SAMPLE = {
   url: "ir.company.co.th",
@@ -374,7 +393,19 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
         NEUTRALS.slice(1).forEach((n, k) => { ctx.fillStyle = n; ctx.fillRect(bx + k * sw, ny - 12, sw + 1, 26); });
       });
       font(400, 21); text("ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง", M, ny + 52, MUTED);
-      h1 = th + 104 + 62;
+      // text on each colour: "Aa" in the heading font, its readability under it
+      const ay = ny + 84;
+      ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(M, ay, w1, 2);
+      label("ตัวอักษรบนสี", M, ay + 42);
+      const ah = 84;
+      d.swatches.slice(0, 3).forEach((s, i) => {
+        const x = M + i * (tw + 16), t = textOn(s.hex);
+        ctx.fillStyle = s.hex; ctx.beginPath(); ctx.roundRect(x, ay + 62, tw, ah, 14); ctx.fill();
+        if (isLight(s.hex)) { ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); }
+        font(700, 40, head); text("Aa", x + 22, ay + 62 + 58, t.ink);
+        font(400, 20); text(`${t.ok ? "✓ " : ""}${t.verdict} · ${t.ratio.toFixed(1)}:1`, x + 2, ay + 62 + ah + 32, t.ok ? MUTED : "#B42318");
+      });
+      h1 = th + 104 + 84 + 62 + ah + 48;
     }
     if (d.ciSite) h2 = fromSite("ฟอนต์", x2, w2);
     else {
@@ -385,18 +416,23 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
       // heading row large and bold, body row small and quiet, the source once at the foot
       // (as on screen)
       const [hd, bd] = rows;
-      const h1r = 168, h2r = 132, hf = 54; h2 = h1r + h2r + hf;
+      // as tall as the colour column beside it: the spare height goes to the two rows (so
+      // their samples can take two lines), the source line stays at the foot
+      const hf = 54, base1 = 168, base2 = 132;
+      h2 = Math.max(h1, base1 + base2 + hf);
+      const extra = h2 - (base1 + base2 + hf), h1r = base1 + Math.round(extra * 0.55);
       card(x2, y, w2, h2);
       const rule = (ry: number) => { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x2 + 28, ry, w2 - 56, 2); };
+      const lines = (n: number) => (extra > 40 ? 2 : 1) >= n;
       label(hd.lab, x2 + 28, y + 42);
       fit(hd.name, w2 - 56, 56, 700, hd.fam); text(hd.name, x2 + 28, y + 104);
-      font(600, 26, hd.fam); text(wrap(ctx, hd.sample, w2 - 56, 1)[0] ?? "", x2 + 28, y + 146);
+      font(600, 26, hd.fam); wrap(ctx, hd.sample, w2 - 56, lines(2) ? 2 : 1).forEach((ln, k) => text(ln, x2 + 28, y + 146 + k * 36));
       rule(y + h1r);
       label(bd.lab, x2 + 28, y + h1r + 40);
       font(500, 30, bd.fam); text(bd.name, x2 + 28, y + h1r + 80);
-      font(400, 21, bd.fam); text(wrap(ctx, bd.sample, w2 - 56, 1)[0] ?? "", x2 + 28, y + h1r + 112, MUTED);
-      rule(y + h1r + h2r);
-      font(400, 20); text(hd.src === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${hd.src} · เนื้อหา · Google Fonts · ฟรี`, x2 + 28, y + h1r + h2r + 36, MUTED);
+      font(400, 21, bd.fam); wrap(ctx, bd.sample, w2 - 56, lines(2) ? 2 : 1).forEach((ln, k) => text(ln, x2 + 28, y + h1r + 112 + k * 32, MUTED));
+      rule(y + h2 - hf);
+      font(400, 20); text(hd.src === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${hd.src} · เนื้อหา · Google Fonts · ฟรี`, x2 + 28, y + h2 - hf + 36, MUTED);
     }
     y += Math.max(h1, h2);
   }

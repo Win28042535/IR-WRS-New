@@ -483,13 +483,18 @@ export function StepNav({
           adding a second signal for something spacing alone already communicated. */}
       {/* nextHint: a plain grey line beside the next button (e.g. "ข้ามได้" on an optional
           step) — said where the decision is made. Phones: right-aligned above the row. */}
+      {/* mt-auto: inside the step card (a flex column that fills the screen) the row sits at
+          the card's foot whatever the step's length */}
+      <div className="mt-auto">
       {nextHint && <p className="mt-8 -mb-6 text-right text-body text-ir-t3 sm:hidden">{nextHint}</p>}
-      <div ref={sentinelRef} className="flex items-center justify-between gap-1.5 mt-8 pt-5 pb-20 md:pb-0">
+      {/* no bottom padding here: the page reserves room for the phone bar below the card */}
+      <div ref={sentinelRef} className="flex items-center justify-between gap-1.5 mt-8 pt-5">
         <BackButton onClick={onBack}>{backLabel}</BackButton>
         <div className="flex shrink-0 items-center gap-4">
           {nextHint && <span className="hidden text-body text-ir-t3 sm:inline">{nextHint}</span>}
           {next}
         </div>
+      </div>
       </div>
 
       {/* Portaled to <body>: the step card animates in with a transform, and any transformed

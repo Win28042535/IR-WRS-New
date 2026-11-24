@@ -20,7 +20,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { BODY_FONT, isLightHex } from "@/lib/sheetData";
 import { useGoogleFont } from "@/lib/useGoogleFont";
-import { BOARD_SAMPLE, NEUTRALS, tintSteps, type SheetData } from "@/lib/moodboardExport";
+import { BOARD_SAMPLE, NEUTRALS, textOn, tintSteps, type SheetData } from "@/lib/moodboardExport";
 
 // solid, no outline: an outlined white box is what the form uses for "fill this in"
 const CARD = "min-w-0 rounded-md bg-[#F1EEE6]";
@@ -150,6 +150,24 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
                 </div>
                 {/* what the greys are for — "สีกลาง" alone left testers asking */}
                 <p className={`mt-2 text-caption leading-snug ${MUTED}`}>ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง</p>
+                {/* text on each colour (24 Nov 2026): which text colour reads on it and how well —
+                    real information for the team, and it fills the column beside the font card */}
+                <div className="mt-4 border-t border-black/[0.08] pt-3">
+                  <Label>ตัวอักษรบนสี</Label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {d.swatches.map((s) => {
+                      const t = textOn(s.hex);
+                      return (
+                        <div key={s.role} className="min-w-0">
+                          <div className={`grid h-12 place-items-center rounded-sm @2xl:h-14 ${isLightHex(s.hex) ? "ring-1 ring-inset ring-[#E4E0D6]" : ""}`} style={{ background: s.hex, color: t.ink }}>
+                            <span className="text-lead font-bold leading-none @2xl:text-title" style={head} aria-label={`ตัวอักษรบน${s.role}`}>Aa</span>
+                          </div>
+                          <p className={`mt-1.5 text-caption leading-snug ${t.ok ? MUTED : "text-ir-error"}`}>{t.ok ? "✓ " : ""}{t.verdict} · {t.ratio.toFixed(1)}:1</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
             {/* both fonts in one card, a row each */}
@@ -157,7 +175,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
               // each row looks like what its font does (23 Nov 2026): the heading row large and
               // bold, set like a heading; the body row small and quiet, set like a paragraph —
               // two equal rows read as one flat block. The source is said once, at the foot.
-              <div className={`${CARD} px-4 @2xl:px-5`}>
+              <div className={`${CARD} flex flex-col px-4 @2xl:px-5`}>
                 <div className="min-w-0 py-5">
                   <Label>{fonts[0].label}</Label>
                   <p className="mt-1.5 break-words leading-tight" style={{ ...fonts[0].fam, fontWeight: 700, fontSize: "clamp(28px, 4.4cqw, 36px)" }}>{fonts[0].name}</p>
@@ -168,7 +186,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
                   <p className="mt-1 text-lead font-medium leading-tight" style={fonts[1].fam}>{fonts[1].name}</p>
                   <p className={`mt-1 line-clamp-2 text-small leading-relaxed ${MUTED}`} style={fonts[1].fam}>{fonts[1].sample}</p>
                 </div>
-                <p className={`border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
+                <p className={`mt-auto border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
               </div>
             )}
           </div>

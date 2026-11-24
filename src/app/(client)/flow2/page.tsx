@@ -230,10 +230,17 @@ export default function Flow2() {
         >
           {/* overflow-x clip: the step card slides in 28px from the side, which briefly made the
               page wider than a phone screen (audit 19 Nov 2026) */}
-          <div className="px-5 lg:px-7 py-6 pb-20 overflow-x-clip">
+          {/* the step card fills the screen below the step bar (24 Nov 2026): one height for
+              every step, so a short step (ทำความเข้าใจ) no longer leaves an empty band under a
+              short card, and Back / Next sit at the card's foot in the same place each time.
+              A longer step grows the card and the page scrolls as before. */}
+          {/* phones scroll the whole page (no fixed-height panel), so there the fill is the screen
+              less the header and step bar (138px). No extra room for the phone bar: it only shows
+              while the card's own buttons are off screen. */}
+          <div className="flex min-h-[calc(100dvh-138px)] flex-col px-5 lg:px-7 py-6 md:min-h-full overflow-x-clip">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
                 two-column layout with its own surfaces — so it isn't a card-in-a-card. */}
-            <div className={`mx-auto ${step === 8 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
+            <div className={`mx-auto flex w-full flex-1 flex-col ${step === 8 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
               {step === 8 ? (
                 <div
                   ref={stepCardRef}
@@ -247,7 +254,7 @@ export default function Flow2() {
                 <div
                   ref={stepCardRef}
                   tabIndex={-1}
-                  className={`outline-none bg-ir-card border border-ir-border rounded-xl shadow-e1 p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
+                  className={`flex flex-1 flex-col outline-none bg-ir-card border border-ir-border rounded-xl shadow-e1 p-6 md:p-8 ${dir === "forward" ? "step-enter-forward" : "step-enter-backward"}`}
                   key={`${step}-${quizIdx}-${quizDone}`}
                 >
                   {step === 1 && <S1 go={go} draft={draft} updateDraft={updateDraft} addTimelineEntry={addTimelineEntry} addNotebookEntry={addNotebookEntry} router={router} />}
@@ -477,8 +484,9 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 
       <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mb-5" />
 
-      {/* Company identity grouped */}
-      <div className="mb-0 grid gap-4 md:grid-cols-2">
+      {/* Company identity grouped — one field a row at every width (24 Nov 2026): side by
+          side they left the full-height card mostly empty */}
+      <div className="mb-0 grid gap-6">
         <div>
           <SectionLabel><span>ชื่อบริษัท / องค์กร<RequiredMark /></span></SectionLabel>
           <input
