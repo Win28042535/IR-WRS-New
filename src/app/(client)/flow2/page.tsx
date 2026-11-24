@@ -702,7 +702,7 @@ function SBrand({ go, draft, updateDraft }: any) {
 function SuggestedBar({ suggested, onUse, count, max, unit, what, nextLabel }: { suggested: boolean; onUse: () => void; count: number; max: number; unit: string; what: string; nextLabel: string }) {
   const title = suggested ? `${what}ที่ AI เลือกให้คุณ` : count === 0 ? `${what}ของคุณ (ยังว่าง)` : `${what}ของคุณ`;
   const sub = suggested ? `เรียงตามที่เว็บ IR ส่วนใหญ่ใช้ เห็นด้วยกด “${nextLabel}” ได้เลย`
-    : count === 0 ? `เลือกอย่างน้อย 1 ${unit}` : "ปรับจากที่ AI เลือกให้ · กดการ์ดเพื่อเพิ่มหรือเอาออก";
+    : count === 0 ? `เลือกอย่างน้อย 1 ${unit}` : "ปรับจากที่ AI แนะนำ · กดการ์ดเพื่อเพิ่มหรือเอาออก";
   return (
     <div className="mb-4">
       <div className="flex items-start gap-3">
