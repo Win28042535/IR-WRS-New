@@ -97,14 +97,14 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
       {(d.mainMood || support) && (
         <div className={`${CARD} p-4 @2xl:p-5`}>
           <Label>อารมณ์ของเว็บไซต์</Label>
-          <div className={`mt-2 grid gap-3 ${d.mainMood && support ? "@sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] @sm:gap-0" : ""}`}>
-            {d.mainMood && <p className="min-w-0 text-title font-semibold leading-snug @sm:pr-5">{d.mainMood}</p>}
-            {support && (
-              <div className={`min-w-0 ${d.mainMood ? "border-t border-black/[0.08] pt-3 @sm:border-l @sm:border-t-0 @sm:pl-5 @sm:pt-0" : ""}`}>
-                <p className={`text-caption ${MUTED}`}>เสริมด้วย</p>
-                <p className="mt-0.5 text-body font-semibold leading-snug">{support}</p>
-              </div>
-            )}
+          {/* both sides built the same way — a small label, then the mood — so the labels share
+              a line and the moods share a baseline (24 Nov 2026); the main mood stays larger.
+              2×2 grid on wider cards (labels row, moods row), stacked on narrow ones. */}
+          <div className={`mt-3 grid items-baseline ${d.mainMood && support ? "@sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : ""}`}>
+            {d.mainMood && <p className={`order-1 text-caption ${MUTED} @sm:pr-5`}>อารมณ์หลัก</p>}
+            {d.mainMood && <p className="order-2 mt-0.5 min-w-0 text-title font-semibold leading-snug @sm:order-3 @sm:pr-5">{d.mainMood}</p>}
+            {support && <p className={`order-3 text-caption ${MUTED} ${d.mainMood ? "mt-3 border-t border-black/[0.08] pt-3 @sm:order-2 @sm:mt-0 @sm:border-l @sm:border-t-0 @sm:pl-5 @sm:pt-0" : ""}`}>เสริมด้วย</p>}
+            {support && <p className={`order-4 mt-0.5 min-w-0 text-body font-semibold leading-snug ${d.mainMood ? "@sm:border-l @sm:border-black/[0.08] @sm:pl-5" : ""}`}>{support}</p>}
           </div>
         </div>
       )}
@@ -194,7 +194,9 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
           {/* zones are split by surface and space, never by a line (23 Nov 2026): inside the
               sample page a line is always part of the UI — a field's underline, a table rule — so
               an underlined field can never be mistaken for a divider */}
-          <div className="grid gap-1.5 @xl:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+          {/* buttons + field on top, the cards full width below, so the three cards sit side by
+              side whole on wide screens (24 Nov 2026) */}
+          <div className="grid gap-1.5">
             <div className="rounded-[6px] bg-white p-4 pb-6">
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex h-9 items-center rounded-full px-4 text-small font-semibold" style={{ background: btn, color: onBtn }}>{BOARD_SAMPLE.primaryBtn}</span>
@@ -210,9 +212,12 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
               </div>
             </div>
             {/* three kinds of card an IR site uses — news with a photo, a key figure, an event —
-                two whole and the third peeking past the right edge (each 40% of the row) */}
-            <div className="flex gap-2 overflow-hidden rounded-[6px] bg-white py-4 pl-4">
-              <div className="w-[40%] shrink-0 overflow-hidden rounded-[6px] ring-1 ring-inset ring-[#E4E0D6]">
+                all three whole (24 Nov 2026: the third used to be cut at the edge). A panel of
+                28rem+ shows three equal columns; narrower, news + figure share a row and the
+                event card runs the full width below as one line. */}
+            <div className="@container/cards rounded-[6px] bg-white p-4">
+            <div className="grid grid-cols-2 gap-2 @md/cards:grid-cols-3">
+              <div className="min-w-0 overflow-hidden rounded-[6px] ring-1 ring-inset ring-[#E4E0D6]">
                 <div className="aspect-[16/9] bg-[#ECE9E1]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {shot(1) && <img src={shot(1)} alt="" draggable={false} className="h-full w-full object-cover" />}
@@ -223,7 +228,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
                 </div>
               </div>
               {/* key figure: the number in the heading font, the change on the accent colour */}
-              <div className="flex w-[40%] shrink-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
+              <div className="flex min-w-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
                 <p className="text-caption text-[#6F6A5E]">{BOARD_SAMPLE.kpiLabel}</p>
                 <div className="mt-3">
                   <p className="text-[26px] font-bold leading-none tabular-nums @md:text-[32px]" style={head}>{BOARD_SAMPLE.kpiValue}</p>
@@ -232,18 +237,17 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
                 <span className="mt-3 inline-flex w-fit items-center rounded-full px-2 py-0.5 text-caption font-semibold" style={{ background: accentSoft, color: "#2B2A26" }}>{BOARD_SAMPLE.kpiDelta}</span>
               </div>
               {/* event: a date block in the main colour, the title, a small button */}
-              <div className="flex w-[40%] shrink-0 flex-col justify-between rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6]">
-                <div className="flex items-start gap-2">
-                  <span className="grid w-11 shrink-0 place-items-center rounded-[6px] py-1 text-center leading-tight" style={{ background: btn, color: onBtn }}>
-                    <span className="text-lead font-bold">{BOARD_SAMPLE.eventDay}</span><span className="text-[11px]">{BOARD_SAMPLE.eventMonth}</span>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-caption font-bold leading-snug @md:text-small" style={head}>{BOARD_SAMPLE.eventTitle}</p>
-                    <p className="mt-0.5 text-caption text-[#6F6A5E]">{BOARD_SAMPLE.eventText}</p>
-                  </div>
+              <div className="col-span-2 flex min-w-0 items-center gap-3 rounded-[6px] p-3 ring-1 ring-inset ring-[#E4E0D6] @md/cards:col-span-1 @md/cards:flex-col @md/cards:items-start @md/cards:gap-0">
+                <span className="grid w-11 shrink-0 place-items-center rounded-[6px] py-1 text-center leading-tight" style={{ background: btn, color: onBtn }}>
+                  <span className="text-lead font-bold">{BOARD_SAMPLE.eventDay}</span><span className="text-[11px]">{BOARD_SAMPLE.eventMonth}</span>
+                </span>
+                <div className="min-w-0 flex-1 @md/cards:mt-2">
+                  <p className="text-caption font-bold leading-snug @md:text-small" style={head}>{BOARD_SAMPLE.eventTitle}</p>
+                  <p className="mt-0.5 text-caption text-[#6F6A5E]">{BOARD_SAMPLE.eventText}</p>
                 </div>
-                <span className="mt-3 inline-flex h-7 w-fit items-center rounded-full px-3 text-caption font-semibold ring-1 ring-inset ring-[#D9D5CB]">{BOARD_SAMPLE.eventBtn}</span>
+                <span className="inline-flex h-7 w-fit shrink-0 items-center rounded-full px-3 text-caption font-semibold ring-1 ring-inset ring-[#D9D5CB] @md/cards:mt-3">{BOARD_SAMPLE.eventBtn}</span>
               </div>
+            </div>
             </div>
           </div>
         </div>

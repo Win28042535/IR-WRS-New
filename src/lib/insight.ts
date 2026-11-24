@@ -48,7 +48,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
     ...((r.coDeciders ?? []).length ? [{ label: "Co-deciders", value: (r.coDeciders ?? []).map((p) => [p.name, p.position].filter(Boolean).join(" · ")).join(" / ") }] : []),
-    { label: "Colours", value: !keepsCi(r) ? ["ปรับ CI ให้ทันสมัย", noteWithLinks(r.ciNote, r.noteLinks?.ci)].filter(Boolean).join(" · ") : [`ชุดสีเดิม · จาก ${siteHostOf(r.website)}`, noteWithLinks(r.ciKeepNote, r.noteLinks?.ciKeep)].filter(Boolean).join(" · ") },
+    { label: "Colours", value: !keepsCi(r) ? ["ใช้ CI ใหม่", noteWithLinks(r.ciNote, r.noteLinks?.ci)].filter(Boolean).join(" · ") : [`ชุดสีเดิม · จาก ${siteHostOf(r.website)}`, noteWithLinks(r.ciKeepNote, r.noteLinks?.ciKeep)].filter(Boolean).join(" · ") },
     ...(!keepsCi(r) && (r.ciAssets ?? []).length ? [{ label: "CI Attachments", value: `${(r.ciAssets ?? []).length} รายการ · ส่วนที่ไม่ได้แนบ ทีมเสนอให้` }] : []),
     { label: "Thai Font", value: (() => { const t = chosenThaiFont(r); return t.source === "website" ? SOURCE_LABEL.website : `${t.family} (${SOURCE_LABEL[t.source]})${r.fontInterest ? ` · ลูกค้าสนใจ ${r.fontInterest}` : ""}`; })() },
     { label: "Recommended Layout", value: r.selectedLayout || dir?.layout || "-" },

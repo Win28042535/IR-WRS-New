@@ -312,13 +312,17 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   ctx.fillStyle = PANEL; ctx.beginPath(); ctx.roundRect(M, my, CW, mh, 20); ctx.fill();
   font(600, 22); text("อารมณ์ของเว็บไซต์", M + 34, my + 48, MUTED);
   const half = d.mainMood && support ? CW / 2 : CW;
-  if (d.mainMood) { font(600, 44); text(wrap(ctx, d.mainMood, half - 68, 1)[0] ?? "", M + 34, my + 116); }
+  // both sides: a small label then the mood, labels on one line, moods on one baseline
+  if (d.mainMood) {
+    font(400, 22); text("อารมณ์หลัก", M + 34, my + 86, MUTED);
+    font(600, 40); text(wrap(ctx, d.mainMood, half - 68, 1)[0] ?? "", M + 34, my + 128);
+  }
   if (support) {
     const sx = d.mainMood ? M + half : M;
-    if (d.mainMood) { ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(sx, my + 70, 2, 64); }
-    const tx = sx + (d.mainMood ? 34 : 34);
+    if (d.mainMood) { ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(sx, my + 64, 2, 74); }
+    const tx = sx + 34;
     font(400, 22); text("เสริมด้วย", tx, my + 86, MUTED);
-    font(600, 30); text(wrap(ctx, support, CW - (tx - M) - 34, 1)[0] ?? "", tx, my + 124);
+    font(600, 30); text(wrap(ctx, support, CW - (tx - M) - 34, 1)[0] ?? "", tx, my + 128);
   }
   return my + mh;
 }
@@ -430,7 +434,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     font(400, 20); const uw = ctx.measureText(BOARD_SAMPLE.url).width + 44;
     ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.beginPath(); ctx.roundRect(M + (CW - uw) / 2, y + 10, uw, 32, 16); ctx.fill();
     text(BOARD_SAMPLE.url, M + (CW - uw) / 2 + 22, y + 33, MUTED);
-    const px = M + 12, py = y + 52, pw = CW - 24, ph = H - 64, lw = Math.round(pw * 0.44);
+    const px = M + 12, py = y + 52, pw = CW - 24, ph = H - 64, lw = Math.round(pw * 0.38);
     // two white panels split by a gap of the frame colour — never a line, so an underlined
     // field can't read as a divider (as on screen)
     const zg = 12;
@@ -454,22 +458,22 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     ctx.lineCap = "butt"; ctx.lineJoin = "miter";
     const x0 = px + lw + zg / 2;
     clip(x0, py, pw - lw - zg / 2, ph, 10, () => {
-      // three kinds of card — news with a photo, a key figure, an event — two whole and the
-      // third peeking past the edge (each 40% of the row)
-      const cy = py + 32, ch = ph - 64, rx = x0 + 28, cw = Math.round((px + pw - rx) * 0.4), gap = 14;
+      // three kinds of card — news with a photo, a key figure, an event — all three whole, in
+      // equal columns (as on screen)
+      const gap = 14, cy = py + 28, ch = ph - 56, rx = x0 + 28, cw = Math.floor((px + pw - 28 - rx - 2 * gap) / 3);
       const box = (x: number) => { ctx.beginPath(); ctx.roundRect(x, cy, cw, ch, 10); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke(); };
       // news
-      const ih = 128;
+      const ih = 112;
       clip(rx, cy, cw, ih, [10, 10, 0, 0], () => cover(imgs[1] ?? imgs[0] ?? null, rx, cy, cw, ih));
       box(rx);
-      font(700, 24, head); text(wrap(ctx, BOARD_SAMPLE.cardTitle, cw - 40, 1)[0] ?? "", rx + 20, cy + ih + 40);
-      font(400, 19); wrap(ctx, BOARD_SAMPLE.cardText, cw - 40, 2).forEach((ln, k) => text(ln, rx + 20, cy + ih + 74 + k * 26, "#6F6A5E"));
+      font(700, 22, head); text(wrap(ctx, BOARD_SAMPLE.cardTitle, cw - 36, 1)[0] ?? "", rx + 18, cy + ih + 38);
+      font(400, 18); wrap(ctx, BOARD_SAMPLE.cardText, cw - 36, 2).forEach((ln, k) => text(ln, rx + 18, cy + ih + 68 + k * 24, "#6F6A5E"));
       // key figure
       const kx = rx + cw + gap;
       box(kx);
       font(400, 20); text(BOARD_SAMPLE.kpiLabel, kx + 20, cy + 44, "#6F6A5E");
-      font(700, 60, head); text(BOARD_SAMPLE.kpiValue, kx + 20, cy + 140);
-      font(400, 20); text(BOARD_SAMPLE.kpiUnit, kx + 20, cy + 174, "#6F6A5E");
+      font(700, 50, head); text(BOARD_SAMPLE.kpiValue, kx + 20, cy + 128);
+      font(400, 20); text(BOARD_SAMPLE.kpiUnit, kx + 20, cy + 160, "#6F6A5E");
       const acc = d.ownPending ? "#E9E7E1" : mixHex(d.swatches[1]?.hex ?? "#BCC416", "#FFFFFF", 0.65);
       font(600, 20); const dw = ctx.measureText(BOARD_SAMPLE.kpiDelta).width + 28;
       ctx.fillStyle = acc; ctx.beginPath(); ctx.roundRect(kx + 20, cy + ch - 60, dw, 38, 19); ctx.fill();
@@ -477,10 +481,11 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
       // event
       const ex = kx + cw + gap;
       box(ex);
-      ctx.fillStyle = btn; ctx.beginPath(); ctx.roundRect(ex + 20, cy + 20, 76, 84, 10); ctx.fill();
-      ctx.textAlign = "center"; font(700, 34); text(BOARD_SAMPLE.eventDay, ex + 58, cy + 62, onBtn); font(400, 18); text(BOARD_SAMPLE.eventMonth, ex + 58, cy + 90, onBtn); ctx.textAlign = "left";
-      font(700, 22, head); text(wrap(ctx, BOARD_SAMPLE.eventTitle, cw - 140, 1)[0] ?? "", ex + 112, cy + 52);
-      font(400, 18); text(BOARD_SAMPLE.eventText, ex + 112, cy + 82, "#6F6A5E");
+      // date block on top, title and text under it (the column is narrow), button at the foot
+      ctx.fillStyle = btn; ctx.beginPath(); ctx.roundRect(ex + 20, cy + 20, 66, 72, 10); ctx.fill();
+      ctx.textAlign = "center"; font(700, 30); text(BOARD_SAMPLE.eventDay, ex + 53, cy + 56, onBtn); font(400, 16); text(BOARD_SAMPLE.eventMonth, ex + 53, cy + 80, onBtn); ctx.textAlign = "left";
+      font(700, 22, head); text(wrap(ctx, BOARD_SAMPLE.eventTitle, cw - 40, 1)[0] ?? "", ex + 20, cy + 126);
+      font(400, 18); text(wrap(ctx, BOARD_SAMPLE.eventText, cw - 40, 1)[0] ?? "", ex + 20, cy + 154, "#6F6A5E");
       font(600, 20); const bw = ctx.measureText(BOARD_SAMPLE.eventBtn).width + 36;
       ctx.beginPath(); ctx.roundRect(ex + 20, cy + ch - 64, bw, 44, 22); ctx.strokeStyle = LINE; ctx.lineWidth = 2; ctx.stroke();
       text(BOARD_SAMPLE.eventBtn, ex + 38, cy + ch - 35);

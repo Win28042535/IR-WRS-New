@@ -535,7 +535,7 @@ function S1({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry, router
 // ── S2 · Brand (CI): colours and font. Its own step since the internal review of
 // 18 Nov 2026 (it used to sit under the company questions in step 1). Right after step 1,
 // so the company, its website and its brand are answered together. ──
-// The team's font as a specimen card on "ปรับ CI ให้ทันสมัย". Off this phase (19 Nov 2026:
+// The team's font as a specimen card on "ใช้ CI ใหม่". Off this phase (19 Nov 2026:
 // the client attaches what CI they already have instead); the card, its full preview and
 // the font browser stay in the code for a later phase.
 const SHOW_CI_FONT_CARD = false;
@@ -567,7 +567,7 @@ function SBrand({ go, draft, updateDraft }: any) {
 
   return (
     <>
-      <Head n={2} title="สีและฟอนต์ของแบรนด์ (CI)" sub="ใช้สีและฟอนต์เดิมจากเว็บไซต์ปัจจุบัน หรือปรับให้ทันสมัยขึ้น" />
+      <Head n={2} title="สีและฟอนต์ของแบรนด์ (CI)" sub="ใช้สีและฟอนต์เดิมจากเว็บไซต์ปัจจุบัน หรือใช้ CI ใหม่" />
       {/* Corporate identity: colours AND font, one decision, and "keep" only means "take them
           from the current website" (no hex codes, no font picking: IR teams don't pick fonts,
           they follow their site — user tests BTS / AOT / CPALL). Two equal cards; keeping the
@@ -604,7 +604,7 @@ function SBrand({ go, draft, updateDraft }: any) {
           <OptionCard
             alignTop
             icon={IconSparkle}
-            title="ปรับ CI ให้ทันสมัย"
+            title="ใช้ CI ใหม่"
             desc="อยากให้เว็บต่างจาก CI เดิม จะปรับบางส่วนหรือทั้งหมดก็ได้"
             selected={!keepCi}
             onSelect={() => updateDraft({ hasCorporateIdentity: "no", ciPicked: true })}
@@ -706,14 +706,14 @@ function SuggestedBar({ suggested, onUse, count, max, unit }: { suggested: boole
     <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-ir-muted py-2 pl-3 pr-2 sm:flex-nowrap sm:pl-4">
       <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ir-dark text-small text-ir-accent">✦</span>
       <p key={String(suggested)} role="status" className="swap-in min-w-0 flex-1 text-body leading-snug text-ir-t1">
-        {suggested ? "แนะนำตามเว็บ IR ทั่วไป · ปรับได้" : "ปรับจากที่แนะนำแล้ว"}
+        {suggested ? "AI แนะนำตามเว็บ IR ทั่วไป" : "ปรับจากที่ AI แนะนำแล้ว"}
       </p>
       <div className="flex min-h-8 w-full items-center gap-2 sm:w-auto sm:shrink-0">
         <PickCount count={count} max={max} unit={unit} />
         {!suggested && (
           <button type="button" onClick={onUse}
             className="swap-in relative ml-auto inline-flex h-8 shrink-0 items-center rounded-full bg-white px-3 text-small font-semibold text-ir-t1 shadow-e1 transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:bg-ir-accent focus-ring">
-            ✦ ใช้ชุดที่แนะนำ
+            ✦ ใช้ชุดที่ AI แนะนำ
           </button>
         )}
       </div>
@@ -771,7 +771,7 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
       </div>
 
       <StepNav onBack={() => go(2)} next={
-        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>{suggested ? "ใช้ตามที่แนะนำ" : "ถัดไป"}</NextButton>
+        <NextButton onClick={() => go(4)} blocked={!draft.primaryAudience} onBlocked={(b) => nudge.nudge("audience-field", b)}>{suggested ? "ใช้ตามที่ AI แนะนำ" : "ถัดไป"}</NextButton>
       } />
     </>
   );
@@ -880,7 +880,7 @@ function S2Define({ go, draft, updateDraft, addTimelineEntry, addNotebookEntry }
       </div>
 
       <StepNav onBack={() => go(3)} next={
-        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>{suggested ? "ใช้ตามที่แนะนำ" : "ถัดไป"}</NextButton>
+        <NextButton onClick={() => go(5)} blocked={!ok} onBlocked={(b) => nudge.nudge("goals-field", b)}>{suggested ? "ใช้ตามที่ AI แนะนำ" : "ถัดไป"}</NextButton>
       } />
     </>
   );

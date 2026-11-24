@@ -126,7 +126,7 @@ export function sheetData(draft: any): SheetData {
     ownPending: c.ownPending,
     colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ชุดสีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด",
     ciNote: c.keepOwn ? noteWithLinkNames(draft.ciKeepNote, draft.noteLinks?.ciKeep) : noteWithLinkNames(draft.ciNote, draft.noteLinks?.ci),
-    // what CI they attached on "ปรับ CI ให้ทันสมัย"; whatever is missing, the team proposes
+    // what CI they attached on "ใช้ CI ใหม่"; whatever is missing, the team proposes
     ciAssets: c.keepOwn ? "" : refCounts(draft.ciAssets),
     ciSite: c.keepOwn ? c.siteUrl : undefined,
     logo: c.keepOwn && draft.logo ? draft.logo : undefined,
