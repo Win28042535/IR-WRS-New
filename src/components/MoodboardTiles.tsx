@@ -20,7 +20,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { BODY_FONT, isLightHex } from "@/lib/sheetData";
 import { useGoogleFont } from "@/lib/useGoogleFont";
-import { BOARD_SAMPLE, NEUTRALS, tintSteps, type SheetData } from "@/lib/moodboardExport";
+import { BOARD_SAMPLE, NEUTRALS, SHOW_SAMPLE_PAGE, tintSteps, type SheetData } from "@/lib/moodboardExport";
 
 // solid, no outline: an outlined white box is what the form uses for "fill this in"
 const CARD = "min-w-0 rounded-md bg-[#F1EEE6]";
@@ -183,7 +183,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
 
       {/* samples, not controls: a picture of a page in a browser frame — nothing to press,
           nothing to type in */}
-      <Section n="03" title="องค์ประกอบบนเว็บ" chip="ตัวอย่างองค์ประกอบ">
+      {SHOW_SAMPLE_PAGE && <Section n="03" title="องค์ประกอบบนเว็บ" chip="ตัวอย่างองค์ประกอบ">
         <div role="img" aria-label="ภาพตัวอย่างองค์ประกอบบนเว็บ: ปุ่ม ช่องกรอก และการ์ดเนื้อหา ในสีและฟอนต์ของแนวทาง"
           className="pointer-events-none select-none rounded-md bg-[#E6E2D8] p-1.5">
           <div className="flex items-center gap-3 px-2 pb-1.5 pt-0.5" aria-hidden="true">
@@ -251,9 +251,9 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
             </div>
           </div>
         </div>
-      </Section>
+      </Section>}
 
-      <Section n="04" title="คำตอบและหน้าแรก">
+      <Section n={SHOW_SAMPLE_PAGE ? "04" : "03"} title="คำตอบและหน้าแรก">
         <div className="grid gap-3 @2xl:grid-cols-2">
           <div className={`${CARD} p-4 @2xl:p-5`}>
             <Label>คำตอบของคุณ</Label>
@@ -291,7 +291,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
       </Section>
 
       {d.shots.length > 0 && (
-        <Section n="05" title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
+        <Section n={SHOW_SAMPLE_PAGE ? "05" : "04"} title="แนวภาพ" chip="ตัวอย่างโทนภาพ">
           {d.visualMood && <p className="mb-3 text-small leading-relaxed text-[#4A473F]">{d.visualMood}</p>}
           <div className="grid grid-cols-3 gap-2 @2xl:grid-cols-6">
             {d.shots.slice(0, 6).map((s) => (

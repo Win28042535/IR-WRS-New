@@ -247,6 +247,10 @@ export function textOn(bg: string): { ink: string; ratio: number; verdict: strin
 }
 
 /** Sample words for the "องค์ประกอบบนเว็บ" cards — investor content, not lorem ipsum. */
+/** "องค์ประกอบบนเว็บ" (the sample page: buttons, field, cards) on the moodboard, screen
+ *  and PDF/PNG. Off (24 Nov 2026), code kept; the sections after it renumber. */
+export const SHOW_SAMPLE_PAGE = false;
+
 export const BOARD_SAMPLE = {
   url: "ir.company.co.th",
   primaryBtn: "ดูงบการเงิน",
@@ -426,6 +430,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 02 sample page: a browser frame — buttons + field on the left, cards running past the
   // right edge
+  if (SHOW_SAMPLE_PAGE) {
   section("03", "องค์ประกอบบนเว็บ", "ตัวอย่างองค์ประกอบ");
   {
     const H = 380, btn = d.ownPending ? "#151823" : d.primary, onBtn = isLight(btn) ? INK : "#FFFFFF";
@@ -492,10 +497,11 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     });
     y += H;
   }
+  }
 
-  // ── 03 answers + homepage order: plain lists, one item a row, divided by hairlines —
+  // ── answers + homepage order: plain lists, one item a row, divided by hairlines —
   // no boxes, no highlighted row (they read as something to pick)
-  section("04", "คำตอบและหน้าแรก");
+  section(SHOW_SAMPLE_PAGE ? "04" : "03", "คำตอบและหน้าแรก");
   {
     const w2 = (CW - G) / 2, RH = 56;
     const names = d.sections.map((n) => n.split(" / ")[0]);
@@ -531,7 +537,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
 
   // ── 04 photos as thumbnails, one row
   if (imgs.length) {
-    section("05", "แนวภาพ", "ตัวอย่างโทนภาพ");
+    section(SHOW_SAMPLE_PAGE ? "05" : "04", "แนวภาพ", "ตัวอย่างโทนภาพ");
     if (d.visualMood) { font(400, 26); wrap(ctx, d.visualMood, CW, 2).forEach((ln) => { y += 38; text(ln, M, y, "#4A473F"); }); y += 22; }
     const n = Math.min(6, imgs.length), gap = 12, pw = (CW - gap * (n - 1)) / n, ph = pw * 0.75;
     imgs.slice(0, n).forEach((img, i) => { const px = M + i * (pw + gap); clip(px, y, pw, ph, 10, () => cover(img, px, y, pw, ph)); });
