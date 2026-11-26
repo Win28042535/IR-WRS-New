@@ -82,7 +82,7 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
   const support = d.supportMoods.join(" · ");
   return (
     <div className="grid gap-3">
-      <div className="relative isolate min-w-0 overflow-hidden rounded-md p-5 @2xl:p-6"
+      <div className="relative isolate min-w-0 overflow-hidden rounded-md p-5 max-[359px]:p-4 @2xl:p-6"
         style={{ color: d.moodInk, background: `radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, ${glow} 30%, transparent), transparent 60%), linear-gradient(135deg, ${d.primary}, color-mix(in srgb, ${d.primary} 78%, ${isLightHex(d.primary) ? "#000" : "#fff"}))` }}>
         {watermark}
         {d.logo && (
@@ -94,7 +94,14 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
         <p className="text-small font-medium text-balance opacity-75">แนวทางเว็บไซต์ของคุณ</p>
         {headline}
         {d.taglineDetail && <p className="mt-2 max-w-[40rem] text-body leading-relaxed opacity-85">{d.taglineDetail}</p>}
-        {d.taglineSource && <p className="mt-3 max-w-[40rem] text-caption font-medium leading-snug opacity-70">{d.taglineSource}</p>}
+        {/* a note, set apart from the headline block: more space, a short faint rule,
+            regular weight and the faintest text on the tile */}
+        {d.taglineSource && (
+          <div className="mt-5">
+            <span aria-hidden="true" className="block h-px w-10 bg-current opacity-25" />
+            <p className="mt-2.5 max-w-[40rem] text-caption leading-snug opacity-55">{d.taglineSource}</p>
+          </div>
+        )}
       </div>
       {SHOW_MOODS && (d.mainMood || support) && (
         <div className={`${CARD} p-4 @2xl:p-5`}>
@@ -133,7 +140,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
   ];
 
   return (
-    <div className="@container px-4 pb-2 pt-5 sm:px-6 sm:pt-6 md:px-10 md:pt-8">
+    <div className="@container px-4 pb-2 pt-5 max-[359px]:px-3 sm:px-6 sm:pt-6 md:px-10 md:pt-8">
       <Banner d={d} headline={headline} watermark={watermark} glow={glow} />
 
       {/* colours and type as two full-width sections (24 Nov 2026): side by side their

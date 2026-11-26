@@ -4,6 +4,8 @@
 // web fonts (Thai shaping included), then saved as PNG, or wrapped as the single image of
 // a one-page PDF written by hand below. No libraries: the PDF is just a JPEG on a page.
 
+import { thaiUnits } from "./thaiUnits";
+
 export type SheetData = {
   company: string;
   directionLabel: string;
@@ -78,10 +80,10 @@ function loadImage(url: string, timeout = 8000): Promise<HTMLImageElement | null
   });
 }
 
-/** Thai has no spaces between words — break on word boundaries via Intl.Segmenter. */
+/** Thai has no spaces between words — break between word units (compounds kept whole). */
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLines = 99): string[] {
   const words: string[] = typeof Intl !== "undefined" && "Segmenter" in Intl
-    ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), (s) => s.segment)
+    ? thaiUnits(text)
     : text.split(/(\s+)/);
   const lines: string[] = [];
   let cur = "";
@@ -132,10 +134,8 @@ export const headlineIsLong = (t: string) => headlinePhrases(t).some(isLongPhras
  *  fallback, "Professional & Clean") wraps at its own spaces on a phone. */
 export const keepPhraseWhole = (p: string) => !p.includes(" ") && !isLongPhrase(p);
 
-const thaiWords = (s: string): string[] =>
-  typeof Intl !== "undefined" && "Segmenter" in Intl
-    ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(s), (x) => x.segment)
-    : [s];
+// word units with compounds kept whole (thaiUnits), so no line ends mid-word
+const thaiWords = (s: string): string[] => thaiUnits(s);
 
 // Thai linking words: a long run is cut into chunks that start at one of these, so a
 // line breaks between meaningful pieces ("เน้นตัวเลข / และผลประกอบการ / ที่ชัดเจน") and never
@@ -300,8 +300,9 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   const lines = headlineLines(ctx, titleText, logoImg ? CW - 80 - 230 : CW - 80, CW - 80);
   // the direction sentence under the headline (28px, up to 3 lines)
   font(400, 28); const sent = d.taglineDetail ? wrap(ctx, d.taglineDetail, CW - 80, 3) : [];
-  font(500, 22); const src = d.taglineSource ? wrap(ctx, d.taglineSource, CW - 80, 2) : [];
-  const SLH = 42, sentH = (sent.length ? 22 + sent.length * SLH : 0) + (src.length ? 16 + src.length * 32 : 0);
+  font(400, 22); const src = d.taglineSource ? wrap(ctx, d.taglineSource, CW - 80, 2) : [];
+  // the note: 30 of space, a short faint rule, then its line(s)
+  const SLH = 42, NOTE_GAP = 30, sentH = (sent.length ? 22 + sent.length * SLH : 0) + (src.length ? NOTE_GAP + 40 + (src.length - 1) * 32 : 0);
   const H = Math.max(240, 112 + lines.length * LH + 30 + sentH);
   ctx.save(); ctx.beginPath(); ctx.roundRect(M, top, CW, H, 20); ctx.clip();
   const g = ctx.createLinearGradient(M, top, M + CW, top + H);
@@ -326,8 +327,9 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
     ctx.globalAlpha = 0.85; font(400, 28); sent.forEach((ln, k) => text(ln, M + 40, sy + (k + 1) * SLH - 8, on)); ctx.globalAlpha = 1;
   }
   if (src.length) {
-    const ry = top + 82 + LH * lines.length - Math.round(LH * 0.18) + (sent.length ? 22 + sent.length * SLH : 0) + 16;
-    ctx.globalAlpha = 0.68; font(500, 22); src.forEach((ln, k) => text(ln, M + 40, ry + (k + 1) * 32 - 6, on)); ctx.globalAlpha = 1;
+    const ry = top + 82 + LH * lines.length - Math.round(LH * 0.18) + (sent.length ? 22 + sent.length * SLH : 0) + NOTE_GAP;
+    ctx.globalAlpha = 0.25; ctx.fillStyle = on; ctx.fillRect(M + 40, ry - 10, 60, 2);
+    ctx.globalAlpha = 0.55; font(400, 22); src.forEach((ln, k) => text(ln, M + 40, ry + 22 + k * 32, on)); ctx.globalAlpha = 1;
   }
   // moods: one neutral card under the headline — the main mood large on the left, the
   // supporting one beside it after a hairline (as on screen)
@@ -608,8 +610,8 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   const titleLines = headlineLines(ctx, titleText, logoImg ? CW - 300 - 48 : CW, CW);
   // the direction sentence under the headline (34px, up to 3 lines)
   font(400, 34); const sentLines = d.taglineDetail ? wrap(ctx, d.taglineDetail, Math.min(CW, 1000), 3) : [];
-  font(500, 26); const srcLines = d.taglineSource ? wrap(ctx, d.taglineSource, Math.min(CW, 1000), 2) : [];
-  const SLH = 50, sentH = (sentLines.length ? 24 + sentLines.length * SLH : 0) + (srcLines.length ? 20 + srcLines.length * 38 : 0);
+  font(400, 26); const srcLines = d.taglineSource ? wrap(ctx, d.taglineSource, Math.min(CW, 1000), 2) : [];
+  const SLH = 50, sentH = (sentLines.length ? 24 + sentLines.length * SLH : 0) + (srcLines.length ? 36 + 44 + (srcLines.length - 1) * 38 : 0);
   // moods as type: label, main mood big, "เสริมด้วย …" smaller and softer
   const hasMoods = SHOW_MOODS && !!(d.mainMood || d.supportMoods.length);
   const moodH = hasMoods ? 60 + 54 + (d.mainMood ? 74 : 0) + (d.supportMoods.length ? 58 : 0) : 0;
@@ -652,7 +654,8 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
     ctx.globalAlpha = 1;
   }
   if (srcLines.length) {
-    y += 20; ctx.globalAlpha = 0.68; font(500, 26);
+    y += 36; ctx.globalAlpha = 0.25; ctx.fillStyle = on; ctx.fillRect(M, y, 72, 2);
+    ctx.globalAlpha = 0.55; font(400, 26); y += 6;
     srcLines.forEach((ln) => { y += 38; text(ln, M, y, on); });
     ctx.globalAlpha = 1;
   }

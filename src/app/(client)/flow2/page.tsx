@@ -242,7 +242,7 @@ export default function Flow2() {
           {/* phones scroll the whole page (no fixed-height panel), so there the fill is the screen
               less the header and step bar (138px). No extra room for the phone bar: it only shows
               while the card's own buttons are off screen. */}
-          <div className="flex min-h-[calc(100dvh-138px)] flex-col px-5 lg:px-7 py-6 md:min-h-full overflow-x-clip">
+          <div className="flex min-h-[calc(100dvh-138px)] flex-col px-5 max-[359px]:px-4 lg:px-7 py-6 md:min-h-full overflow-x-clip">
             {/* Step 6 (Deliver) breaks out of the single questionnaire card into a wider
                 two-column layout with its own surfaces — so it isn't a card-in-a-card. */}
             <div className={`mx-auto flex w-full flex-1 flex-col ${step === 8 ? "max-w-[1320px]" : "max-w-[1000px]"}`}>
@@ -2531,20 +2531,20 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-5 items-start">
+      <div className="flex flex-col xl:flex-row gap-5 items-start">
         {/* ── LEFT: project overview (main visual) ──
             The sheet sits on a dark backdrop like a printed document laid out for review, so
             it reads as the finished result, nothing to fill in, apart from the contact form
             on the right. Not the homepage step's dark card: no rows or controls here, just
             the paper. Print drops the backdrop. */}
         <div className="flex-1 min-w-0 w-full">
-          <div className="rounded-2xl bg-ir-dark p-3 pb-18 sm:p-5 sm:pb-18 md:p-7 md:pb-18 print:bg-transparent print:p-0">
+          <div className="rounded-2xl bg-ir-dark p-3 pb-18 max-[359px]:p-2 max-[359px]:pb-18 sm:p-5 sm:pb-18 md:p-7 md:pb-18 print:bg-transparent print:p-0">
             <div className="no-print mb-4 flex min-w-0 items-center gap-3 px-1 sm:mb-5">
               <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-accent text-ir-on-accent">
                 <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5 9.5 17 19 7.5" /></svg>
               </span>
               <div className="min-w-0">
-                <p className="text-title font-semibold leading-tight text-white">สรุปผลจากคำตอบของคุณ</p>
+                <p className="text-title font-semibold leading-tight text-white">สรุปผลจากคำตอบ<span className="whitespace-nowrap">ของคุณ</span></p>
                                 <p className="mt-0.5 text-small text-white/65">รวบรวมจากคำตอบทั้ง {FLOW_STEPS.length - 1} ขั้นก่อนหน้า</p>
               </div>
             </div>
@@ -2559,7 +2559,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         </div>
 
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}
-        <aside className="no-print w-full lg:w-[380px] shrink-0 lg:sticky lg:top-4 space-y-4">
+        <aside className="no-print w-full xl:w-[380px] shrink-0 xl:sticky xl:top-4 space-y-4">
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             {/* the only thing left to do on this step lives here */}

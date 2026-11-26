@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- drafts and submitted requirements both come in loosely typed */
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { isLightHex, sheetData } from "@/lib/sheetData";
+import { thaiUnits } from "@/lib/thaiUnits";
 import { COVER_LINE, SHOW_MOODS, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
@@ -73,7 +74,9 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
   const headline = (fontSize: string, className = "") => (
     <h3 className={`font-bold leading-[1.15] tracking-[-0.02em] ${className}`} style={{ ...head, color: d.moodInk, fontSize, textWrap: "balance" } as CSSProperties}>{/* each phrase stays whole; a long Thai run breaks between words (the browser segments Thai) */}
       {headlinePhrases(title).map((w, i) => <Fragment key={i}>{i ? " " : ""}{keepPhraseWhole(w) || w.includes(" ") ? <span className={keepPhraseWhole(w) ? "whitespace-nowrap" : undefined}>{w}</span>
-        : headlineChunks(w).map((c, j) => <Fragment key={j}>{j ? <wbr /> : null}<span className={c.length <= 16 ? "whitespace-nowrap" : undefined}>{c}</span></Fragment>)}</Fragment>)}</h3>
+        : headlineChunks(w).map((c, j) => <Fragment key={j}>{j ? <wbr /> : null}{c.length <= 16 ? <span className="whitespace-nowrap">{c}</span>
+          // a chunk too long for one line breaks only between word units, never mid-compound
+          : thaiUnits(c).map((u, k) => <Fragment key={k}>{k ? <wbr /> : null}<span className="whitespace-nowrap">{u}</span></Fragment>)}</Fragment>)}</Fragment>)}</h3>
   );
   const insp = [
     d.inspiration.links ? `${d.inspiration.links} ลิงก์` : "",
@@ -102,7 +105,12 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
         <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์ของคุณ</p>
         {headline(titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", "mt-2 max-w-[36rem]")}
         {d.taglineDetail && <p className="mt-3 max-w-[40rem] text-lead leading-relaxed opacity-85">{d.taglineDetail}</p>}
-        {d.taglineSource && <p className="mt-3 max-w-[40rem] text-small font-medium leading-snug opacity-70">{d.taglineSource}</p>}
+        {d.taglineSource && (
+          <div className="mt-6">
+            <span aria-hidden="true" className="block h-px w-12 bg-current opacity-25" />
+            <p className="mt-3 max-w-[40rem] text-small leading-snug opacity-55">{d.taglineSource}</p>
+          </div>
+        )}
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
         {SHOW_MOODS && moods.length > 0 && (

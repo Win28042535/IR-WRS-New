@@ -124,9 +124,10 @@ export function sheetData(draft: any): SheetData {
     // direction's own tagline until those three are known
     tagline: directionMappingFor(draft)?.headline ?? c.dir?.tagline,
     taglineDetail: directionMappingFor(draft)?.sentence,
-    // where the headline came from — the three answers the mapping reads. Off (26 Nov 2026):
-    // the client didn't need it on the cover; flip SHOW_TAGLINE_SOURCE to bring it back
-    taglineSource: !SHOW_TAGLINE_SOURCE ? undefined : (() => { const m = directionMappingFor(draft); return m ? `จากคำตอบ: เป้าหมายหลัก “${BUSINESS_GOALS.find((g) => g.id === m.goal)?.label ?? m.goal}” · ${FEEL_LABEL[m.feel]} · ${TELLING_LABEL[m.telling]}` : undefined; })(),
+    // A short note under the sentence when the headline comes from the mapping (26 Nov
+    // 2026): it says the headline follows the site's main goal, without listing answers.
+    // The detailed "จากคำตอบ: …" line stays off (SHOW_TAGLINE_SOURCE).
+    taglineSource: directionMappingFor(draft) && !SHOW_TAGLINE_SOURCE ? "แนวทางนี้อ้างอิงจากเป้าหมายหลักที่คุณเลือก" : !SHOW_TAGLINE_SOURCE ? undefined : (() => { const m = directionMappingFor(draft); return m ? `จากคำตอบ: เป้าหมายหลัก “${BUSINESS_GOALS.find((g) => g.id === m.goal)?.label ?? m.goal}” · ${FEEL_LABEL[m.feel]} · ${TELLING_LABEL[m.telling]}` : undefined; })(),
     mainMood: c.mainMood,
     supportMoods: c.supportMoods,
     answers: picks.flatMap((p) => {

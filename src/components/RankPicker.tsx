@@ -15,9 +15,10 @@
 //   target   — dashed lime ring + "วางที่นี่" on the card it will take the place of
 //   dropped  — the card glides back into its slot, glows once, a buzz, and a line under the
 //              grid says what moved where (also read out by screen readers)
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SVGProps } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type SVGProps } from "react";
 import { DUR, EASE } from "@/lib/motion";
 import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
+import { thaiUnits } from "@/lib/thaiUnits";
 
 export type RankItem = { id: string; label: string; desc?: string; icon?: (p: SVGProps<SVGSVGElement>) => React.JSX.Element };
 
@@ -226,7 +227,7 @@ export function RankPicker({
               onKeyDown={(e) => !dim && onKey(e, it.id)}
               style={dragging ? { transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.04) rotate(1.5deg)` } : undefined}
               className={[
-                "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-xl border px-3.5 py-3 text-left outline-none",
+                "rk-card group relative flex min-h-[80px] w-full select-none items-center gap-3 rounded-xl border px-3.5 py-3 text-left outline-none max-[359px]:gap-2 max-[359px]:px-3",
                 "focus-ring",
                 dragging ? "z-30 cursor-grabbing shadow-e4 ring-2 ring-ir-select" : "transition-[background-color,border-color,box-shadow,opacity,transform] duration-fast",
                 resting ? "opacity-70" : "",
@@ -247,21 +248,21 @@ export function RankPicker({
                 <span
                   aria-hidden="true"
                   onPointerDown={(e) => { e.stopPropagation(); onDown(e, it.id, true); }}
-                  className="-ml-1.5 -mr-1.5 grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07]"
+                  className="-ml-1.5 -mr-1.5 grid h-12 w-8 max-[359px]:w-6 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ir-t2 transition-colors hover:bg-black/[0.05] active:bg-black/[0.07]"
                 >
                   <svg width={12} height={18} viewBox="0 0 14 20" fill="currentColor"><circle cx="4" cy="4" r="1.6" /><circle cx="10" cy="4" r="1.6" /><circle cx="4" cy="10" r="1.6" /><circle cx="10" cy="10" r="1.6" /><circle cx="4" cy="16" r="1.6" /><circle cx="10" cy="16" r="1.6" /></svg>
                 </span>
               ) : (
-                <span aria-hidden="true" className="-ml-1.5 -mr-1.5 w-8 shrink-0" />
+                <span aria-hidden="true" className="-ml-1.5 -mr-1.5 w-8 max-[359px]:w-6 shrink-0" />
               )}
               {on ? (
-                <span key={rank} className="rk-no grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-body font-bold text-white">{rank}</span>
+                <span key={rank} className="rk-no grid h-10 w-10 max-[359px]:h-8 max-[359px]:w-8 max-[359px]:text-small shrink-0 place-items-center rounded-full bg-ir-dark font-mono text-body font-bold text-white">{rank}</span>
               ) : (
-                <span className="grid h-10 w-10 shrink-0 place-items-center opacity-60">{Icon && <Icon width={24} height={24} className="text-ir-t1" />}</span>
+                <span className="grid h-10 w-10 max-[359px]:h-8 max-[359px]:w-8 shrink-0 place-items-center opacity-60">{Icon && <Icon width={24} height={24} className="text-ir-t1" />}</span>
               )}
               {/* phones: the #1 badge sits over the title's line, so drop the text below it */}
               <span className={`min-w-0 flex-1 ${rank === 1 ? "max-sm:pt-5" : ""}`}>
-                <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{it.label}</span>
+                <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{/* breaks only between word units ("น่าเชื่อ|ถือ" used to split) */}{thaiUnits(it.label).map((u, k) => <Fragment key={k}>{k ? <wbr /> : null}<span className="whitespace-nowrap">{u}</span></Fragment>)}</span>
                 {it.desc && <span className={`mt-0.5 block text-caption leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
               </span>
               {rank === 1 && (
