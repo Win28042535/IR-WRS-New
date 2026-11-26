@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# direction-logic check output (scripts/check-direction-logic.ts)
+/reports/
