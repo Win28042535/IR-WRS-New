@@ -3,12 +3,12 @@
 // Shared by the deliver step's overview, its PDF / PNG download, and the download on the
 // page shown after sending (which stamps the reference number).
 import { noteWithLinkNames } from "@/lib/noteLinks";
-import { QUIZ, RETIRED_SECTION_IDS, VISUAL_STYLES, directionById, keepsCi, sectionById, siteHostOf, unsplashUrl } from "@/lib/data";
+import { BUSINESS_GOALS, QUIZ, RETIRED_SECTION_IDS, VISUAL_STYLES, directionById, keepsCi, sectionById, siteHostOf, unsplashUrl } from "@/lib/data";
 import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { chosenThaiFont, familyStack, fontByFamily } from "@/lib/fontCatalog";
 import type { DesignProfile } from "@/lib/types";
 import type { SheetData } from "@/lib/moodboardExport";
-import { directionMappingFor } from "@/lib/directionMapping";
+import { FEEL_LABEL, TELLING_LABEL, directionMappingFor } from "@/lib/directionMapping";
 
 /** "2 ลิงก์ · 1 ไฟล์" for a list of attached links/files ("" when none). */
 export function refCounts(items?: { type: string }[]): string {
@@ -110,6 +110,9 @@ const SHEET_ROLE_TH: Record<string, string> = { Primary: "สีหลัก", A
 /** the body font shown on the moodboard (loaded from Google Fonts where it's drawn) */
 export const BODY_FONT = "Sarabun";
 
+/** "จากคำตอบ: เป้าหมายหลัก … · … · …" under the cover headline (screen and PDF/PNG). Off. */
+const SHOW_TAGLINE_SOURCE = false;
+
 export function sheetData(draft: any): SheetData {
   const c = conceptData(draft);
   const vs = VISUAL_STYLES[draft.selectedDirection];
@@ -121,6 +124,9 @@ export function sheetData(draft: any): SheetData {
     // direction's own tagline until those three are known
     tagline: directionMappingFor(draft)?.headline ?? c.dir?.tagline,
     taglineDetail: directionMappingFor(draft)?.sentence,
+    // where the headline came from — the three answers the mapping reads. Off (26 Nov 2026):
+    // the client didn't need it on the cover; flip SHOW_TAGLINE_SOURCE to bring it back
+    taglineSource: !SHOW_TAGLINE_SOURCE ? undefined : (() => { const m = directionMappingFor(draft); return m ? `จากคำตอบ: เป้าหมายหลัก “${BUSINESS_GOALS.find((g) => g.id === m.goal)?.label ?? m.goal}” · ${FEEL_LABEL[m.feel]} · ${TELLING_LABEL[m.telling]}` : undefined; })(),
     mainMood: c.mainMood,
     supportMoods: c.supportMoods,
     answers: picks.flatMap((p) => {
@@ -128,7 +134,7 @@ export function sheetData(draft: any): SheetData {
       return q ? [{ topic: q.topic, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
     }),
     ownPending: c.ownPending,
-    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ชุดสีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด",
+    colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ชุดสีตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด",
     ciNote: c.keepOwn ? noteWithLinkNames(draft.ciKeepNote, draft.noteLinks?.ciKeep) : noteWithLinkNames(draft.ciNote, draft.noteLinks?.ci),
     // what CI they attached on "ใช้ CI ใหม่"; whatever is missing, the team proposes
     ciAssets: c.keepOwn ? "" : refCounts(draft.ciAssets),

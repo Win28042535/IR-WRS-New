@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- drafts and submitted requirements both come in loosely typed */
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { isLightHex, sheetData } from "@/lib/sheetData";
-import { COVER_LINE, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
+import { COVER_LINE, SHOW_MOODS, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import { MoodboardTiles } from "@/components/MoodboardTiles";
@@ -99,12 +99,13 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
         )}
         {/* Mood leads, no style name (19 Nov 2026): a name like "Premium Corporate" read as
             more specific and settled than the answers really are. */}
-        <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
+        <p className="text-small font-medium opacity-75">แนวทางเว็บไซต์ของคุณ</p>
         {headline(titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", "mt-2 max-w-[36rem]")}
         {d.taglineDetail && <p className="mt-3 max-w-[40rem] text-lead leading-relaxed opacity-85">{d.taglineDetail}</p>}
+        {d.taglineSource && <p className="mt-3 max-w-[40rem] text-small font-medium leading-snug opacity-70">{d.taglineSource}</p>}
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
-        {moods.length > 0 && (
+        {SHOW_MOODS && moods.length > 0 && (
           <div className="mt-8 border-t pt-5" style={{ borderColor: "currentColor", borderTopColor: "color-mix(in srgb, currentColor 22%, transparent)" }}>
             <p className="text-caption font-medium uppercase tracking-[0.04em] opacity-65">อารมณ์ของเว็บไซต์</p>
             {d.mainMood && <p className="mt-1.5 text-title font-semibold leading-snug">{d.mainMood}</p>}
@@ -164,7 +165,7 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
               <p className="mt-3"><span className="inline-block rounded-full bg-black/[0.06] px-2.5 py-0.5 text-caption font-semibold text-[#6F6A5E]">ตัวอย่างฟอนต์</span></p>
               <p className="mt-1.5 text-title leading-snug text-[#4A473F]" style={head}>นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน</p>
               {/* no font description: too specific for a summary (user test CBG) */}
-              <p className="mt-2 text-small text-[#8A8578]">ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</p>
+              <p className="mt-2 text-small text-[#8A8578]">ฟอนต์ตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด</p>
               {d.fontInterest && <p className="mt-2 text-body"><span className="text-[#8A8578]">ลูกค้าสนใจ · </span><span className="font-semibold">{d.fontInterest}</span></p>}
             </>
           )}

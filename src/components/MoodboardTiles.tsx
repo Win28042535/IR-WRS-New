@@ -20,7 +20,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { BODY_FONT, isLightHex } from "@/lib/sheetData";
 import { useGoogleFont } from "@/lib/useGoogleFont";
-import { BOARD_SAMPLE, NEUTRALS, SHOW_SAMPLE_PAGE, tintSteps, type SheetData } from "@/lib/moodboardExport";
+import { BOARD_SAMPLE, NEUTRALS, SHOW_MOODS, SHOW_SAMPLE_PAGE, tintSteps, type SheetData } from "@/lib/moodboardExport";
 
 // solid, no outline: an outlined white box is what the form uses for "fill this in"
 const CARD = "min-w-0 rounded-md bg-[#F1EEE6]";
@@ -91,11 +91,12 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
             <img src={d.logo} alt="โลโก้บริษัท" className="max-h-full max-w-full object-contain" />
           </span>
         )}
-        <p className="text-small font-medium text-balance opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
+        <p className="text-small font-medium text-balance opacity-75">แนวทางเว็บไซต์ของคุณ</p>
         {headline}
         {d.taglineDetail && <p className="mt-2 max-w-[40rem] text-body leading-relaxed opacity-85">{d.taglineDetail}</p>}
+        {d.taglineSource && <p className="mt-3 max-w-[40rem] text-caption font-medium leading-snug opacity-70">{d.taglineSource}</p>}
       </div>
-      {(d.mainMood || support) && (
+      {SHOW_MOODS && (d.mainMood || support) && (
         <div className={`${CARD} p-4 @2xl:p-5`}>
           <Label>อารมณ์ของเว็บไซต์</Label>
           {/* both sides built the same way — a small label, then the mood — so the labels share
@@ -149,7 +150,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
             </div>
             {/* what the greys are for — "สีกลาง" alone left testers asking */}
             <p className={`mt-2 text-caption leading-snug ${MUTED}`}>ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง</p>
-            <Note>สีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
+            <Note>สีตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
           </>
         )}
         {d.ciAssets && <Note>CI ที่แนบ · {d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้</Note>}
@@ -176,7 +177,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
               </div>
               <p className={`border-t border-black/[0.07] py-3 text-caption ${MUTED}`}>{fontSourceLine}</p>
             </div>
-            <Note>ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
+            <Note>ฟอนต์ตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด</Note>
           </>
         )}
         {d.fontInterest && <p className="mt-3 text-small"><span className={MUTED}>ลูกค้าสนใจฟอนต์ · </span><span className="font-semibold">{d.fontInterest}</span></p>}

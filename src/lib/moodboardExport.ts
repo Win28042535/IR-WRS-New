@@ -10,6 +10,8 @@ export type SheetData = {
   tagline?: string;
   /** the direction sentence under the headline (from the goal mapping); absent → none shown */
   taglineDetail?: string;
+  /** where the headline came from, e.g. "จากคำตอบ: เป้าหมายหลัก “…” · เป็นทางการ · เน้นข้อมูล" */
+  taglineSource?: string;
   mainMood?: string;
   supportMoods: string[];
   /** quiz answers, e.g. { topic: "ความรู้สึกของเว็บ", choice: "เป็นทางการ" } */
@@ -253,6 +255,11 @@ export function textOn(bg: string): { ink: string; ratio: number; verdict: strin
  *  and PDF/PNG. Off (24 Nov 2026), code kept; the sections after it renumber. */
 export const SHOW_SAMPLE_PAGE = false;
 
+/** "อารมณ์ของเว็บไซต์" (main + supporting mood) on the summary, screen and PDF/PNG. Off
+ *  (26 Nov 2026): the headline now comes from the goal mapping, and a mood the client never
+ *  picked made them ask where it came from. Code kept; the team summary still has it. */
+export const SHOW_MOODS = false;
+
 export const BOARD_SAMPLE = {
   url: "ir.company.co.th",
   primaryBtn: "ดูงบการเงิน",
@@ -293,7 +300,8 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   const lines = headlineLines(ctx, titleText, logoImg ? CW - 80 - 230 : CW - 80, CW - 80);
   // the direction sentence under the headline (28px, up to 3 lines)
   font(400, 28); const sent = d.taglineDetail ? wrap(ctx, d.taglineDetail, CW - 80, 3) : [];
-  const SLH = 42, sentH = sent.length ? 22 + sent.length * SLH : 0;
+  font(500, 22); const src = d.taglineSource ? wrap(ctx, d.taglineSource, CW - 80, 2) : [];
+  const SLH = 42, sentH = (sent.length ? 22 + sent.length * SLH : 0) + (src.length ? 16 + src.length * 32 : 0);
   const H = Math.max(240, 112 + lines.length * LH + 30 + sentH);
   ctx.save(); ctx.beginPath(); ctx.roundRect(M, top, CW, H, 20); ctx.clip();
   const g = ctx.createLinearGradient(M, top, M + CW, top + H);
@@ -311,16 +319,20 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
     const s = Math.min((lw0 - 2 * pad) / logoImg.naturalWidth, (lh0 - 2 * pad) / logoImg.naturalHeight);
     ctx.drawImage(logoImg, lx + (lw0 - logoImg.naturalWidth * s) / 2, ly + (lh0 - logoImg.naturalHeight * s) / 2, logoImg.naturalWidth * s, logoImg.naturalHeight * s);
   }
-  ctx.globalAlpha = 0.78; font(500, 28); text("แนวทางที่ได้จากคำตอบของคุณ", M + 40, top + 66, on); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.78; font(500, 28); text("แนวทางเว็บไซต์ของคุณ", M + 40, top + 66, on); ctx.globalAlpha = 1;
   font(700, TS, head); lines.forEach((ln, i) => text(ln, M + 40, top + 82 + LH * (i + 1) - Math.round(LH * 0.18), on));
   if (sent.length) {
     const sy = top + 82 + LH * lines.length - Math.round(LH * 0.18) + 22;
     ctx.globalAlpha = 0.85; font(400, 28); sent.forEach((ln, k) => text(ln, M + 40, sy + (k + 1) * SLH - 8, on)); ctx.globalAlpha = 1;
   }
+  if (src.length) {
+    const ry = top + 82 + LH * lines.length - Math.round(LH * 0.18) + (sent.length ? 22 + sent.length * SLH : 0) + 16;
+    ctx.globalAlpha = 0.68; font(500, 22); src.forEach((ln, k) => text(ln, M + 40, ry + (k + 1) * 32 - 6, on)); ctx.globalAlpha = 1;
+  }
   // moods: one neutral card under the headline — the main mood large on the left, the
   // supporting one beside it after a hairline (as on screen)
   const support = d.supportMoods.join(" · ");
-  if (!d.mainMood && !support) return top + H;
+  if (!SHOW_MOODS || (!d.mainMood && !support)) return top + H;
   const my = top + H + G, mh = 160;
   ctx.fillStyle = PANEL; ctx.beginPath(); ctx.roundRect(M, my, CW, mh, 20); ctx.fill();
   font(600, 22); text("อารมณ์ของเว็บไซต์", M + 34, my + 48, MUTED);
@@ -411,7 +423,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     });
     font(400, 21); text("ใช้กับตัวอักษร พื้นหลัง และเส้นแบ่ง", M, ny + 52, MUTED);
     y = ny + 52;
-    muted("สีตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
+    muted("สีตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
   }
   if (d.ciAssets) muted(`CI ที่แนบ · ${d.ciAssets} · ส่วนที่ไม่ได้แนบ ทีมเสนอให้`, 2);
   if (d.ciNote) muted(`หมายเหตุ · ${d.ciNote}`, 3);
@@ -433,7 +445,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(x1, y + H - hf, CW - 56, 2);
     font(400, 20); text(d.fontSource === "Google Fonts · ฟรี" ? "ทั้งสองฟอนต์จาก Google Fonts · ฟรี" : `หัวข้อ · ${d.fontSource} · เนื้อหา · Google Fonts · ฟรี`, x1, y + H - hf + 36, MUTED);
     y += H;
-    muted("ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
+    muted("ฟอนต์ตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด", 2);
   }
   if (d.fontInterest) { y += 40; font(500, 26); text(`ลูกค้าสนใจฟอนต์ · ${d.fontInterest}`, M, y); }
 
@@ -596,9 +608,10 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   const titleLines = headlineLines(ctx, titleText, logoImg ? CW - 300 - 48 : CW, CW);
   // the direction sentence under the headline (34px, up to 3 lines)
   font(400, 34); const sentLines = d.taglineDetail ? wrap(ctx, d.taglineDetail, Math.min(CW, 1000), 3) : [];
-  const SLH = 50, sentH = sentLines.length ? 24 + sentLines.length * SLH : 0;
+  font(500, 26); const srcLines = d.taglineSource ? wrap(ctx, d.taglineSource, Math.min(CW, 1000), 2) : [];
+  const SLH = 50, sentH = (sentLines.length ? 24 + sentLines.length * SLH : 0) + (srcLines.length ? 20 + srcLines.length * 38 : 0);
   // moods as type: label, main mood big, "เสริมด้วย …" smaller and softer
-  const hasMoods = !!(d.mainMood || d.supportMoods.length);
+  const hasMoods = SHOW_MOODS && !!(d.mainMood || d.supportMoods.length);
   const moodH = hasMoods ? 60 + 54 + (d.mainMood ? 74 : 0) + (d.supportMoods.length ? 58 : 0) : 0;
   // the old company line above the kicker is gone, so the cover starts higher and is shorter
   const coverH = 220 + titleLines.length * LH + sentH + moodH + 100;
@@ -628,7 +641,7 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   }
   ctx.globalAlpha = 0.78;
   font(500, 34);
-  text("แนวทางที่ได้จากคำตอบของคุณ", M, 170, on);
+  text("แนวทางเว็บไซต์ของคุณ", M, 170, on);
   ctx.globalAlpha = 1;
   let y = 170 + LH + 2;
   font(700, TS, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += LH; });
@@ -636,6 +649,11 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   if (sentLines.length) {
     y += 24; ctx.globalAlpha = 0.85; font(400, 34);
     sentLines.forEach((ln) => { y += SLH; text(ln, M, y, on); });
+    ctx.globalAlpha = 1;
+  }
+  if (srcLines.length) {
+    y += 20; ctx.globalAlpha = 0.68; font(500, 26);
+    srcLines.forEach((ln) => { y += 38; text(ln, M, y, on); });
     ctx.globalAlpha = 1;
   }
   if (hasMoods) {
@@ -706,7 +724,7 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
     y += 44; font(600, 26);
     { const tw = ctx.measureText("ตัวอย่างฟอนต์").width; ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.beginPath(); ctx.roundRect(M, y, tw + 36, 46, 23); ctx.fill(); text("ตัวอย่างฟอนต์", M + 18, y + 32, "#6F6A5E"); y += 46; }
     font(400, 50, head); wrap(ctx, "นักลงทุนสัมพันธ์ · ข้อมูลสำคัญทางการเงิน", CW, 2).forEach((ln) => { y += 76; text(ln, M, y, "#4A473F"); });
-    const fnote = "ฟอนต์ตัวอย่างที่เข้ากับอารมณ์ของเว็บ · สรุปอีกครั้งเมื่อคุยรายละเอียด"; // no font description (user test CBG)
+    const fnote = "ฟอนต์ตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด"; // no font description (user test CBG)
     font(400, 32); wrap(ctx, fnote, CW, 2).forEach((ln, i) => { y += i ? 46 : 64; text(ln, M, y, MUTED); });
     if (d.fontInterest) { y += 56; font(500, 34); text(`ลูกค้าสนใจ · ${d.fontInterest}`, M, y); }
   }
