@@ -8,6 +8,8 @@ export type SheetData = {
   company: string;
   directionLabel: string;
   tagline?: string;
+  /** the direction sentence under the headline (from the goal mapping); absent → none shown */
+  taglineDetail?: string;
   mainMood?: string;
   supportMoods: string[];
   /** quiz answers, e.g. { topic: "ความรู้สึกของเว็บ", choice: "เป็นทางการ" } */
@@ -289,7 +291,10 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   const TS = headlineIsLong(titleText) ? 64 : 84, LH = Math.round(TS * 1.15);
   font(700, TS, head);
   const lines = headlineLines(ctx, titleText, logoImg ? CW - 80 - 230 : CW - 80, CW - 80);
-  const H = Math.max(240, 112 + lines.length * LH + 30);
+  // the direction sentence under the headline (28px, up to 3 lines)
+  font(400, 28); const sent = d.taglineDetail ? wrap(ctx, d.taglineDetail, CW - 80, 3) : [];
+  const SLH = 42, sentH = sent.length ? 22 + sent.length * SLH : 0;
+  const H = Math.max(240, 112 + lines.length * LH + 30 + sentH);
   ctx.save(); ctx.beginPath(); ctx.roundRect(M, top, CW, H, 20); ctx.clip();
   const g = ctx.createLinearGradient(M, top, M + CW, top + H);
   g.addColorStop(0, d.primary); g.addColorStop(1, mixHex(d.primary, isLight(d.primary) ? "#000000" : "#FFFFFF", 0.22));
@@ -308,6 +313,10 @@ function drawBoardBanner(ctx: CanvasRenderingContext2D, d: SheetData, head: stri
   }
   ctx.globalAlpha = 0.78; font(500, 28); text("แนวทางที่ได้จากคำตอบของคุณ", M + 40, top + 66, on); ctx.globalAlpha = 1;
   font(700, TS, head); lines.forEach((ln, i) => text(ln, M + 40, top + 82 + LH * (i + 1) - Math.round(LH * 0.18), on));
+  if (sent.length) {
+    const sy = top + 82 + LH * lines.length - Math.round(LH * 0.18) + 22;
+    ctx.globalAlpha = 0.85; font(400, 28); sent.forEach((ln, k) => text(ln, M + 40, sy + (k + 1) * SLH - 8, on)); ctx.globalAlpha = 1;
+  }
   // moods: one neutral card under the headline — the main mood large on the left, the
   // supporting one beside it after a hairline (as on screen)
   const support = d.supportMoods.join(" · ");
@@ -585,11 +594,14 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   const LH = Math.round(TS * 1.15);
   font(700, TS, head);
   const titleLines = headlineLines(ctx, titleText, logoImg ? CW - 300 - 48 : CW, CW);
+  // the direction sentence under the headline (34px, up to 3 lines)
+  font(400, 34); const sentLines = d.taglineDetail ? wrap(ctx, d.taglineDetail, Math.min(CW, 1000), 3) : [];
+  const SLH = 50, sentH = sentLines.length ? 24 + sentLines.length * SLH : 0;
   // moods as type: label, main mood big, "เสริมด้วย …" smaller and softer
   const hasMoods = !!(d.mainMood || d.supportMoods.length);
   const moodH = hasMoods ? 60 + 54 + (d.mainMood ? 74 : 0) + (d.supportMoods.length ? 58 : 0) : 0;
   // the old company line above the kicker is gone, so the cover starts higher and is shorter
-  const coverH = 220 + titleLines.length * LH + moodH + 100;
+  const coverH = 220 + titleLines.length * LH + sentH + moodH + 100;
   // Layered, not one flat block (19 Nov 2026): a diagonal from the main colour to a lighter
   // shade, a soft glow of the accent top right, and a faint grid with a rising line on the
   // right — investor data as a watermark, well under the type. Same as the screen.
@@ -621,6 +633,11 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
   let y = 170 + LH + 2;
   font(700, TS, head); titleLines.forEach((ln) => { text(ln, M, y, on); y += LH; });
   y -= LH;
+  if (sentLines.length) {
+    y += 24; ctx.globalAlpha = 0.85; font(400, 34);
+    sentLines.forEach((ln) => { y += SLH; text(ln, M, y, on); });
+    ctx.globalAlpha = 1;
+  }
   if (hasMoods) {
     y += 60;
     ctx.globalAlpha = 0.22; ctx.fillStyle = on; ctx.fillRect(M, y, CW, 2); ctx.globalAlpha = 1;

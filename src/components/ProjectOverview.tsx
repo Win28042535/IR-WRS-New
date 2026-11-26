@@ -101,6 +101,7 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
             more specific and settled than the answers really are. */}
         <p className="text-small font-medium opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
         {headline(titleLong ? "clamp(28px, 5.4vw, 44px)" : "clamp(34px, 7vw, 56px)", "mt-2 max-w-[36rem]")}
+        {d.taglineDetail && <p className="mt-3 max-w-[40rem] text-lead leading-relaxed opacity-85">{d.taglineDetail}</p>}
         {/* Moods as type, not pills (pills read as picked / not picked): the main one big,
             the supporting one smaller and softer. */}
         {moods.length > 0 && (

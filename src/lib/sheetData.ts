@@ -8,6 +8,7 @@ import { FONT_PAIRINGS, DEFAULT_PAIRING, fontStack } from "@/lib/fonts";
 import { chosenThaiFont, familyStack, fontByFamily } from "@/lib/fontCatalog";
 import type { DesignProfile } from "@/lib/types";
 import type { SheetData } from "@/lib/moodboardExport";
+import { directionMappingFor } from "@/lib/directionMapping";
 
 /** "2 ลิงก์ · 1 ไฟล์" for a list of attached links/files ("" when none). */
 export function refCounts(items?: { type: string }[]): string {
@@ -116,7 +117,10 @@ export function sheetData(draft: any): SheetData {
   return {
     company: draft.company ?? "",
     directionLabel: c.dir?.label ?? "Design Direction",
-    tagline: c.dir?.tagline,
+    // headline + sentence from goal #1 × feel × telling (the 32-row mapping); the visual
+    // direction's own tagline until those three are known
+    tagline: directionMappingFor(draft)?.headline ?? c.dir?.tagline,
+    taglineDetail: directionMappingFor(draft)?.sentence,
     mainMood: c.mainMood,
     supportMoods: c.supportMoods,
     answers: picks.flatMap((p) => {

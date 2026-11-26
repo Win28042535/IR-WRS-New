@@ -4,7 +4,8 @@
 import { noteWithLinks } from "@/lib/noteLinks";
 import { SOURCE_LABEL, chosenThaiFont } from "./fontCatalog";
 import type { Requirement, RequirementStatus } from "./types";
-import { audienceIsSuggested, directionById, goalsAreSuggested, keepsCi, siteHostOf } from "./data";
+import { BUSINESS_GOALS, audienceIsSuggested, directionById, goalsAreSuggested, keepsCi, siteHostOf } from "./data";
+import { FEEL_LABEL, TELLING_LABEL, directionMappingFor } from "./directionMapping";
 import { isRecommendedHomepage } from "@/components/StructureBuilder";
 
 /** Which steps the client accepted exactly as suggested, so the team can tell an answer the
@@ -47,6 +48,7 @@ export function requirementSummary(r: Requirement): { label: string; value: stri
     { label: "Industry", value: r.industry || "-" },
     { label: "Company Type", value: r.companyType || "-" },
     { label: "Preferred Style", value: dir?.label || r.directionLabel || "-" },
+    { label: "Direction Mapping", value: (() => { const m = directionMappingFor(r as any); return m ? `ID ${m.id} · ${BUSINESS_GOALS.find((g) => g.id === m.goal)?.label ?? m.goal} · ${FEEL_LABEL[m.feel]} · ${TELLING_LABEL[m.telling]}` : "-"; })() },
     ...((r.coDeciders ?? []).length ? [{ label: "Co-deciders", value: (r.coDeciders ?? []).map((p) => [p.name, p.position].filter(Boolean).join(" · ")).join(" / ") }] : []),
     { label: "Colours", value: !keepsCi(r) ? ["ใช้ CI ใหม่", noteWithLinks(r.ciNote, r.noteLinks?.ci)].filter(Boolean).join(" · ") : [`ชุดสีเดิม · จาก ${siteHostOf(r.website)}`, noteWithLinks(r.ciKeepNote, r.noteLinks?.ciKeep)].filter(Boolean).join(" · ") },
     ...(!keepsCi(r) && (r.ciAssets ?? []).length ? [{ label: "CI Attachments", value: `${(r.ciAssets ?? []).length} รายการ · ส่วนที่ไม่ได้แนบ ทีมเสนอให้` }] : []),

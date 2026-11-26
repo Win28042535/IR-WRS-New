@@ -93,6 +93,7 @@ function Banner({ d, headline, watermark, glow }: { d: SheetData; headline: Reac
         )}
         <p className="text-small font-medium text-balance opacity-75">แนวทางที่ได้จากคำตอบของคุณ</p>
         {headline}
+        {d.taglineDetail && <p className="mt-2 max-w-[40rem] text-body leading-relaxed opacity-85">{d.taglineDetail}</p>}
       </div>
       {(d.mainMood || support) && (
         <div className={`${CARD} p-4 @2xl:p-5`}>

@@ -289,20 +289,26 @@ export const GOAL_SECTIONS: Record<string, string[]> = {
   talent: ["about", "board"],
   product: ["about", "cta"],
   intl: ["about", "ir-info", "reports"],
+  growth: ["about", "chairman-message", "financial"],
   compliance: ["governance", "reports", "board"],
 };
 
 // ── Business goals (Flow 2) ──
+// The 8 shown match the direction mapping sheet (26 Nov 2026, "IR_Primary_Goal_32_Mapping"):
+// goal #1 × feel (q1) × how content is told (q3) picks the summary headline. "รับสมัครงาน"
+// and "เปิดตัวสินค้า" are hidden (kept for older drafts); ESG and international renamed;
+// "สื่อสารวิสัยทัศน์และการเติบโต" is new. Array order = order on screen after the suggested set.
 export const BUSINESS_GOALS: BusinessGoalDef[] = [
   { id: "credibility", label: "สร้างความน่าเชื่อถือ", emoji: "🏆", desc: "ให้บริษัทดูมั่นคง ด้วยตัวเลขสำคัญ ข้อมูลบริษัท และรางวัลที่เห็นชัดตั้งแต่หน้าแรก", impact: "เว็บไซต์ดูมั่นคง เป็นทางการ และน่าเชื่อถือในสายตาลูกค้าและนักลงทุน", comps: ["Executive Team", "Awards", "Company Timeline", "Testimonials"] },
   { id: "ir", label: "สื่อสารข้อมูลกับนักลงทุน", emoji: "📈", desc: "ให้นักลงทุนหาข้อมูลหุ้น งบการเงิน และเอกสารได้ในไม่กี่คลิก", impact: "นักลงทุนหาข้อมูลได้เร็ว ลด IR workload และสร้างความเชื่อมั่น", comps: ["Financial Highlights", "Stock Ticker", "Annual Reports", "IR Calendar"] },
   { id: "lead", label: "หาลูกค้าใหม่ / Lead Generation", emoji: "🎯", desc: "ดึงดูดผู้สนใจและเปลี่ยนเป็นลูกค้า", impact: "ผู้เยี่ยมชมติดต่อได้ง่ายขึ้น ได้ Lead มากขึ้น ลด Sales Cycle", comps: ["Hero + CTA", "Services", "Contact Form", "Testimonials"], hidden: true },
   { id: "awareness", label: "สร้างการรับรู้แบรนด์", emoji: "📣", desc: "ให้คนรู้จักและจำบริษัทได้ ผ่านเรื่องราวและภาพที่ชัดเจน", impact: "แบรนด์ถูกจดจำมากขึ้น เพิ่มการค้นหาชื่อองค์กรใน Google", comps: ["Hero Banner", "Brand Story", "News & Media"] },
   { id: "digital", label: "ดูทันสมัย ใช้เทคโนโลยี", emoji: "⚡", desc: "ให้เว็บดูทันสมัย มีเครื่องมือออนไลน์ เช่น กราฟราคาหุ้นแบบโต้ตอบ", impact: "องค์กรดูล้ำหน้า ดิจิทัล ทันสมัย ดึงดูดทั้งลูกค้าและบุคลากร Tech", comps: ["Animated Hero", "Feature Comparison", "Case Studies"] },
-  { id: "esg", label: "ESG / ความยั่งยืน", emoji: "🌱", desc: "เล่าเรื่องความยั่งยืน เป้าหมาย ESG และผลงานด้านสิ่งแวดล้อมและสังคม", impact: "ตอบโจทย์นักลงทุน ESG รายงานตามมาตรฐาน GRI / TCFD", comps: ["ESG Overview", "Sustainability Report", "CSR Activities"] },
-  { id: "talent", label: "รับสมัครงาน · ร่วมงานกับเรา", emoji: "👥", desc: "ชวนคนเก่งมาร่วมงาน ด้วยตำแหน่งงานว่างและเรื่องราวของพนักงาน", impact: "เพิ่มคุณภาพ Applicant ลด Time-to-hire แสดงวัฒนธรรมองค์กร", comps: ["Careers", "Company Culture", "Team Photos"] },
+  { id: "esg", label: "สื่อสารความรับผิดชอบต่อสังคมและสิ่งแวดล้อม", emoji: "🌱", desc: "นำเสนอแนวทางการดำเนินธุรกิจอย่างยั่งยืน เป้าหมาย และผลงานด้านสิ่งแวดล้อม สังคม และการกำกับดูแลกิจการ", impact: "ตอบโจทย์นักลงทุน ESG รายงานตามมาตรฐาน GRI / TCFD", comps: ["ESG Overview", "Sustainability Report", "CSR Activities"] },
+  { id: "growth", label: "สื่อสารวิสัยทัศน์และการเติบโต", emoji: "🧭", desc: "ถ่ายทอดทิศทางธุรกิจ แผนกลยุทธ์ และเป้าหมายการเติบโตในระยะยาว", impact: "นักลงทุนเห็นภาพทิศทางและแผนการเติบโตขององค์กร", comps: ["Vision & Strategy", "Chairman Message", "Financial Highlights"] },
+  { id: "talent", label: "รับสมัครงาน · ร่วมงานกับเรา", emoji: "👥", desc: "ชวนคนเก่งมาร่วมงาน ด้วยตำแหน่งงานว่างและเรื่องราวของพนักงาน", impact: "เพิ่มคุณภาพ Applicant ลด Time-to-hire แสดงวัฒนธรรมองค์กร", comps: ["Careers", "Company Culture", "Team Photos"], hidden: true },
   { id: "product", label: "เปิดตัวสินค้า / บริการ", emoji: "🚀", desc: "นำเสนอสินค้าหรือบริการใหม่อย่างน่าสนใจ", impact: "ลูกค้าเข้าใจ Value Proposition ชัดขึ้น ตัดสินใจซื้อได้เร็วขึ้น", comps: ["Product Catalog", "Feature Comparison", "Pricing"], hidden: true },
-  { id: "intl", label: "ขยายตลาดต่างประเทศ", emoji: "🌐", desc: "รองรับนักลงทุนต่างชาติ ด้วยเว็บไซต์ไทย-อังกฤษที่ข้อมูลครบทั้งสองภาษา", impact: "เว็บไซต์ดูเป็นสากล ตอบสนองความคาดหวังของ International Partners", comps: ["About Us", "Global Offices", "Awards"] },
+  { id: "intl", label: "ขยายฐานนักลงทุนสู่สากล", emoji: "🌐", desc: "รองรับนักลงทุนต่างชาติ ด้วยเว็บไซต์ไทย-อังกฤษที่ข้อมูลครบทั้งสองภาษา", impact: "เว็บไซต์ดูเป็นสากล ตอบสนองความคาดหวังของ International Partners", comps: ["About Us", "Global Offices", "Awards"] },
   { id: "compliance", label: "ความโปร่งใส / Compliance", emoji: "⚖️", desc: "แสดงความโปร่งใส ด้วยนโยบายกำกับดูแล จรรยาบรรณ และช่องทางแจ้งเบาะแส", impact: "ลด Compliance Risk สร้างความเชื่อมั่นให้ผู้กำกับดูแลและนักลงทุน", comps: ["Annual Reports", "Board of Directors", "Governance"] },
 ];
 

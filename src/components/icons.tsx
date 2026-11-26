@@ -160,7 +160,7 @@ export const OPTION_ICONS: Record<string, (p: SVGProps<SVGSVGElement>) => React.
   // business goals
   credibility: IconAward, ir: IconTrendUp, lead: IconTarget, awareness: IconMegaphone,
   digital: IconBolt, esg: IconLeaf, talent: IconUsers, product: IconRocket,
-  intl: IconGlobe, compliance: IconScale,
+  intl: IconGlobe, compliance: IconScale, growth: IconRocket,
   // corporate identity + inspiration mode
   "ci-yes": IconPalette, "ci-no": IconSparkle, custom: IconLink, curated: IconSparkle,
 };
