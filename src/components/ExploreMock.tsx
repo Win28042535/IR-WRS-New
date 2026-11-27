@@ -614,14 +614,14 @@ const ExpressiveHome = ({ t, id }: { t: Theme; id: string }) => (
 
 // ── registry ─────────────────────────────────────────────────────────────────
 const MOCKS: Record<string, { label: string; draw: (id: string) => ReactNode; bg: Theme }> = {
-  "q1-a": { label: "เข้าถึงง่าย", bg: WARM, draw: (id) => <ApproachableHome t={WARM} id={id} /> },
-  "q1-b": { label: "เป็นทางการ", bg: FORMAL, draw: (id) => <FormalHome t={FORMAL} id={id} /> },
-  "q2-a": { label: "สว่าง", bg: LIGHT, draw: (id) => <StandardHome t={LIGHT} id={id} /> },
-  "q2-b": { label: "เข้ม", bg: DARK, draw: (id) => <StandardHome t={DARK} id={id} /> },
+  "q1-a": { label: "เป็นกันเอง เข้าใจง่าย", bg: WARM, draw: (id) => <ApproachableHome t={WARM} id={id} /> },
+  "q1-b": { label: "เป็นทางการ น่าเชื่อถือ", bg: FORMAL, draw: (id) => <FormalHome t={FORMAL} id={id} /> },
+  "q2-a": { label: "โทนสว่าง", bg: LIGHT, draw: (id) => <StandardHome t={LIGHT} id={id} /> },
+  "q2-b": { label: "โทนเข้ม", bg: DARK, draw: (id) => <StandardHome t={DARK} id={id} /> },
   "q3-a": { label: "เล่าเรื่อง", bg: LIGHT, draw: (id) => <StoryHome t={LIGHT} id={id} /> },
   "q3-b": { label: "เน้นข้อมูล", bg: LIGHT, draw: (id) => <DataHome t={LIGHT} id={id} /> },
-  "q4-a": { label: "เน้นพื้นที่ว่าง", bg: LIGHT, draw: (id) => <SpaciousHome t={LIGHT} id={id} /> },
-  "q4-b": { label: "ข้อมูลแน่น", bg: LIGHT, draw: (id) => <DenseHome t={LIGHT} id={id} /> },
+  "q4-a": { label: "โปร่ง เว้นพื้นที่ว่าง", bg: LIGHT, draw: (id) => <SpaciousHome t={LIGHT} id={id} /> },
+  "q4-b": { label: "แน่น จัดเป็นบล็อก/ตาราง", bg: LIGHT, draw: (id) => <DenseHome t={LIGHT} id={id} /> },
   "q5-a": { label: "เรียบ", bg: LIGHT, draw: (id) => <SubtleHome t={LIGHT} id={id} /> },
   "q5-b": { label: "โดดเด่น", bg: LIGHT, draw: (id) => <ExpressiveHome t={LIGHT} id={id} /> },
 };

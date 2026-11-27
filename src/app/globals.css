@@ -163,6 +163,8 @@
   .sheet-in { animation: sheet-up var(--motion-base) var(--motion-ease-out) both; }
   @media (min-width: 640px) { .sheet-in { animation-name: sheet-pop; } }
   .sheet-backdrop { animation: fade-in var(--motion-fast) linear both; }
+  /* success card: its parts rise in one after another (delay set per part) */
+  .rise-in { animation: sc-rise-in var(--motion-slow) var(--motion-ease-out) both; }
 }
 
 :root {

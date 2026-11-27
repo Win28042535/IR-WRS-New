@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useStore } from "@/lib/store";
 import { BUSINESS_GOALS, QUIZ, REFERENCE_LIKES, RULES, REQUIRED_SECTION_IDS, IR_AUDIENCES, FLOW_STEPS, FLOW_STEPS_EN, CONTACT_DAYS, STEP_SCHEME, SUGGESTED_AUDIENCES, SUGGESTED_GOALS, audienceIsSuggested, goalsAreSuggested, flowStepOf, siteHostOf, audienceById, directionById, sectionById } from "@/lib/data";
+import { ThaiWords } from "@/components/ThaiWords";
 import { rankDirections, buildProfile, profileToDirection, rankProfileDirections } from "@/lib/recommend";
 import { StepIndicator, SectionLabel, SectionDivider, RequiredMark, StepNav, NextButton, BackButton, OptionCard, OptionTag, SelectDot, FieldError, useNudge } from "@/components/ui";
 import { IconCheck, IconClose, IconPalette, IconSparkle, IconPlus, IconArrowRight, IconExternalLink, IconGlobe, OPTION_ICONS } from "@/components/icons";
@@ -717,7 +718,7 @@ function SuggestedBar({ suggested, onUse, count, max, unit, what, nextLabel }: {
         {!suggested && (
           <button type="button" onClick={onUse}
             className="swap-in relative ml-auto inline-flex h-8 shrink-0 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 ring-1 ring-inset ring-ir-border transition-colors before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hover:bg-ir-accent hover:ring-transparent focus-ring">
-            ✦ ใช้ชุดที่ AI แนะนำ
+            ↺ กลับเป็นค่าแนะนำ
           </button>
         )}
       </div>
@@ -910,6 +911,7 @@ const LetterBadge = ({ letter }: { letter: string }) => (
 
 // The phone-only "ดูภาพใหญ่" button under the A/B cards. Off (19 Nov 2026): the cards are
 // picked as they are; the big view stays in the code in case it's wanted back.
+
 const SHOW_QUIZ_BIG_VIEW = false;
 
 // ── S2 Smart Discovery Quiz (A/B) ──
@@ -1018,7 +1020,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
                   state is the dot, the same as on desktop. */}
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                 <LetterBadge letter={letter} />
-                <span className="order-last w-full min-w-0 text-lead sm:order-none sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug">{o.label}</span>
+                <span className="order-last w-full min-w-0 text-lead sm:order-none sm:w-auto sm:flex-1 sm:text-heading font-bold tracking-[-0.01em] text-ir-t1 leading-snug"><ThaiWords text={o.label} /></span>
                 <SelectDot on={pending === letter} className="ml-auto sm:ml-0" />
               </div>
             </div>
@@ -1037,7 +1039,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
               <figure key={letter} className="m-0">
                 {/* same order as the cards: words first, picture under them */}
                 <figcaption className="mb-2">
-                  <span className="flex items-center gap-2 text-lead font-bold text-ir-t1"><LetterBadge letter={letter} />{o.label}</span>
+                  <span className="flex items-center gap-2 text-lead font-bold text-ir-t1"><LetterBadge letter={letter} /><ThaiWords text={o.label} /></span>
                 </figcaption>
                 <QuizVisual mock={o.mock} live={pending === letter} />
                 {/* choose straight from the big view — no scrolling back up to the small cards */}
@@ -1135,7 +1137,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
                     <p className="text-small text-ir-t3 truncate">ข้อ {i + 1} · {q.topic}</p>
-                    <p className="text-body font-semibold leading-snug text-ir-t1">{o.label}</p>
+                    <p className="text-body font-semibold leading-snug text-ir-t1"><ThaiWords text={o.label} /></p>
                   </div>
                 </li>
               );
@@ -1579,10 +1581,11 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const ci = variant === "ci";
   const field: "references" | "ciAssets" = ci ? "ciAssets" : "references";
   // ── URL list state ── committed immediately on Enter/blur, no separate save step
-  const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[]; noteLinks?: string[] }[]>(() =>
+  const [urls, setUrls] = useState<{ id: string; value: string; note?: string; likes?: string[]; noteLinks?: string[]; at?: number }[]>(() =>
     (draft[field] ?? [])
+      .map((r: any, at: number) => ({ ...r, at }))
       .filter((r: any) => r.type === "url")
-      .map((r: any) => ({ id: r.id, value: r.value, note: r.note, likes: r.likes, noteLinks: r.noteLinks }))
+      .map((r: any) => ({ id: r.id, at: r.at, value: r.value, note: r.note, likes: r.likes, noteLinks: r.noteLinks }))
   );
   const [urlInput, setUrlInput] = useState("");
   // Recomputed every keystroke — pure parsing against the current list, no debounce needed.
@@ -1593,10 +1596,11 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
 
   // ── Image + document list state (base64 data-uri) ── PDFs ride in the same gallery
   // (user test BTS: "แนบได้ทั้งเอกสาร รูป และลิงก์"), stored as type "file".
-  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; noteLinks?: string[]; kind?: "pdf" }[]>(() =>
+  const [images, setImages] = useState<{ id: string; src: string; name: string; note?: string; likes?: string[]; noteLinks?: string[]; kind?: "pdf"; at?: number }[]>(() =>
     (draft[field] ?? [])
+      .map((r: any, at: number) => ({ ...r, at }))
       .filter((r: any) => r.type === "image" || r.type === "file")
-      .map((r: any) => ({ id: r.id, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, noteLinks: r.noteLinks, kind: r.type === "file" ? "pdf" as const : undefined }))
+      .map((r: any) => ({ id: r.id, at: r.at, src: r.value, name: r.label ?? "", note: r.note, likes: r.likes, noteLinks: r.noteLinks, kind: r.type === "file" ? "pdf" as const : undefined }))
   );
   const [uploadError, setUploadError] = useState("");
 
@@ -1604,6 +1608,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   // Notes are optional annotations, not a separate save step: typing updates the item (and
   // synced draft) immediately, same immediacy as everything else in this editor.
   const [noteEditing, setNoteEditing] = useState<string | null>(null);
+  // closing the item sheet rings that tile again: on a phone the sheet covered the gallery
+  // while the add was confirmed
+  const closeSheet = () => { const id = noteEditing; setNoteEditing(null); if (id) ringTile(id); };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1613,12 +1620,31 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   // confirmation — this is just the connective motion from the button to the gallery.
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
   const lastAddedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Links and files share one gallery in the order they were added (user test 27 Nov 2026:
+  // a link pasted after a few images landed before them, so nobody saw it arrive). Each
+  // item keeps its add position; tiles use it as their flex order and the draft is saved in it.
+  // `at` = add position (place in the saved list, or the add time for a new item).
+  const rankOf = useMemo(() => new Map([...urls, ...images].sort((x, y) => (x.at ?? 0) - (y.at ?? 0)).map((x, i) => [x.id, i])), [urls, images]);
+  // the new tile also keeps an accent ring for a moment and is scrolled into view
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const highlightTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const ringTile = (id: string) => {
+    clearTimeout(highlightTimer.current);
+    setHighlightId(id);
+    highlightTimer.current = setTimeout(() => setHighlightId(null), 1800);
+  };
   const flashNew = (id: string) => {
     clearTimeout(lastAddedTimer.current);
     setLastAddedId(id);
     lastAddedTimer.current = setTimeout(() => setLastAddedId(null), 360);
+    ringTile(id);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-ref-tile="${id}"]`);
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    }));
   };
-  useEffect(() => () => clearTimeout(lastAddedTimer.current), []);
+  useEffect(() => () => { clearTimeout(lastAddedTimer.current); clearTimeout(highlightTimer.current); }, []);
 
   // Ids currently mid fade-out after a remove — the tile stays rendered (with
   // `wrs-row-removing`, the same fade used for a removed structure section) for the
@@ -1689,10 +1715,10 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const syncToDraft = useCallback((nextUrls: typeof urls, nextImages: typeof images) => {
     const urlItems = nextUrls
       .filter((u) => u.value.trim())
-      .map((u) => ({ id: u.id, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined, noteLinks: u.noteLinks?.length ? u.noteLinks : undefined }));
+      .map((u) => ({ id: u.id, at: u.at, type: "url" as const, category: "favorite" as const, value: u.value, label: u.value, note: u.note?.trim() || undefined, likes: u.likes?.length ? u.likes : undefined, noteLinks: u.noteLinks?.length ? u.noteLinks : undefined }));
     const imgItems = nextImages
-      .map((img) => ({ id: img.id, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined, noteLinks: img.noteLinks?.length ? img.noteLinks : undefined }));
-    updateDraft({ [field]: [...urlItems, ...imgItems] });
+      .map((img) => ({ id: img.id, at: img.at, type: img.kind === "pdf" ? "file" as const : "image" as const, category: "favorite" as const, value: img.src, label: img.name, note: img.note?.trim() || undefined, likes: img.likes?.length ? img.likes : undefined, noteLinks: img.noteLinks?.length ? img.noteLinks : undefined }));
+    updateDraft({ [field]: [...urlItems, ...imgItems].sort((a, b) => (a.at ?? 0) - (b.at ?? 0)).map(({ at: _at, ...r }) => r) });
   }, [updateDraft, field]);
 
   // Note handlers — typing updates the item's note immediately (no separate save step).
@@ -1779,7 +1805,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
     clearTimeout(commitUrlTimer.current);
     commitUrlTimer.current = setTimeout(() => {
       const id = Math.random().toString(36).slice(2);
-      const next = [...urls, { id, value }];
+      const next = [...urls, { id, value, at: Date.now() }];
       setUrls(next);
       setUrlInput("");
       syncToDraft(next, images);
@@ -1838,7 +1864,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const src = e.target?.result as string;
-        const newImg = { id: Math.random().toString(36).slice(2), src, name: file.name, ...(isPdf ? { kind: "pdf" as const } : {}) };
+        const newImg = { id: Math.random().toString(36).slice(2), at: Date.now() + Math.random(), src, name: file.name, ...(isPdf ? { kind: "pdf" as const } : {}) };
         // `syncToDraft` must run as a plain statement after the state updater settles, never
         // from inside the updater callback itself — calling it there updates the parent
         // draft store while React is still applying this component's own state update,
@@ -2045,8 +2071,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 {urls.map((u, i) => (
                   <div
                     key={u.id}
-                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 72, height: 72, animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    data-ref-tile={u.id}
+                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${u.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    style={{ width: 72, height: 72, order: rankOf.get(u.id), animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     <div
                       className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 pb-6 text-center"
@@ -2095,8 +2122,9 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 {images.map((img) => (
                   <div
                     key={img.id}
-                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 72, height: 72, animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    data-ref-tile={img.id}
+                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${img.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    style={{ width: 72, height: 72, order: rankOf.get(img.id), animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     {img.kind === "pdf" ? (
                       <span className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50 px-1 text-center select-none">
@@ -2152,7 +2180,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 return (
                   <ItemSheet
                     title={editingUrl ? linkLabel(editingUrl.value) : editingImage!.name}
-                    onClose={() => setNoteEditing(null)}
+                    onClose={closeSheet}
                     preview={editingUrl ? (
                       <div className="flex items-start gap-3 rounded-xl border border-ir-border-soft bg-ir-sunken p-3">
                         <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg" style={{ background: URL_THUMB_THEMES[Math.max(0, urls.indexOf(editingUrl)) % URL_THUMB_THEMES.length] }}>
@@ -2181,7 +2209,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                         className="inline-flex h-11 items-center rounded-full px-3 text-body font-semibold text-ir-error transition-colors hover:bg-red-50 focus-ring">
                         ลบรายการนี้
                       </button>
-                      <button type="button" onClick={() => setNoteEditing(null)}
+                      <button type="button" onClick={closeSheet}
                         className="inline-flex h-11 items-center rounded-full bg-ir-dark px-7 text-body font-semibold text-white transition-[background-color,scale] hover:bg-neutral-800 active:scale-[0.98] focus-ring">
                         เสร็จ
                       </button>
@@ -2379,6 +2407,13 @@ function S5DesignBlueprint({ go, draft, updateDraft }: any) {
 // "ผู้ร่วมตัดสินใจ (ไม่บังคับ)" on the deliver step: off (19 Nov 2026), code kept. Names
 // already typed into an older draft still reach the team.
 const SHOW_CO_DECIDERS = false;
+// Deliver step: the contact panel beside the summary (name, position, email, phone, LINE,
+// call-back tick). Off = the full-width summary with a 3-field contact sheet (tried 27 Nov
+// 2026 after the reference flow, then put back to the panel the same day).
+const SHOW_CONTACT_PANEL = true;
+// Send without the contact fields (27 Nov 2026, for user tests): the button always sends.
+// Back to true to stop until name, position and email are filled.
+const REQUIRE_CONTACT = false;
 
 // Moodboard / document switch (23 Nov 2026): a floating viewer control at the bottom of the
 // screen, not part of the sheet (inside the sheet's header it read as part of the design).
@@ -2409,8 +2444,7 @@ function SheetViewSwitch({ value, onChange, targetId }: { value: SheetView; onCh
     { v: "doc", label: "เอกสาร", icon: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 8h6M9 12h6M9 16h4" /></> },
   ];
   return (
-    <div className={`no-print fixed left-1/2 z-30 -translate-x-1/2 transition-[opacity,translate] duration-200 ${onScreen ? "opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`}
-      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }} inert={!onScreen}>
+    <div className={`no-print fixed left-1/2 z-30 -translate-x-1/2 transition-[opacity,translate] duration-200 ${SHOW_CONTACT_PANEL ? "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]" : "bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]"} ${onScreen ? "opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`} inert={!onScreen}>
       <div role="radiogroup" aria-label="ดูสรุปแบบ" className="flex items-center gap-1 rounded-full border border-black/10 bg-white/90 p-1 text-caption sm:pl-3.5 font-medium shadow-e2 backdrop-blur">
         <span className="hidden whitespace-nowrap pr-1 text-ir-t3 sm:inline" aria-hidden="true">ดูสรุปแบบ</span>
         {opts.map((o) => (
@@ -2434,7 +2468,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
   // phone number is an error.
   const contactErrors = {
     name: draft.name.trim() ? "" : "กรุณากรอกชื่อ-นามสกุล",
-    position: draft.position?.trim() ? "" : "กรุณากรอกตำแหน่ง",
+    position: !SHOW_CONTACT_PANEL || draft.position?.trim() ? "" : "กรุณากรอกตำแหน่ง",
     email: emailError(draft.email),
     phone: phoneError(draft.phone), // phone is always shown now; only a malformed number is an error
   };
@@ -2471,7 +2505,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
 
   const doSubmit = () => {
     if (submitting) return;
-    if (firstInvalid) {
+    if (REQUIRE_CONTACT && firstInvalid) {
       // Blocked: show every missing field and take them to the first one.
       setAttempted(true);
       const el = document.getElementById(`contact-${firstInvalid}`);
@@ -2499,14 +2533,15 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
 
   const g = useGuide("analyst");
   // which view of the summary is on screen (and in the saved file)
+  const [contactOpen, setContactOpen] = useState(false);
   const [sheetView, setSheetView] = useState<SheetView>("board"); // Moodboard first (23 Nov 2026)
 
   // Long hesitation nudge if contact fields still empty after 15 s
   const shownHesitation = useRef(false);
   useHesitation(15000, () => {
-    if (shownHesitation.current || contactComplete) return;
+    if (shownHesitation.current || contactComplete || (!SHOW_CONTACT_PANEL && !contactOpen)) return;
     shownHesitation.current = true;
-    const missing = !draft.name ? "ชื่อ-นามสกุล" : !draft.position?.trim() ? "ตำแหน่ง" : !draft.email ? "Email" : "ข้อมูลติดต่อ";
+    const missing = !draft.name ? "ชื่อ-นามสกุล" : SHOW_CONTACT_PANEL && !draft.position?.trim() ? "ตำแหน่ง" : !draft.email ? "Email" : "ข้อมูลติดต่อ";
     g.show(`ใกล้เสร็จแล้วครับ ใส่ ${missing} ไว้ด้วย ทีมจะติดต่อกลับได้ทันที`, { mode: "tip", expert: "analyst", autohide: 10000 });
   });
 
@@ -2520,7 +2555,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-heading font-semibold text-ir-t1 tracking-tight leading-tight" style={{ textWrap: "balance" } as CSSProperties}>ส่งมอบ</h2>
-            <p className="text-lead text-ir-t2 leading-relaxed mt-2">ขั้นสุดท้าย · ตรวจสรุปจากคำตอบของคุณ แล้วใส่ช่องทางติดต่อเพื่อส่งให้ทีม IR Plus</p>
+            <p className="text-lead text-ir-t2 leading-relaxed mt-2">{SHOW_CONTACT_PANEL ? "ขั้นสุดท้าย · ตรวจสรุปจากคำตอบของคุณ แล้วใส่ช่องทางติดต่อเพื่อส่งให้ทีม IR Plus" : "ขั้นสุดท้าย · ตรวจภาพรวมจากคำตอบของคุณ แล้วยืนยันเพื่อส่งให้ทีม IR Plus"}</p>
           </div>
           {/* keep a copy before sending — a one-page moodboard sheet, downloaded straight
               away (no print dialog, nothing to set up) */}
@@ -2531,7 +2566,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-5 items-start">
+      <div className={SHOW_CONTACT_PANEL ? "flex flex-col xl:flex-row gap-5 items-start" : ""}>
         {/* ── LEFT: project overview (main visual) ──
             The sheet sits on a dark backdrop like a printed document laid out for review, so
             it reads as the finished result, nothing to fill in, apart from the contact form
@@ -2559,7 +2594,7 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
         </div>
 
         {/* ── RIGHT: contact + confirm CTA (sticky sidebar) ── */}
-        <aside className="no-print w-full xl:w-[380px] shrink-0 xl:sticky xl:top-4 space-y-4">
+        {SHOW_CONTACT_PANEL && <aside className="no-print w-full xl:w-[380px] shrink-0 xl:sticky xl:top-4 space-y-4">
           {/* Contact */}
           <div className="rounded-xl border border-ir-border bg-ir-card px-5 pt-5 pb-6 shadow-e1">
             {/* the only thing left to do on this step lives here */}
@@ -2628,9 +2663,45 @@ function S6Deliver({ go, draft, updateDraft, submit, addTimelineEntry, addNotebo
               <span aria-hidden="true">←</span> ย้อนกลับไปแก้ไข
             </button>
           </div>
-        </aside>
+        </aside>}
       </div>
+
+      {!SHOW_CONTACT_PANEL && <>
+        <StepNav onBack={() => go(7)} next={<NextButton onClick={() => setContactOpen(true)}><span className="sm:hidden">กรอกข้อมูลติดต่อ</span><span className="hidden sm:inline">กรอกข้อมูลติดต่อเพื่อส่ง</span></NextButton>} />
+        {contactOpen && (
+          <ItemSheet title="ทิ้งข้อมูลติดต่อไว้ให้ทีม IR Plus" onClose={() => { if (!submitting) setContactOpen(false); }}
+            preview={<p className="text-body text-ir-t2">ทีม IR Plus จะติดต่อกลับภายใน <span className="whitespace-nowrap">{CONTACT_DAYS}</span></p>}
+            footer={
+              <div className="w-full">
+                <SubmitPill submitting={submitting} onClick={doSubmit} />
+                <p className="mt-2 text-center text-small leading-relaxed text-ir-t3">ฉันตรวจสอบภาพรวมแล้ว และยืนยันส่งให้ทีม <span className="whitespace-nowrap">IR Plus</span></p>
+              </div>
+            }>
+            <div className="space-y-4">
+              <F id="contact-name" required label="ชื่อ-นามสกุล" autoComplete="name" value={draft.name} onChange={(v) => updateDraft({ name: v })} onBlur={() => markTouched("name")} error={showError("name")} placeholder="ชื่อและนามสกุล" />
+              <F id="contact-email" required label="Email" type="email" autoComplete="email" value={draft.email} onChange={(v) => updateDraft({ email: sanitizeEmailInput(v) })} onBlur={() => markTouched("email")} error={showError("email")} placeholder="name@company.com" />
+              <F id="contact-phone" label="โทรศัพท์ (ไม่บังคับ)" type="tel" autoComplete="tel" value={draft.phone} onChange={(v) => updateDraft({ phone: sanitizePhoneInput(v) })} onBlur={() => markTouched("phone")} error={showError("phone")} placeholder="08X-XXX-XXXX" />
+            </div>
+            <AIJourneyGuide visible={g.visible} message={g.message} mode={g.mode} actions={g.actions} expert={g.expert} className="mt-4 mb-0" />
+          </ItemSheet>
+        )}
+      </>}
     </div>
+  );
+}
+
+// The flow's final send button: black pill, lime arrow disc (same as the landing CTA).
+function SubmitPill({ submitting, onClick }: { submitting: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} disabled={submitting}
+      className={`group w-full flex items-center justify-between gap-3 h-[52px] rounded-full pl-6 pr-2 text-lead font-semibold transition-[background-color,color,transform] duration-fast focus-ring ${
+        !submitting ? "text-white bg-ir-dark hover:bg-neutral-800 active:scale-[0.98] cursor-pointer" : "bg-ir-dark/80 text-white cursor-wait"
+      }`}>
+      {submitting ? <span className="inline-flex items-center gap-2"><Spinner size={18} />กำลังส่ง…</span> : "ยืนยันและส่งให้ทีม IR Plus"}
+      <span className={`grid w-9 h-9 place-items-center rounded-full transition-transform duration-fast ${!submitting ? "bg-ir-accent text-ir-on-accent group-hover:translate-x-0.5" : "bg-ir-accent/70 text-ir-on-accent"}`}>
+        <IconArrowRight width={24} height={24} />
+      </span>
+    </button>
   );
 }
 

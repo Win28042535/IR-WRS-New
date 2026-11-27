@@ -6,6 +6,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { isLightHex, sheetData } from "@/lib/sheetData";
 import { thaiUnits } from "@/lib/thaiUnits";
+import { ThaiWords } from "@/components/ThaiWords";
 import { COVER_LINE, SHOW_MOODS, headlineChunks, headlineIsLong, headlinePhrases, keepPhraseWhole } from "@/lib/moodboardExport";
 import { chosenThaiFont, previewFamily } from "@/lib/fontCatalog";
 import { useGoogleFont } from "@/lib/useGoogleFont";
@@ -135,7 +136,7 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
               {d.answers.map((a) => (
                 <div key={a.topic} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-4 py-2.5 first:pt-0 last:pb-0">
                   <dt className="text-body text-[#8A8578]">{a.topic}</dt>
-                  <dd className="m-0 text-lead font-semibold">{a.choice}</dd>
+                  <dd className="m-0 text-lead font-semibold"><ThaiWords text={a.choice} /></dd>
                 </div>
               ))}
             </dl>

@@ -1,7 +1,7 @@
 "use client";
 // ── Structure step: pick + order homepage sections (production WRS #story DNA) ──────
 //   recommendation — first visit fills the outline with the top recommended sections (≤5);
-//                         a note says so, with "ใช้ชุดที่ AI แนะนำ" once they edit it
+//                         a note says so, with "↺ กลับเป็นค่าแนะนำ" once they edit it
 //   sources (left)     — "แนะนำสำหรับคุณ" (the top picks, no extra tag) then "เพิ่มได้"; the
 //                         "+" disc turns into the black rank number once the section is in
 //   outline (right)    — "หน้าแรก · เรียงจากบนลงล่าง" n/max: dashed empty slots, filled rows (bold,
@@ -30,6 +30,8 @@ const MAX_OPT = 8;
 // The header / hero and footer rows ("ระบบจัดให้") are hidden (23 Nov 2026): they are fixed,
 // so they only added noise. Still saved with the homepage, so the summary is unchanged.
 const SHOW_FIXED_ROWS = false;
+/** "ล้างทั้งหมด" next to the reset (off 27 Nov 2026): one reset button only; single sections come off with their ×. */
+const SHOW_CLEAR_ALL = false;
 const MIN_OPT = Math.max(1, RULES.sections.min - REQUIRED_SECTION_IDS.length);
 // "เพิ่มส่วนอื่น" groups, in this order (19 Nov 2026): investor info first, then the core
 // structure, then any other category after them (unknown ones land at the end too).
@@ -302,10 +304,10 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             {!isRecommended && recList.length > 0 && (
               <button type="button" onClick={resetToRec}
                 className="inline-flex h-11 items-center rounded-full bg-white px-3 text-caption font-semibold text-ir-t1 transition-colors hover:bg-ir-accent focus-ring">
-                ✦ ใช้ชุดที่ AI แนะนำ
+                ↺ กลับเป็นค่าแนะนำ
               </button>
             )}
-            {optional.length > 0 && (
+            {SHOW_CLEAR_ALL && optional.length > 0 && (
               <button type="button" onClick={() => commit([])}
                 className="inline-flex h-11 items-center rounded-full px-3 text-caption font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-ring">
                 ล้างทั้งหมด

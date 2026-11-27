@@ -18,6 +18,7 @@
 // Corners follow the app's radius scale (globals.css): panels 12px, tiles 8px, small 6px —
 // inside a sheet with 8px corners, the earlier 20-24px read too soft.
 import type { CSSProperties, ReactNode } from "react";
+import { ThaiWords } from "@/components/ThaiWords";
 import { BODY_FONT, isLightHex } from "@/lib/sheetData";
 import { useGoogleFont } from "@/lib/useGoogleFont";
 import { BOARD_SAMPLE, NEUTRALS, SHOW_MOODS, SHOW_SAMPLE_PAGE, tintSteps, type SheetData } from "@/lib/moodboardExport";
@@ -273,7 +274,7 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
                 {d.answers.map((a) => (
                   <div key={a.topic} className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-baseline gap-3 py-2">
                     <dt className={`text-small leading-snug ${MUTED}`}>{a.topic}</dt>
-                    <dd className="m-0 text-small font-semibold leading-snug">{a.choice}</dd>
+                    <dd className="m-0 text-small font-semibold leading-snug"><ThaiWords text={a.choice} /></dd>
                   </div>
                 ))}
               </dl>
