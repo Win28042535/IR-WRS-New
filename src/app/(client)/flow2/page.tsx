@@ -1609,7 +1609,22 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const [noteEditing, setNoteEditing] = useState<string | null>(null);
   // closing the item sheet rings that tile again: on a phone the sheet covered the gallery
   // while the add was confirmed
-  const closeSheet = () => { const id = noteEditing; setNoteEditing(null); if (id) ringTile(id); };
+  // A new item waits behind its sheet (28 Nov 2026: the tile, the counter and the toast all
+  // fired while the sheet was opening, so nobody saw the add). It is saved at once but only
+  // shows in the gallery and counters once the sheet is closed with "เสร็จ".
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const pendingToast = useRef<(() => void) | null>(null);
+  const closeSheet = () => {
+    const id = noteEditing;
+    setNoteEditing(null);
+    if (!id) return;
+    if (id === pendingId) {
+      setPendingId(null);
+      flashNew(id);
+      pendingToast.current?.();
+      pendingToast.current = null;
+    } else ringTile(id);
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1808,11 +1823,12 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
       setUrls(next);
       setUrlInput("");
       syncToDraft(next, images);
-      flashNew(id);
+      setPendingId(id);
       setNoteEditing(id);
       // Floating preview (all widths) — shows the actual favicon-style swatch rather than
       // a bare checkmark, so it's a genuine visual preview, not only a confirmation message.
-      useFloatingPreview.getState().show(
+      // Shown when the sheet closes, with the tile.
+      pendingToast.current = () => useFloatingPreview.getState().show(
         <span className="w-full h-full flex items-center justify-center" style={{ background: URL_THUMB_THEMES[0] }}>
           {isVideoUrl(value) ? <span className="text-[9px] text-white">▶</span> : <IconGlobe width={11} height={11} className="text-white/80" />}
         </span>,
@@ -1853,6 +1869,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
     setUploadError("");
+    const single = files.length === 1;
     Array.from(files).forEach((file) => {
       const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
       // video files can't be kept here (answers stay in this browser): point to a link instead
@@ -1874,11 +1891,10 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           return nextImages;
         });
         syncToDraft(urls, nextImages);
-        flashNew(newImg.id);
         setNoteEditing(newImg.id);
         // Floating preview (all widths) — an actual thumbnail crop of the uploaded image,
         // the clearest possible confirmation of what just got added.
-        useFloatingPreview.getState().show(
+        const toast = () => useFloatingPreview.getState().show(
           isPdf
             ? <span className="w-full h-full grid place-items-center bg-red-50 text-[9px] font-bold text-red-700">PDF</span>
             // eslint-disable-next-line @next/next/no-img-element
@@ -1886,6 +1902,8 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           isPdf ? "เพิ่มเอกสารแล้ว" : "เพิ่มรูปภาพแล้ว",
           file.name
         );
+        if (single) { setPendingId(newImg.id); pendingToast.current = toast; }
+        else { flashNew(newImg.id); toast(); }
       };
       reader.readAsDataURL(file);
     });
@@ -1922,7 +1940,10 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
     handleFiles(e.dataTransfer.files);
   };
 
-  const total = urls.length + images.length;
+  // the item still behind its sheet isn't counted or shown yet
+  const shownUrls = pendingId ? urls.filter((u) => u.id !== pendingId) : urls;
+  const shownImages = pendingId ? images.filter((img) => img.id !== pendingId) : images;
+  const total = shownUrls.length + shownImages.length;
   // examples box: a hand toggle wins (remembered per browser); otherwise open until something is added
   const examplesId = useId();
   const [examplesPref, setExamplesPref] = useState<boolean | null>(() => {
@@ -1969,8 +1990,8 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
           <div className="flex items-baseline gap-2">
             <SectionLabel>{ci ? "แนบลิงก์" : "เว็บไซต์หรือวิดีโอที่ชอบ"}</SectionLabel>
             <span className="whitespace-nowrap text-small text-ir-t3">(ไม่บังคับ)</span>
-            <span role="status" className={`ml-auto inline-flex h-6 shrink-0 self-baseline items-center rounded-full px-2 text-caption font-semibold leading-none tabular-nums ${urls.length ? "bg-ir-accent-soft text-ir-accent-text" : "bg-ir-muted text-ir-t2"}`}>
-              {urls.length}/{MAX_REFERENCE_URLS} ลิงก์
+            <span role="status" className={`ml-auto inline-flex h-6 shrink-0 self-baseline items-center rounded-full px-2 text-caption font-semibold leading-none tabular-nums ${shownUrls.length ? "bg-ir-accent-soft text-ir-accent-text" : "bg-ir-muted text-ir-t2"}`}>
+              {shownUrls.length}/{MAX_REFERENCE_URLS} ลิงก์
             </span>
           </div>
           <div
@@ -2060,19 +2081,20 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
             confirm success, so the gallery itself is the "yes, that landed" surface, no separate
             teaser needed. Desktop: unchanged, after Upload. ── */}
         <div className="order-2 md:order-3">
-          {total > 0 && (
-            <div className="mb-6 md:mb-0">
+          {(total > 0 || noteEditing) && (
+            <div className={total > 0 ? "mb-6 md:mb-0" : ""}>
+              {total > 0 && <>
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-small font-semibold text-ir-t2">เพิ่มแล้ว</span>
                 <span className={`text-small font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {urls.map((u, i) => (
+                {shownUrls.map((u, i) => (
                   <div
                     key={u.id}
                     data-ref-tile={u.id}
                     className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${u.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 72, height: 72, order: rankOf.get(u.id), animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    style={{ width: 96, height: 96, order: rankOf.get(u.id), animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     <div
                       className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 pb-6 text-center"
@@ -2080,8 +2102,8 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                     >
                       {isVideoUrl(u.value)
                         ? <span aria-label="วิดีโอ" className="grid h-5 w-5 place-items-center rounded-full bg-white/90 text-[9px] text-ir-t1">▶</span>
-                        : <IconGlobe width={12} height={12} className="text-white/70" />}
-                      <span className="text-white text-[8px] font-medium truncate max-w-full px-1">{isVideoUrl(u.value) && !isDriveUrl(u.value) ? "วิดีโอ · " : ""}{linkLabel(u.value)}</span>
+                        : <IconGlobe width={16} height={16} className="text-white/70" />}
+                      <span className="text-white text-[10px] font-medium truncate max-w-full px-1">{isVideoUrl(u.value) && !isDriveUrl(u.value) ? "วิดีโอ · " : ""}{linkLabel(u.value)}</span>
                     </div>
                     {/* No per-tile checkmark — every tile in this gallery is, by definition,
                         already added (that's what the "เพิ่มแล้ว N" header above it means),
@@ -2118,17 +2140,17 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                     </button>
                   </div>
                 ))}
-                {images.map((img) => (
+                {shownImages.map((img) => (
                   <div
                     key={img.id}
                     data-ref-tile={img.id}
                     className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${img.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 72, height: 72, order: rankOf.get(img.id), animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    style={{ width: 96, height: 96, order: rankOf.get(img.id), animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     {img.kind === "pdf" ? (
                       <span className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50 px-1 text-center select-none">
                         <span className="rounded-xs bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white">PDF</span>
-                        <span className="w-full truncate text-[8px] font-medium text-red-900">{img.name}</span>
+                        <span className="w-full truncate text-[10px] font-medium text-red-900">{img.name}</span>
                       </span>
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -2164,6 +2186,7 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                   </div>
                 ))}
               </div>
+              </>}
 
               {/* Item sheet (19 Nov 2026): opens right after an add, or on a tile tap. Bottom
                   sheet on phones, centred dialog from sm up: what was added, what they like in
@@ -2175,7 +2198,17 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 if (!editingUrl && !editingImage) return null;
                 const id = noteEditing!;
                 const hasNote = !!((editingUrl ? editingUrl.note : editingImage!.note) || (editingUrl ? editingUrl.likes : editingImage!.likes)?.length || (editingUrl ? editingUrl.noteLinks : editingImage!.noteLinks)?.length);
-                const remove = () => { setNoteEditing(null); if (editingUrl) removeUrl(id); else removeImage(id); };
+                const remove = () => {
+                  setNoteEditing(null);
+                  if (id === pendingId) {
+                    // never shown, so it just goes: no fade, no undo
+                    setPendingId(null); pendingToast.current = null;
+                    const nu = urls.filter((u) => u.id !== id), ni = images.filter((img) => img.id !== id);
+                    setUrls(nu); setImages(ni); syncToDraft(nu, ni);
+                    return;
+                  }
+                  if (editingUrl) removeUrl(id); else removeImage(id);
+                };
                 return (
                   <ItemSheet
                     title={editingUrl ? linkLabel(editingUrl.value) : editingImage!.name}
