@@ -12,11 +12,11 @@ import { isRecommendedHomepage } from "@/components/StructureBuilder";
  *  client chose from one they clicked through. */
 export function acceptedSuggestions(r: Requirement): string {
   const kept = [
-    audienceIsSuggested(r) && "กลุ่มผู้อ่าน",
+    audienceIsSuggested(r) && "กลุ่มผู้ชม",
     goalsAreSuggested(r) && "เป้าหมาย",
     isRecommendedHomepage(r) && "หน้าแรก",
   ].filter(Boolean);
-  if (kept.length === 3) return "รับตามที่แนะนำทุกข้อ (กลุ่มผู้อ่าน · เป้าหมาย · หน้าแรก)";
+  if (kept.length === 3) return "รับตามที่แนะนำทุกข้อ (กลุ่มผู้ชม · เป้าหมาย · หน้าแรก)";
   return kept.length ? `รับตามที่แนะนำ: ${kept.join(" · ")} · ข้ออื่นลูกค้าปรับเอง` : "ลูกค้าปรับเองทุกข้อ";
 }
 

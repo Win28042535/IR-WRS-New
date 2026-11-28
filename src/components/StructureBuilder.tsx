@@ -13,7 +13,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import {
-  BUSINESS_GOALS, GOAL_SECTIONS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, SECTION_BLURB, IR_HOMEPAGE_ORDER, OTHER_PAGE_SECTION_IDS, TRAILING_REQUIRED_IDS,
+  BUSINESS_GOALS, GOAL_SECTIONS, HOMEPAGE_PATTERNS, LEADING_REQUIRED_IDS, REQUIRED_SECTION_IDS, RETIRED_SECTION_IDS, RULES, SECTIONS, SECTION_BLURB, IR_HOMEPAGE_ORDER, OTHER_PAGE_SECTION_IDS, TRAILING_REQUIRED_IDS,
   audienceById, directionById, sectionById,
 } from "@/lib/data";
 import { profileToDirection, rankDirections } from "@/lib/recommend";
@@ -76,14 +76,21 @@ export function homepageRecommendation(draft: Requirement): { list: string[]; re
   };
   const pool = [...goalSuggested, ...(aud?.prioritizes ?? []), ...dirSuggested.slice(0, 6)]
     .filter((id) => !REQUIRED_SECTION_IDS.includes(id) && !RETIRED_SECTION_IDS.includes(id) && !OTHER_PAGE_SECTION_IDS.includes(id) && sectionById(id));
+  // The fixed five from the team's two standard layouts (28 Nov 2026), picked by Explore Q3;
+  // the audience / goal / Direction ranking below stays as the fallback if a pattern is empty.
+  const q3 = draft.quizPicks?.find((p) => p.questionId === "q3")?.letter;
+  const pattern = HOMEPAGE_PATTERNS[q3 === "B" ? "B" : "A"];
+  const fromPattern = pattern.sections.filter((id) => !RETIRED_SECTION_IDS.includes(id) && sectionById(id));
   // Only the top few — tagging every candidate (9–10) read as "pick all of these".
-  const list = [...new Set(pool)].sort((a, b) => pickRank(a) - pickRank(b)).slice(0, REC_MAX).sort((a, b) => pageRank(a) - pageRank(b));
+  const list = fromPattern.length ? fromPattern.slice(0, REC_MAX)
+    : [...new Set(pool)].sort((a, b) => pickRank(a) - pickRank(b)).slice(0, REC_MAX).sort((a, b) => pageRank(a) - pageRank(b));
   const reasons: Record<string, string> = {};
   for (const id of list) {
     const goal = goalIds.find((g) => (GOAL_SECTIONS[g] ?? []).includes(id));
-    if (aud?.prioritizes?.includes(id)) reasons[id] = `ผู้อ่านหลักคือ ${aud.label}`;
+    if (aud?.prioritizes?.includes(id)) reasons[id] = `ผู้ชมหลักคือ ${aud.label}`;
     else if (goal) reasons[id] = `ตอบเป้าหมาย “${BUSINESS_GOALS.find((b) => b.id === goal)?.label ?? goal}”`;
     else if (dir) reasons[id] = `เข้ากับแนวทาง ${dir.label}`;
+    else reasons[id] = pattern.label;
   }
   return { list, reasons };
 }

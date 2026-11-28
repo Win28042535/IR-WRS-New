@@ -96,7 +96,7 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         {/* personality spectrum */}
         {rows.length > 0 && (
-          // Result only: what they chose per topic. The side they didn't pick isn't shown.
+          // Result only: what they chose per topic, without the topic name (user test, 28 Nov 2026). The side they didn't pick isn't shown.
           <Block label="บุคลิกที่คุณเลือก" className="md:col-span-2">
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
               {rows.map((r) => {
@@ -105,7 +105,6 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
                   <li key={r.axis} className="flex min-w-0 items-center gap-2 rounded-md border border-ir-select-soft bg-ir-accent-soft/60 px-2.5 py-2 sm:gap-2.5 sm:px-3">
                     <span className="ir-grad-fill h-2.5 w-2.5 shrink-0 rounded-full" aria-hidden="true" />
                     <span className="min-w-0">
-                      <span className="block text-caption text-ir-t3">{r.topic}</span>
                       <span className="block text-small font-semibold leading-snug text-ir-t1">{result}</span>
                     </span>
                   </li>

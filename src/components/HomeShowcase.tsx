@@ -15,7 +15,7 @@ import { ExploreMock } from "@/components/ExploreMock";
 const SAMPLE: { dir: string; picks: Record<"q1" | "q2" | "q3" | "q4" | "q5", "A" | "B"> } = { dir: "premium-corporate", picks: { q1: "B", q2: "B", q3: "B", q4: "B", q5: "B" } };
 // the sections a client picks, in the standard IR order the homepage step uses (the opening
 // and the menu are added by the system, so they aren't in this list)
-const SAMPLE_SECTIONS = ["ข้อมูลหลักทรัพย์", "ข้อมูลสำคัญทางการเงิน", "ปฏิทินกิจกรรม", "เอกสารนักลงทุน"];
+const SAMPLE_SECTIONS = ["ข้อมูลหลักทรัพย์", "ข้อมูลสำคัญทางการเงิน", "ปฏิทินกิจกรรม", "เอกสารสำหรับนักลงทุน"];
 
 // Motion (globals.css .mb-*): tiles assemble on a diagonal (--d), each plays its content
 // once (--j). Hover lifts the tile and names the step that produces it.
@@ -124,8 +124,7 @@ export function Moodboard({ company }: { company: string }) {
               return (
                 <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
                   <span className="mb-swatch h-7 w-10 shrink-0 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
-                  <span className="mb-item min-w-0 flex-1 truncate text-small text-ir-t2">{q.topic}</span>
-                  <span className="mb-item shrink-0 text-small font-semibold text-ir-t1">{opt.label}</span>
+                  <span className="mb-item min-w-0 flex-1 truncate text-small font-semibold text-ir-t1">{opt.label}</span>
                   <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-caption font-bold text-ir-accent-text">{pick}</span>
                 </li>
               );
@@ -134,7 +133,7 @@ export function Moodboard({ company }: { company: string }) {
         </Tile>
 
         {/* Who it is for */}
-        <Tile label="ผู้อ่านหลัก · เป้าหมาย" step={3} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
+        <Tile label="ผู้ชมหลัก · เป้าหมาย" step={3} d={3} className="col-span-1 md:col-span-3 lg:col-span-4">
           <p className="mb-item text-lead font-semibold leading-tight text-ir-t1">{audience.label}</p>
           <p className="mb-item mt-1 text-small leading-snug text-ir-t3" style={v({ j: 1 })}>{audience.shapes}</p>
           <ul className="mt-3 grid gap-1.5">
@@ -302,7 +301,7 @@ function MockDeliver() {
 const STEPS_INFO: { mock: () => ReactNode; todo: string; how: string; optional?: boolean }[] = [
   { mock: MockUnderstand, todo: "บอกชื่อบริษัท และลิงก์เว็บไซต์ปัจจุบัน (ถ้ามี)", how: "พิมพ์" },
   { mock: MockBrand, todo: "เลือกใช้สีและฟอนต์เดิมจากเว็บไซต์ หรือให้ทีมเสนอใหม่", how: "เลือก" },
-  { mock: MockAudience, todo: "เลือกว่าใครจะเข้ามาดูเว็บไซต์ เรียงจากกลุ่มที่สำคัญที่สุด", how: "เลือกจากรายการ" },
+  { mock: MockAudience, todo: "เลือกกลุ่มผู้ชมบนเว็บไซต์ของคุณ เรียงจากกลุ่มที่สำคัญที่สุด", how: "เลือกจากรายการ" },
   { mock: MockDefine, todo: "เลือกสิ่งที่เว็บไซต์ต้องทำได้", how: "เลือกจากรายการ" },
   { mock: MockExplore, todo: "ตอบ 5 ข้อ เลือกภาพ A หรือ B แล้วกดข้อถัดไป", how: "เลือกจากภาพ" },
   { mock: MockStructure, todo: "ตรวจหน้าแรกที่ AI จัดให้ กดใช้ได้เลย หรือปรับก่อน", how: "AI จัดให้" },
@@ -411,7 +410,7 @@ type Geo = { s: { x: number; y: number }[]; e: { x: number; y: number }[] };
 export function BriefFlow() {
   const d = DIRECTIONS.find((x) => x.id === SAMPLE.dir)!;
   const pair = FONT_PAIRINGS[SAMPLE.dir];
-  const audiences = ["institutional", "analyst", "retail"].map((id) => IR_AUDIENCES.find((a) => a.id === id)!);
+  const audiences = ["shareholder", "potential", "retail"].map((id) => IR_AUDIENCES.find((a) => a.id === id)!);
   const goals = BUSINESS_GOALS.filter((g) => !g.hidden).slice(0, 3);
   const picks = Object.values(SAMPLE.picks);
 
@@ -478,7 +477,7 @@ export function BriefFlow() {
   const inputs: { name: string; q: string; body: ReactNode; token: string }[] = [
     { name: FLOW_STEPS[1], q: "สีและฟอนต์ของแบรนด์ (CI)", token: "CI เดิม",
       body: <div className="flex flex-wrap gap-1"><DarkChip on>ใช้ CI เดิม</DarkChip><DarkChip>ให้ทีมเสนอใหม่</DarkChip></div> },
-    { name: FLOW_STEPS[2], q: "ใครคือผู้อ่านหลัก", token: audiences[0].label,
+    { name: FLOW_STEPS[2], q: "ใครคือผู้ชมหลัก", token: audiences[0].label,
       body: <div className="flex flex-wrap gap-1">{audiences.map((a, j) => <DarkChip key={a.id} n={j + 1}>{a.label}</DarkChip>)}</div> },
     { name: FLOW_STEPS[3], q: "เว็บไซต์ต้องทำอะไรได้", token: "2 เป้าหมาย",
       body: <div className="flex flex-wrap gap-1">{goals.map((g, j) => <DarkChip key={g.id} on={j < 2}>{g.label}</DarkChip>)}</div> },
@@ -495,7 +494,7 @@ export function BriefFlow() {
         <span className="text-[11px] text-ir-t2">จากเว็บไซต์เดิม</span>
       </div>
     ) },
-    { label: "ผู้อ่านหลัก", body: (
+    { label: "ผู้ชมหลัก", body: (
       <div>
         <p className="text-body font-semibold text-ir-t1">{audiences[0].label}</p>
         <div className="mt-2 grid gap-1.5">

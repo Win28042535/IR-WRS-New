@@ -760,12 +760,12 @@ function S2Audience({ go, draft, updateDraft, addNotebookEntry }: any) {
 
   return (
     <>
-      <Head n={3} title="ใครจะเข้ามาดูเว็บไซต์" sub="เรียงจากกลุ่มที่สำคัญที่สุด" />
+      <Head n={3} title="เลือกกลุ่มผู้ชมบนเว็บไซต์ของคุณ" sub="เรียงจากกลุ่มที่สำคัญที่สุด" />
       {/* Audience who the IR site speaks to — one flat multi-select, every
           card behaves the same way so nothing has to be picked "first" */}
-      <SuggestedBar suggested={suggested} onUse={useSuggested} count={selectedAudiences.length} max={IR_AUDIENCES.length} unit="กลุ่ม" what="กลุ่มผู้อ่าน" nextLabel="ใช้ชุดนี้" />
+      <SuggestedBar suggested={suggested} onUse={useSuggested} count={selectedAudiences.length} max={IR_AUDIENCES.length} unit="กลุ่ม" what="กลุ่มผู้ชม" nextLabel="ใช้ชุดนี้" />
       <div id="audience-field" className="scroll-mt-28">
-        {audienceErr && <FieldError>เลือกกลุ่มผู้อ่านอย่างน้อย 1 กลุ่ม</FieldError>}
+        {audienceErr && <FieldError>เลือกกลุ่มผู้ชมอย่างน้อย 1 กลุ่ม</FieldError>}
         <RankPicker
           items={AUDIENCE_LIST.map((aud) => ({ id: aud.id, label: aud.label, desc: aud.desc, icon: OPTION_ICONS[aud.id] }))}
           selected={selectedAudiences}
@@ -991,8 +991,7 @@ function S2quiz({ q, idx, total, onAnswer, onBack, addTimelineEntry, addNotebook
         </div>
         <span className="font-mono text-small text-ir-t3 shrink-0 tabular-nums">ข้อ {idx + 1}/{total}</span>
       </div>
-      <p className="text-center text-body font-semibold text-ir-accent-text">{idx + 1} {q.topic}</p>
-      <p className="text-center text-heading font-semibold tracking-[-0.02em] text-ir-t1 mt-1.5 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
+      <p className="text-center text-heading font-semibold tracking-[-0.02em] text-ir-t1 mb-6 leading-snug" style={{ textWrap: "balance" } as CSSProperties}>{q.question}</p>
       {/* Always two-up, even on phones, so A and B are compared side by side — stacking
           them pushed B below the fold and biased answers toward A. */}
       <div id="quiz-options" className="grid scroll-mt-28 grid-cols-2 gap-2 sm:gap-4">
@@ -1136,7 +1135,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                     </div>
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
-                    <p className="text-small text-ir-t3 truncate">ข้อ {i + 1} · {q.topic}</p>
+                    <p className="text-small text-ir-t3 truncate">ข้อ {i + 1}</p>
                     <p className="text-body font-semibold leading-snug text-ir-t1"><ThaiWords text={o.label} /></p>
                   </div>
                 </li>

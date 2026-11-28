@@ -28,7 +28,8 @@ export const TRAILING_REQUIRED_IDS = ["footer"];
 export const REQUIRED_SECTION_IDS = [...LEADING_REQUIRED_IDS, ...TRAILING_REQUIRED_IDS];
 // Not offered on the homepage step any more: "CTA หรือ Section อื่นๆ" became a free "หมายเหตุ"
 // note (user test #1 — they wanted to jot extra needs, not pick a section type).
-export const RETIRED_SECTION_IDS = ["cta"];
+// "บทวิเคราะห์" (analyst) off the list too (user test, 28 Nov 2026).
+export const RETIRED_SECTION_IDS = ["cta", "analyst"];
 
 // One plain line per homepage section: what it is, for clients who don't know the IR terms.
 // Shown under the name on the homepage step (picks and outline).
@@ -38,6 +39,12 @@ export const IR_HOMEPAGE_ORDER = [
   "ir-info", "financial", "ir-calendar", "reports", "shareholder-info", "analyst",
   "about", "chairman-message", "history", "board", "sustainability", "governance", "contact",
 ];
+// The AI's homepage: five sections in one of two standard IR layouts the team builds
+// (28 Nov 2026). Explore Q3 picks which: "เล่าเรื่อง" → A, "เน้นข้อมูล" → B.
+export const HOMEPAGE_PATTERNS = {
+  A: { label: "รู้จักบริษัทและติดตามข้อมูลลงทุน", sections: ["ir-info", "about", "financial", "reports", "ir-calendar"] },
+  B: { label: "เข้าถึงข้อมูลลงทุนโดยตรง", sections: ["ir-info", "financial", "reports", "ir-calendar", "contact"] },
+} as const;
 // Usually their own page on an IR site, not on the homepage: still addable, never proposed.
 export const OTHER_PAGE_SECTION_IDS = ["history", "board", "governance", "analyst"];
 
@@ -231,8 +238,8 @@ export const SECTIONS: SectionDef[] = [
 
   // ── Investor / ข้อมูลนักลงทุน ──
   { id: "ir-calendar", name: "ปฏิทินกิจกรรม และข่าวสารล่าสุด", category: "Investor", desc: "กิจกรรม IR และข่าวสารใหม่", popular: true, icon: "🗓️", businessPurpose: "ประกาศกิจกรรมล่วงหน้า ผลประกอบการ AGM Analyst Meeting พร้อมข่าวสารล่าสุดสำหรับนักลงทุน", example: "Q4/67 Results · AGM 2568 · Roadshow · ข่าวล่าสุด" },
-  { id: "reports", name: "เอกสารนักลงทุน / IR Documents", category: "Investor", desc: "รายงานและเอกสาร IR สำหรับดาวน์โหลด", popular: true, icon: "📄", businessPurpose: "ดาวน์โหลด Annual Report, 56-1 One Report, Analyst Presentation และเอกสาร IR ตามข้อกำหนด SEC", example: "Annual Report 2024 · 56-1 · Proxy · Analyst Presentation" },
-  { id: "financial", name: "ข้อมูลสำคัญทางเงิน / Financial Highlights", category: "Investor", desc: "ตัวเลขการเงินและ KPI สำคัญ", popular: true, icon: "📈", businessPurpose: "นำเสนอข้อมูลการเงินที่สำคัญสำหรับนักลงทุน Revenue, EPS, Dividend และ Financial Ratio เข้าถึงได้ทันที", example: "Revenue 2024 · ROE · DPS · EPS · P/E Ratio" },
+  { id: "reports", name: "เอกสารสำหรับนักลงทุน / IR Documents", category: "Investor", desc: "รายงานและเอกสาร IR สำหรับดาวน์โหลด", popular: true, icon: "📄", businessPurpose: "ดาวน์โหลด Annual Report, 56-1 One Report, Analyst Presentation และเอกสาร IR ตามข้อกำหนด SEC", example: "Annual Report 2024 · 56-1 · Proxy · Analyst Presentation" },
+  { id: "financial", name: "ข้อมูลสำคัญทางการเงิน / Financial Highlights", category: "Investor", desc: "ตัวเลขการเงินและ KPI สำคัญ", popular: true, icon: "📈", businessPurpose: "นำเสนอข้อมูลการเงินที่สำคัญสำหรับนักลงทุน Revenue, EPS, Dividend และ Financial Ratio เข้าถึงได้ทันที", example: "Revenue 2024 · ROE · DPS · EPS · P/E Ratio" },
   { id: "ir-info", name: "ข้อมูลหลักทรัพย์ / Stock Information", category: "Investor", desc: "ราคาหุ้น SET และข้อมูลหลักทรัพย์", icon: "💹", businessPurpose: "ข้อมูล IR ทั่วไป รวมราคาหุ้น Real-time ข้อมูลหลักทรัพย์ และศูนย์กลางข้อมูลสำหรับนักลงทุน", example: "SET Ticker · Volume · Market Cap · IR Contacts" },
   { id: "shareholder-info", name: "ข้อมูลผู้ถือหุ้น / Shareholder Info", category: "Investor", desc: "โครงสร้างผู้ถือหุ้นและสิทธิประโยชน์", icon: "🤝", businessPurpose: "แสดงโครงสร้างผู้ถือหุ้น ปันผล สิทธิ AGM และข้อมูลสิทธิประโยชน์สำหรับผู้ถือหุ้น", example: "Major Shareholders · Dividend History · AGM Rights" },
 
@@ -323,19 +330,19 @@ export interface AudienceDef {
 }
 
 export const IR_AUDIENCES: AudienceDef[] = [
+  { id: "shareholder", label: "ผู้ถือหุ้นปัจจุบัน", emoji: "🤝", desc: "ผู้ถือหุ้นที่ลงทุนอยู่แล้ว", shapes: "เน้นข่าวสาร ปันผล การประชุมผู้ถือหุ้น และสิทธิประโยชน์", prioritizes: ["ir-calendar", "financial", "shareholder-info", "contact"] },
+  { id: "potential", label: "นักลงทุนที่สนใจ", emoji: "🌱", desc: "ผู้ที่กำลังพิจารณาลงทุน", shapes: "เน้นสร้างความน่าเชื่อถือ วิสัยทัศน์ การเติบโต และโอกาส", prioritizes: ["about", "history", "financial", "chairman-message"] },
   { id: "retail", label: "นักลงทุนรายย่อย", emoji: "👤", desc: "นักลงทุนบุคคลทั่วไป ผู้ถือหุ้นรายย่อย", shapes: "เน้นเข้าใจง่าย เล่าเรื่องชัด สรุปตัวเลขสำคัญแบบไม่ซับซ้อน", prioritizes: ["financial", "ir-calendar", "ir-info", "shareholder-info"] },
   { id: "institutional", label: "นักลงทุนสถาบัน", emoji: "🏛️", desc: "กองทุน สถาบันการเงิน ผู้ถือหุ้นรายใหญ่", shapes: "เน้นข้อมูลเชิงลึก ตัวเลขครบ ดาวน์โหลดเอกสารได้ครบถ้วน", prioritizes: ["financial", "reports", "shareholder-info", "ir-info"] },
   { id: "analyst", label: "นักวิเคราะห์", emoji: "📊", desc: "Sell-side / Buy-side analysts นักวิเคราะห์หลักทรัพย์", shapes: "เน้น Data density สูง ตาราง KPI Historical data และ Presentation", prioritizes: ["financial", "analyst", "reports", "ir-calendar", "ir-info"] },
   { id: "regulator", label: "ผู้กำกับดูแล", emoji: "⚖️", desc: "SET, ก.ล.ต. และหน่วยงานกำกับ", shapes: "เน้นความโปร่งใส ธรรมาภิบาล และการเปิดเผยตามข้อกำหนด", prioritizes: ["governance", "reports", "board", "financial"] },
-  { id: "shareholder", label: "ผู้ถือหุ้นปัจจุบัน", emoji: "🤝", desc: "ผู้ถือหุ้นที่ลงทุนอยู่แล้ว", shapes: "เน้นข่าวสาร ปันผล การประชุมผู้ถือหุ้น และสิทธิประโยชน์", prioritizes: ["ir-calendar", "financial", "shareholder-info", "contact"] },
-  { id: "potential", label: "นักลงทุนที่สนใจ", emoji: "🌱", desc: "ผู้ที่กำลังพิจารณาลงทุน", shapes: "เน้นสร้างความน่าเชื่อถือ วิสัยทัศน์ การเติบโต และโอกาส", prioritizes: ["about", "history", "financial", "chairman-message"] },
 ];
 
 // ── Suggested answers (user test, 24 Nov 2026: "อะไรแนะนำได้ ให้แนะนำ ลดการคิด") ──
 // The audience and goal steps open with these already picked, in this order, like the
 // homepage step opens with the AI's set. The client accepts with one click or edits.
 // What most IR sites put first; to be tuned from real requirement sessions.
-export const SUGGESTED_AUDIENCES = ["institutional", "analyst", "retail"];
+export const SUGGESTED_AUDIENCES = ["shareholder", "potential", "retail"];
 export const SUGGESTED_GOALS = ["ir", "credibility", "compliance"];
 const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 export function audienceIsSuggested(r: { primaryAudience?: string; secondaryAudiences?: string[] }) {
@@ -412,7 +419,7 @@ export const QUIZ: QuizQuestion[] = [
     optionB: { label: "เป็นทางการ น่าเชื่อถือ", desc: "Formal", value: 1, preview: "linear-gradient(135deg,#0D1B4B,#1A2E6B)", mock: "q1-b", hint: "ใช้ภาษาสุภาพ จัดวางเป็นระเบียบ ดูน่าเชื่อถือแบบองค์กรใหญ่" },
   },
   {
-    id: "q2", topic: "โทนสีของเว็บ", question: "คุณชอบโทนสีพื้นหลังของเว็บแบบไหน?", axis: "contrastDark",
+    id: "q2", topic: "โทนสีของเว็บ", question: "คุณชอบโทนสีของเว็บแบบไหน?", axis: "contrastDark",
     optionA: { label: "โทนสว่าง", desc: "Light", value: -1, preview: "linear-gradient(135deg,#F5F8FF,#E4E6E9)", mock: "q2-a", hint: "พื้นขาวหรือสีอ่อน ดูสะอาด อ่านนานไม่ล้าตา" },
     optionB: { label: "โทนเข้ม", desc: "Dark", value: 1, preview: "linear-gradient(135deg,#03041C,#0D0D2A)", mock: "q2-b", hint: "พื้นสีเข้ม ดูหรูหรา ตัวเลขและภาพเด่นขึ้น" },
   },
