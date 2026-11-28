@@ -132,7 +132,7 @@ export function sheetData(draft: any): SheetData {
     supportMoods: c.supportMoods,
     answers: picks.flatMap((p) => {
       const q = QUIZ.find((x) => x.id === p.questionId);
-      return q ? [{ topic: `ข้อ ${QUIZ.indexOf(q) + 1}`, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
+      return q ? [{ n: QUIZ.indexOf(q) + 1, question: q.question, choice: (p.letter === "A" ? q.optionA : q.optionB).label }] : [];
     }),
     ownPending: c.ownPending,
     colorSource: c.keepOwn ? "ชุดสีเดิมของแบรนด์" : "ชุดสีตัวอย่างที่เข้ากับแนวทาง · สรุปอีกครั้งเมื่อคุยรายละเอียด",

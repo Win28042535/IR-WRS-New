@@ -268,13 +268,16 @@ export function MoodboardTiles({ d, headline, watermark, glow }: { d: SheetData;
           <div className={`${CARD} p-4 @2xl:p-5`}>
             <Label>คำตอบของคุณ</Label>
             {d.answers.length ? (
-              // one answer a row, divided by hairlines: topic muted on the left, the answer on the
-              // right, every answer starting on the same line so both sides read straight down
+              // one answer a block, divided by hairlines: the question muted, the answer strong
+              // under it (28 Nov 2026: a question beside its answer wrapped badly in a half card)
               <dl className="mt-2 divide-y divide-black/[0.08]">
                 {d.answers.map((a) => (
-                  <div key={a.topic} className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-baseline gap-3 py-2">
-                    <dt className={`text-small leading-snug ${MUTED}`}>{a.topic}</dt>
-                    <dd className="m-0 text-small font-semibold leading-snug"><ThaiWords text={a.choice} /></dd>
+                  <div key={a.n} className="flex gap-2 py-2">
+                    <span className={`w-3.5 shrink-0 text-small tabular-nums ${MUTED}`}>{a.n}</span>
+                    <div className="min-w-0">
+                      <dt className={`text-small leading-snug text-balance ${MUTED}`}><ThaiWords text={a.question} /></dt>
+                      <dd className="m-0 mt-0.5 text-body font-semibold leading-snug"><ThaiWords text={a.choice} /></dd>
+                    </div>
                   </div>
                 ))}
               </dl>

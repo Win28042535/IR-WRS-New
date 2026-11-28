@@ -133,10 +133,14 @@ export function ProjectOverview({ draft, view = "doc" }: { draft: any; view?: Sh
         <Chapter n="01" title="คำตอบของคุณ">
           {d.answers.length ? (
             <dl className="divide-y divide-black/[0.07]">
+              {/* the question muted, the answer strong under it (28 Nov 2026) */}
               {d.answers.map((a) => (
-                <div key={a.topic} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-4 py-2.5 first:pt-0 last:pb-0">
-                  <dt className="text-body text-[#8A8578]">{a.topic}</dt>
-                  <dd className="m-0 text-lead font-semibold"><ThaiWords text={a.choice} /></dd>
+                <div key={a.n} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                  <span className="w-4 shrink-0 text-body tabular-nums text-[#8A8578]">{a.n}</span>
+                  <div className="min-w-0">
+                    <dt className="text-body leading-snug text-balance text-[#8A8578]"><ThaiWords text={a.question} /></dt>
+                    <dd className="m-0 mt-1 text-lead font-semibold"><ThaiWords text={a.choice} /></dd>
+                  </div>
                 </div>
               ))}
             </dl>

@@ -124,7 +124,10 @@ export function Moodboard({ company }: { company: string }) {
               return (
                 <li key={q.id} className="flex min-w-0 items-center gap-2.5" style={v({ j })}>
                   <span className="mb-swatch h-7 w-10 shrink-0 rounded-sm ring-1 ring-inset ring-black/10" style={{ background: opt.preview }} />
-                  <span className="mb-item min-w-0 flex-1 truncate text-small font-semibold text-ir-t1">{opt.label}</span>
+                  <span className="mb-item min-w-0 flex-1">
+                    <span className="block truncate text-caption text-ir-t3">{q.question}</span>
+                    <span className="block truncate text-small font-semibold text-ir-t1">{opt.label}</span>
+                  </span>
                   <span className="mb-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-ir-accent-soft font-mono text-caption font-bold text-ir-accent-text">{pick}</span>
                 </li>
               );

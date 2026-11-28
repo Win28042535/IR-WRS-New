@@ -9,6 +9,7 @@
 //   motion      — from the "expression" axis
 //   priorities  — ranked audiences and goals
 //   references  — what they said they like about the sites they attached
+import { ThaiWords } from "@/components/ThaiWords";
 import type { ReactNode } from "react";
 import { BUSINESS_GOALS, IR_AUDIENCES, QUIZ, REFERENCE_LIKES, VISUAL_STYLES, directionById, unsplashUrl } from "@/lib/data";
 import { DEFAULT_PAIRING, FONT_PAIRINGS, fontStack } from "@/lib/fonts";
@@ -38,7 +39,7 @@ function spectrum(req: Requirement) {
       }, 0);
       p = (v + qs.length) / (2 * qs.length);
     }
-    return { axis, topic: first.topic, left: neg.label, right: pos.label, pos: p };
+    return { axis, topic: first.topic, question: first.question, left: neg.label, right: pos.label, pos: p };
   });
 }
 
@@ -96,16 +97,17 @@ export function DesignDNACard({ req, className = "" }: { req: Requirement; class
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         {/* personality spectrum */}
         {rows.length > 0 && (
-          // Result only: what they chose per topic, without the topic name (user test, 28 Nov 2026). The side they didn't pick isn't shown.
+          // What they chose per topic, under its question (user test, 28 Nov 2026). The side they didn't pick isn't shown.
           <Block label="บุคลิกที่คุณเลือก" className="md:col-span-2">
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
               {rows.map((r) => {
                 const result = r.pos! < 0.5 ? r.left : r.pos! > 0.5 ? r.right : `กลาง ๆ ระหว่าง ${r.left} กับ ${r.right}`;
                 return (
-                  <li key={r.axis} className="flex min-w-0 items-center gap-2 rounded-md border border-ir-select-soft bg-ir-accent-soft/60 px-2.5 py-2 sm:gap-2.5 sm:px-3">
-                    <span className="ir-grad-fill h-2.5 w-2.5 shrink-0 rounded-full" aria-hidden="true" />
+                  <li key={r.axis} className="flex min-w-0 items-start gap-2 rounded-md border border-ir-select-soft bg-ir-accent-soft/60 px-2.5 py-2 sm:gap-2.5 sm:px-3">
+                    <span className="ir-grad-fill mt-1 h-2.5 w-2.5 shrink-0 rounded-full" aria-hidden="true" />
                     <span className="min-w-0">
-                      <span className="block text-small font-semibold leading-snug text-ir-t1">{result}</span>
+                      <span className="block text-caption leading-snug text-balance text-ir-t3"><ThaiWords text={r.question} /></span>
+                      <span className="mt-0.5 block text-small font-semibold leading-snug text-ir-t1">{result}</span>
                     </span>
                   </li>
                 );

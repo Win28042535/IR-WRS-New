@@ -16,8 +16,8 @@ export type SheetData = {
   taglineSource?: string;
   mainMood?: string;
   supportMoods: string[];
-  /** quiz answers, e.g. { topic: "ความรู้สึกของเว็บ", choice: "เป็นทางการ" } */
-  answers: { topic: string; choice: string }[];
+  /** quiz answers with their question, e.g. { n: 1, question: "อยากให้เว็บสื่อสาร…?", choice: "เป็นทางการ" } */
+  answers: { n: number; question: string; choice: string }[];
   /** true → the team takes colours from the client's site / logo; no swatches shown */
   ownPending: boolean;
   ciSite?: string;
@@ -526,9 +526,9 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
   // no boxes, no highlighted row (they read as something to pick)
   section(SHOW_SAMPLE_PAGE ? "04" : "03", "คำตอบและหน้าแรก");
   {
-    const w2 = (CW - G) / 2, RH = 56;
+    const w2 = (CW - G) / 2, RH = 56, RA = 86; // answer rows hold the question over the answer
     const names = d.sections.map((n) => n.split(" / ")[0]);
-    const aH = 70 + Math.max(1, d.answers.length) * RH + 14;
+    const aH = 70 + Math.max(1, d.answers.length) * RA + 14;
     const hH = 70 + Math.max(1, names.length) * RH + 14;
     const H = Math.max(aH, hH);
     const rule = (x: number, yy: number) => { ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.fillRect(x + 28, yy, w2 - 56, 2); };
@@ -536,10 +536,11 @@ function drawBoard(ctx: CanvasRenderingContext2D, d: SheetData, top: number, img
     label("คำตอบของคุณ", M + 28, y + 46);
     const vx = M + 28 + Math.round((w2 - 56) * 0.53);
     if (d.answers.length) d.answers.forEach((a, i) => {
-      const ry = y + 70 + i * RH;
+      const ry = y + 70 + i * RA;
       if (i) rule(M, ry);
-      font(400, 23); text(wrap(ctx, a.topic, vx - M - 44, 1)[0] ?? "", M + 28, ry + 37, MUTED);
-      font(600, 24); text(wrap(ctx, a.choice, M + w2 - 28 - vx, 1)[0] ?? "", vx, ry + 37);
+      font(500, 20); text(String(a.n), M + 28, ry + 34, MUTED);
+      font(400, 21); text(wrap(ctx, a.question, w2 - 100, 1)[0] ?? "", M + 56, ry + 34, MUTED);
+      font(600, 25); text(wrap(ctx, a.choice, w2 - 100, 1)[0] ?? "", M + 56, ry + 68);
     });
     else { font(400, 26); text("ยังไม่ได้ตอบคำถามสำรวจแนวทาง", M + 28, y + 100, MUTED); }
     const x = M + w2 + G;
@@ -684,14 +685,16 @@ export async function renderMoodboard(d: SheetData, view: SheetView = "doc"): Pr
     y += 30;
   };
 
-  // 01 answers — one row each: topic muted, choice strong
+  // 01 answers — one block each: the question muted, the answer strong under it
   chapter("01", "คำตอบของคุณ");
   if (d.answers.length) {
     d.answers.forEach((a, i) => {
       if (i) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(M, y + 26, CW, 2); }
-      y += 76;
-      font(400, 36); text(a.topic, M, y, MUTED);
-      font(600, 42); text(a.choice, M + CW / 2, y);
+      y += 70;
+      font(500, 30); text(String(a.n), M, y, MUTED);
+      font(400, 32); wrap(ctx, a.question, CW - 52, 2).forEach((ln, j) => { if (j) y += 44; text(ln, M + 52, y, MUTED); });
+      y += 58;
+      font(600, 42); text(a.choice, M + 52, y);
     });
   } else { y += 70; font(400, 38); text("ยังไม่ได้ตอบคำถามสำรวจแนวทาง", M, y, MUTED); }
 

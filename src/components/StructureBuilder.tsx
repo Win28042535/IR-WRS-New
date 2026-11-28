@@ -23,6 +23,7 @@ import { DUR, EASE } from "@/lib/motion";
 import { useDragAutoScroll } from "@/lib/useDragAutoScroll";
 import { onScrollShowBar } from "@/lib/useScrollBar";
 import { NoteField } from "@/components/NoteField";
+import { ThaiWords } from "@/components/ThaiWords";
 
 // The AI proposes REC_MAX sections; the client can add up to MAX_OPT in all (header, hero and
 // footer not counted). A cap again, but a roomy one, shown as "n / 8".
@@ -378,8 +379,8 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
                   </span>
                   <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full font-mono text-caption font-bold ${dragging ? "bg-ir-accent text-ir-on-accent" : "bg-ir-dark text-white"}`}>{shownNo}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-small font-bold leading-snug">{shortName(id)}</span>
-                    {SECTION_BLURB[id] && <span className="block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
+                    <span className="block text-small font-bold leading-snug text-balance"><ThaiWords text={shortName(id)} /></span>
+                    {SECTION_BLURB[id] && <span className="block text-caption leading-snug text-pretty text-ir-t3"><ThaiWords text={SECTION_BLURB[id]} /></span>}
                   </span>
                   <button
                     type="button"
@@ -437,11 +438,11 @@ export function StructureBuilder({ draft, updateDraft }: { draft: Requirement; u
             >
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <span className="text-small font-semibold text-ir-t1">{shortName(id)}</span>
+                  <span className="text-small font-semibold text-ir-t1"><ThaiWords text={shortName(id)} /></span>
                   {recSet.has(id) && <span className="rounded-full bg-primary-50 px-2 py-px text-caption font-semibold text-ir-accent-text">✦ AI แนะนำ</span>}
                   {OTHER_PAGE_SECTION_IDS.includes(id) && <span className="rounded-full bg-ir-muted px-2 py-px text-caption font-medium text-ir-t3">มักอยู่หน้าอื่น</span>}
                 </span>
-                {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-ir-t3">{SECTION_BLURB[id]}</span>}
+                {SECTION_BLURB[id] && <span className="mt-0.5 block text-caption leading-snug text-pretty text-ir-t3"><ThaiWords text={SECTION_BLURB[id]} /></span>}
               </span>
               <span aria-hidden="true" className={`inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-3 text-caption font-semibold transition-colors ${full ? "bg-ir-muted text-ir-t3" : "bg-ir-dark text-white group-hover:bg-ir-accent group-hover:text-ir-on-accent"}`}>
                 <svg width={12} height={12} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M7 2v10M2 7h10" /></svg>

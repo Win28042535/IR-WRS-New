@@ -1135,7 +1135,7 @@ function QuizResult({ draft, onContinue, onRetake, onChoose }: { draft: any; onC
                     </div>
                   </div>
                   <div className="min-w-0 py-1 lg:px-1">
-                    <p className="text-small text-ir-t3 truncate">ข้อ {i + 1}</p>
+                    <p className="text-small leading-snug text-balance text-ir-t3">{i + 1}. <ThaiWords text={q.question} /></p>
                     <p className="text-body font-semibold leading-snug text-ir-t1"><ThaiWords text={o.label} /></p>
                   </div>
                 </li>
@@ -2088,13 +2088,14 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                 <span className="text-small font-semibold text-ir-t2">เพิ่มแล้ว</span>
                 <span className={`text-small font-bold w-5 h-5 flex items-center justify-center rounded-full bg-ir-accent text-ir-on-accent leading-none tabular-nums ${(lastAddedId || removePulse) ? "wrs-counter-pop" : ""}`}>{total}</span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              {/* phones: three square tiles that fill the row; 96px tiles from sm up */}
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
                 {shownUrls.map((u, i) => (
                   <div
                     key={u.id}
                     data-ref-tile={u.id}
-                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${u.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 96, height: 96, order: rankOf.get(u.id), animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    className={`relative group aspect-square w-full sm:size-24 rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${u.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${u.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(u.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    style={{ order: rankOf.get(u.id), animationDelay: u.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     <div
                       className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 pb-6 text-center"
@@ -2144,8 +2145,8 @@ function ReferenceEditor({ draft, updateDraft, variant = "inspiration" }: any) {
                   <div
                     key={img.id}
                     data-ref-tile={img.id}
-                    className={`relative group rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${img.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
-                    style={{ width: 96, height: 96, order: rankOf.get(img.id), animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
+                    className={`relative group aspect-square w-full sm:size-24 rounded-sm overflow-hidden border border-ir-border shrink-0 transition-shadow ${img.id === highlightId ? "ring-2 ring-ir-accent ring-offset-2" : ""} ${img.id === lastAddedId ? "reference-card-insert" : ""} ${removingIds.has(img.id) ? "wrs-row-removing pointer-events-none" : ""}`}
+                    style={{ order: rankOf.get(img.id), animationDelay: img.id === lastAddedId ? `${GALLERY_TILE_DELAY_MS}ms` : undefined }}
                   >
                     {img.kind === "pdf" ? (
                       <span className="w-full h-full flex flex-col items-center justify-center gap-1 bg-red-50 px-1 text-center select-none">

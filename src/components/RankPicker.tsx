@@ -263,7 +263,7 @@ export function RankPicker({
               {/* phones: the #1 badge sits over the title's line, so drop the text below it */}
               <span className={`min-w-0 flex-1 ${rank === 1 ? "max-sm:pt-5" : ""}`}>
                 <span className={`block text-body font-semibold leading-snug ${on ? "text-ir-t1" : "text-ir-t2"}`}>{/* breaks only between word units ("น่าเชื่อ|ถือ" used to split) */}{thaiUnits(it.label).map((u, k) => <Fragment key={k}>{k ? <wbr /> : null}<span className="whitespace-nowrap">{u}</span></Fragment>)}</span>
-                {it.desc && <span className={`mt-0.5 block text-caption leading-snug ${on ? "text-ir-t2" : "text-ir-t3"}`}>{it.desc}</span>}
+                {it.desc && <span className={`mt-0.5 block text-caption leading-snug text-pretty ${on ? "text-ir-t2" : "text-ir-t3"}`}>{thaiUnits(it.desc).map((u, k) => <Fragment key={k}>{k ? <wbr /> : null}<span className="whitespace-nowrap">{u}</span></Fragment>)}</span>}
               </span>
               {rank === 1 && (
                 <span className="rk-first absolute -right-px -top-px inline-flex items-center gap-1 rounded-tr-md rounded-bl-sm bg-ir-accent py-1 pl-2.5 pr-3.5 text-caption font-semibold text-ir-on-accent">★ {topLabel}</span>
